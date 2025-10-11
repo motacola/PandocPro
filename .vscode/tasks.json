@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DOCX → MD",
+      "type": "shell",
+      "command": "./scripts/docx-sync.sh docs/presentation.docx docs/presentation.md to-md",
+      "problemMatcher": []
+    },
+    {
+      "label": "MD → DOCX",
+      "type": "shell",
+      "command": "./scripts/docx-sync.sh docs/presentation.docx docs/presentation.md to-docx",
+      "problemMatcher": []
+    },
+    {
+      "label": "Sync (auto, newest wins)",
+      "type": "shell",
+      "command": "./scripts/docx-sync.sh docs/presentation.docx docs/presentation.md auto",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+~$*.docx
+~$*.doc
+
+# Optional: Uncomment to ignore generated markdown files
+# (if you only want to version control the .docx files)
+# docs/*.md

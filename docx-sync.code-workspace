@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.associations": {
+      "*.md": "markdown"
+    },
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": true,
+    "markdown.preview.fontSize": 14,
+    "markdown.preview.lineHeight": 1.6,
+    "files.exclude": {
+      "**/.git": true,
+      "**/node_modules": true,
+      "**/.DS_Store": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "yzhang.markdown-all-in-one",
+      "shd101wyy.markdown-preview-enhanced",
+      "streetsidesoftware.code-spell-checker"
+    ]
+  }
+}

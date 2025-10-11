@@ -1,0 +1,16 @@
+{
+  "name": "docx-md-sync",
+  "version": "1.0.0",
+  "description": "User-friendly Word ↔ Markdown sync tool",
+  "private": true,
+  "scripts": {
+    "watch": "node watch-md.js",
+    "export": "node watch-md.js --once",
+    "menu": "./scripts/menu.sh",
+    "setup": "./scripts/setup-alias.sh"
+  },
+  "keywords": ["word", "markdown", "pandoc", "sync"],
+  "dependencies": {
+    "chokidar": "^3.6.0"
+  }
+}

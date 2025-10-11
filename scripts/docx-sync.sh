@@ -39,7 +39,7 @@ fi
 
 to_md () {
   echo "📄 Converting Word → Markdown..."
-  if pandoc "$DOCX" -t gfm -o "$MD" 2>/dev/null; then
+  if pandoc "$DOCX" -t gfm -o "$MD"; then
     echo "✅ Success! Wrote: $MD"
   else
     echo "❌ Conversion failed. Is the file valid?" >&2
@@ -49,7 +49,7 @@ to_md () {
 
 to_docx () {
   echo "📘 Converting Markdown → Word..."
-  if pandoc "$MD" -o "$DOCX" 2>/dev/null; then
+  if pandoc "$MD" -o "$DOCX"; then
     echo "✅ Success! Wrote: $DOCX"
   else
     echo "❌ Conversion failed. Is the markdown valid?" >&2

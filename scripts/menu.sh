@@ -22,9 +22,13 @@ echo -e "${BLUE}║   Word ↔ Markdown Sync Menu           ║${NC}"
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
 echo ""
 
-# List all .docx files in docs/
-DOCX_FILES=(docs/*.docx)
-if [[ ! -e "${DOCX_FILES[0]}" ]]; then
+# List all .docx files in docs/ (including subfolders)
+DOCX_FILES=()
+while IFS= read -r file; do
+    DOCX_FILES+=("$file")
+done < <(find docs -type f -iname '*.docx' -print 2>/dev/null | sort)
+
+if [[ ${#DOCX_FILES[@]} -eq 0 ]]; then
     echo -e "${YELLOW}No .docx files found in docs/ folder${NC}"
     echo ""
     echo "Place your Word documents in the docs/ folder and try again."
@@ -34,11 +38,9 @@ fi
 # Show available documents
 echo -e "${GREEN}Available documents:${NC}"
 select_idx=1
-declare -A file_map
 for file in "${DOCX_FILES[@]}"; do
-    basename_file=$(basename "$file")
-    echo "  $select_idx) $basename_file"
-    file_map[$select_idx]="$file"
+    display_path="${file#docs/}"
+    echo "  $select_idx) $display_path"
     ((select_idx++))
 done
 echo ""
@@ -49,12 +51,20 @@ if [[ "$doc_choice" == "q" ]]; then
     exit 0
 fi
 
-if [[ ! ${file_map[$doc_choice]+_} ]]; then
+case "$doc_choice" in
+    ''|*[!0-9]*)
+        echo -e "${RED}Invalid selection${NC}"
+        exit 1
+        ;;
+esac
+
+doc_index=$((doc_choice - 1))
+if (( doc_index < 0 || doc_index >= ${#DOCX_FILES[@]} )); then
     echo -e "${RED}Invalid selection${NC}"
     exit 1
 fi
 
-SELECTED_DOCX="${file_map[$doc_choice]}"
+SELECTED_DOCX="${DOCX_FILES[$doc_index]}"
 SELECTED_MD="${SELECTED_DOCX%.docx}.md"
 
 echo ""

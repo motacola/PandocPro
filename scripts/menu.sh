@@ -98,6 +98,10 @@ case $action in
         echo -e "${GREEN}✓ Done!${NC}"
         ;;
     4)
+        if [[ ! -f "$SELECTED_MD" ]]; then
+            echo -e "${YELLOW}Markdown file doesn't exist. Converting first...${NC}"
+            ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
+        fi
         echo -e "${BLUE}Starting watch mode...${NC}"
         echo -e "${YELLOW}Watching $SELECTED_MD for changes${NC}"
         echo -e "${YELLOW}Press Ctrl+C to stop${NC}"

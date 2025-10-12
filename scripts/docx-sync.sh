@@ -39,6 +39,9 @@ fi
 
 to_md () {
   echo "📄 Converting Word → Markdown..."
+  local md_dir
+  md_dir="$(dirname "$MD")"
+  mkdir -p "$md_dir"
   if pandoc "$DOCX" -t gfm -o "$MD"; then
     echo "✅ Success! Wrote: $MD"
   else
@@ -49,6 +52,9 @@ to_md () {
 
 to_docx () {
   echo "📘 Converting Markdown → Word..."
+  local docx_dir
+  docx_dir="$(dirname "$DOCX")"
+  mkdir -p "$docx_dir"
   if pandoc "$MD" -o "$DOCX"; then
     echo "✅ Success! Wrote: $DOCX"
   else

@@ -27,7 +27,7 @@ echo -e "${GREEN}Detected shell config: $SHELL_RC${NC}"
 echo ""
 
 # Check if alias already exists
-if grep -q "alias dsync=" "$SHELL_RC" 2>/dev/null; then
+if grep -q "^alias dsync=" "$SHELL_RC" 2>/dev/null; then
     echo -e "${YELLOW}Alias 'dsync' already exists in $SHELL_RC${NC}"
     echo ""
     read -p "Replace it? (y/n): " replace
@@ -36,7 +36,7 @@ if grep -q "alias dsync=" "$SHELL_RC" 2>/dev/null; then
         exit 0
     fi
     # Remove old alias
-    sed -i.bak '/alias dsync=/d' "$SHELL_RC"
+    sed -i.bak '/^alias dsync=/d' "$SHELL_RC"
 fi
 
 # Resolve project root dynamically
@@ -48,7 +48,8 @@ SYNC_SCRIPT="$PROJECT_ROOT/sync"
 {
     echo ""
     echo "# Word ↔ Markdown sync tool"
-    printf "alias dsync='%s'\n" "$SYNC_SCRIPT"
+sanitized_sync_script=${SYNC_SCRIPT//\'/\'\\\'\'}
+printf "alias dsync='%s'\n" "$sanitized_sync_script"
 } >> "$SHELL_RC"
 
 echo -e "${GREEN}✓ Alias added to $SHELL_RC${NC}"

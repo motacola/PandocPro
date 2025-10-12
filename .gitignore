@@ -17,3 +17,13 @@ yarn-error.log*
 # Optional: Uncomment to ignore generated markdown files
 # (if you only want to version control the .docx files)
 # docs/*.md
+.clinerules/byterover-rules.md
+.kilocode/rules/byterover-rules.md
+.roo/rules/byterover-rules.md
+.windsurf/rules/byterover-rules.md
+.cursor/rules/byterover-rules.mdc
+.kiro/steering/byterover-rules.md
+.qoder/rules/byterover-rules.md
+.augment/rules/byterover-rules.md
+logs/
+backups/

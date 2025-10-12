@@ -10,6 +10,17 @@ cd "$PROJECT_ROOT"
 # Show welcome message on first run
 "$SCRIPT_DIR/welcome.sh"
 
+HISTORY_FILE="$PROJECT_ROOT/logs/history.log"
+BACKUP_DIR="$PROJECT_ROOT/backups"
+
+sanitize_log_field() {
+    local value="${1//$'\r'/ }"
+    value="${value//$'\n'/ }"
+    value="${value//|/\/}"
+    value="$(echo "$value" | sed 's/[[:space:]]\{2,\}/ /g')"
+    echo "$value"
+}
+
 # Colors for pretty output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -82,8 +93,10 @@ echo "  3) 🔄 Auto-sync (newest file wins)"
 echo "  4) 👀 Watch mode (auto-export on save)"
 echo "  5) ✏️  Edit markdown in VS Code"
 echo "  6) 📂 Open Word document"
+echo "  7) 📜 View recent history"
+echo "  8) ↩️  Undo last conversion"
 echo ""
-read -p "Choose action (1-6): " action
+read -p "Choose action (1-8): " action
 
 case $action in
     1)
@@ -122,6 +135,76 @@ case $action in
     6)
         echo -e "${BLUE}Opening Word document...${NC}"
         open "$SELECTED_DOCX"
+        ;;
+    7)
+        if [[ ! -f "$HISTORY_FILE" ]]; then
+            echo -e "${YELLOW}No history found yet.${NC}"
+        else
+            echo -e "${GREEN}Recent conversions:${NC}"
+            tail -n 10 "$HISTORY_FILE" | while IFS='|' read -r ts mode source target status duration warnings backup note; do
+                [[ -z "$ts" ]] && continue
+                display_target="$(basename "$target")"
+                display_source="$(basename "$source")"
+                summary="${ts} • ${mode} • ${status}"
+                if [[ -n "$duration" ]]; then
+                    summary+=" • ${duration}s"
+                fi
+                if [[ "$warnings" != "none" && -n "$warnings" ]]; then
+                    summary+=" • ${warnings}"
+                fi
+                if [[ -n "$note" && "$note" != "completed" ]]; then
+                    summary+=" • ${note}"
+                fi
+                summary+=" • ${display_source} → ${display_target}"
+                echo "  • $summary"
+            done
+        fi
+        ;;
+    8)
+        if [[ ! -f "$HISTORY_FILE" ]]; then
+            echo -e "${YELLOW}No history to undo.${NC}"
+            exit 0
+        fi
+        last_entry="$(tail -n 1 "$HISTORY_FILE")"
+        if [[ -z "$last_entry" ]]; then
+            echo -e "${YELLOW}History file is empty.${NC}"
+            exit 0
+        fi
+        IFS='|' read -r ts mode source target status duration warnings backup note <<< "$last_entry"
+        if [[ "$status" != "success" ]]; then
+            echo -e "${YELLOW}Last conversion was not successful; nothing to undo.${NC}"
+            exit 0
+        fi
+        if [[ -n "$backup" && -f "$backup" ]]; then
+            if cp "$backup" "$target"; then
+                echo -e "${GREEN}Restored previous version from backup:${NC} $target"
+                undo_note="undo restored backup"
+            else
+                echo -e "${RED}Failed to restore backup.${NC}"
+                exit 1
+            fi
+        else
+            if [[ -f "$target" ]]; then
+                rm "$target"
+                echo -e "${GREEN}Removed newly created file:${NC} $target"
+                undo_note="undo removed new file"
+            else
+                echo -e "${YELLOW}No backup available and target missing; nothing to undo.${NC}"
+                exit 0
+            fi
+        fi
+        timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+        safe_target="$(sanitize_log_field "$target")"
+        safe_backup="$(sanitize_log_field "$backup")"
+        if [[ -n "$backup" ]]; then
+            source_field="$backup"
+        else
+            source_field="(none)"
+        fi
+        safe_source="$(sanitize_log_field "$source_field")"
+        safe_note="$(sanitize_log_field "$undo_note")"
+        printf "%s|undo|%s|%s|success|0|none|%s|%s\n" \
+            "$timestamp" "$safe_source" "$safe_target" "$safe_backup" "$safe_note" >> "$HISTORY_FILE"
         ;;
     *)
         echo -e "${RED}Invalid action${NC}"

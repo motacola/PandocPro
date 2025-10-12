@@ -95,8 +95,9 @@ echo "  5) ✏️  Edit markdown in VS Code"
 echo "  6) 📂 Open Word document"
 echo "  7) 📜 View recent history"
 echo "  8) ↩️  Undo last conversion"
+echo "  9) 🧭 Beginner wizard (guides the whole process)"
 echo ""
-read -p "Choose action (1-8): " action
+read -p "Choose action (1-9): " action
 
 case $action in
     1)
@@ -205,6 +206,10 @@ case $action in
         safe_note="$(sanitize_log_field "$undo_note")"
         printf "%s|undo|%s|%s|success|0|none|%s|%s\n" \
             "$timestamp" "$safe_source" "$safe_target" "$safe_backup" "$safe_note" >> "$HISTORY_FILE"
+        ;;
+    9)
+        echo -e "${BLUE}Starting the beginner-friendly wizard...${NC}"
+        ./scripts/guided-sync.sh
         ;;
     *)
         echo -e "${RED}Invalid action${NC}"

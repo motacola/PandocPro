@@ -39,10 +39,17 @@ if grep -q "alias dsync=" "$SHELL_RC" 2>/dev/null; then
     sed -i.bak '/alias dsync=/d' "$SHELL_RC"
 fi
 
+# Resolve project root dynamically
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SYNC_SCRIPT="$PROJECT_ROOT/sync"
+
 # Add alias
-echo "" >> "$SHELL_RC"
-echo "# Word ↔ Markdown sync tool" >> "$SHELL_RC"
-echo "alias dsync='~/Documents/docx-md-sync/sync'" >> "$SHELL_RC"
+{
+    echo ""
+    echo "# Word ↔ Markdown sync tool"
+    printf "alias dsync='%s'\n" "$SYNC_SCRIPT"
+} >> "$SHELL_RC"
 
 echo -e "${GREEN}✓ Alias added to $SHELL_RC${NC}"
 echo ""

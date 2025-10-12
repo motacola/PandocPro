@@ -65,7 +65,11 @@ if (( doc_index < 0 || doc_index >= ${#DOCX_FILES[@]} )); then
 fi
 
 SELECTED_DOCX="${DOCX_FILES[$doc_index]}"
-SELECTED_MD="${SELECTED_DOCX%.docx}.md"
+if [[ "$SELECTED_DOCX" =~ \.[dD][oO][cC][xX]$ ]]; then
+    SELECTED_MD="${SELECTED_DOCX%.[dD][oO][cC][xX]}.md"
+else
+    SELECTED_MD="${SELECTED_DOCX}.md"
+fi
 
 echo ""
 echo -e "${GREEN}Selected: $(basename "$SELECTED_DOCX")${NC}"

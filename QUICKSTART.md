@@ -1,86 +1,86 @@
 # 🚀 Quick Start Guide
 
-## Super Simple Setup (One-Time)
+This walkthrough takes about five minutes and you don’t need to be “technical” to follow it.
 
-Clone the repo wherever you like and set up the helper command:
+---
+
+## 1. Set Things Up (one time only)
+
+Copy and paste the commands below into Terminal. They download PandocPro, install the helper scripts, and make the `dsync` shortcut available everywhere.
 
 ```bash
 git clone https://github.com/motacola/PandocPro.git
 cd PandocPro
 npm install
 ./scripts/setup-alias.sh
-source ~/.zshrc  # or open a new terminal
+source ~/.zshrc  # or simply open a new Terminal window
 ```
 
-Now you can just type `dsync` from anywhere! 🎉
+You’re ready to go—`dsync` will now work from any folder on your Mac. 🎉
 
 ---
 
-## Daily Usage
+## 2. Use It Day to Day
 
-### Option 1: Interactive Menu (Recommended)
+### Option A (recommended): Let the menu guide you
 
-Just run:
 ```bash
 dsync
 ```
 
-You'll see a friendly menu that lets you:
-- 📄 Convert Word → Markdown
-- 📘 Export Markdown → Word  
-- 🔄 Auto-sync (smart detection)
-- 👀 Watch mode (auto-save)
-- ✏️ Edit in VS Code
-- 📂 Open Word document
+The on-screen menu will help you:
+- 📄 Make an easy-to-edit Markdown copy of a Word file
+- 📘 Build a brand-new Word file from your Markdown changes
+- 🔄 Keep both versions matched automatically
+- 👀 Turn on live updates while you edit (watch mode)
+- ✏️ Open the Markdown file in VS Code
+- 📂 Open the original Word document
 
-### Option 2: Direct Commands
+### Option B: Run the commands yourself
 
 ```bash
 cd /path/to/PandocPro
 
-# Convert Word to Markdown
+# Turn a Word file into Markdown
 ./scripts/docx-sync.sh docs/yourfile.docx docs/yourfile.md to-md
 
-# Export Markdown to Word
+# Turn that Markdown back into Word
 ./scripts/docx-sync.sh docs/yourfile.docx docs/yourfile.md to-docx
 
-# Auto-sync (newest file wins)
+# Let the script decide which version is newer
 ./scripts/docx-sync.sh docs/yourfile.docx docs/yourfile.md auto
 ```
 
 ---
 
-## Typical Workflow
+## 3. Typical Workflow (copy/paste friendly)
 
-1. **Drop your Word doc** in the `docs/` folder
-2. **Run** `dsync`
-3. **Select** your document from the list
-4. **Choose** "Convert to Markdown"
-5. **Edit** the .md file in VS Code
-6. **Choose** "Export to Word" when done
-7. **Open** the .docx in Word for final polish
+1. Drop your Word document in the `docs/` folder (subfolders are fine).
+2. Run `dsync`.
+3. Pick your document from the list.
+4. Choose “Make a Markdown copy” (option 1).
+5. Edit the `.md` file in VS Code.
+6. Choose “Create a Word file from my Markdown” (option 2) when you’re happy.
+7. Open the refreshed `.docx` in Word for final formatting.
 
 ---
 
 ## Pro Tips
 
-### 🎯 Use Watch Mode
-While editing, start watch mode so your Word doc updates automatically:
+### 🎯 Live update while you edit
 ```bash
 dsync
-# Select document
-# Choose "4) Watch mode"
+# Select your document
+# Pick “Live update while I edit” (option 4)
 ```
+Every time you press ⌘S in VS Code, the Word document refreshes automatically.
 
-Now every time you save the Markdown, the Word doc updates!
+### 🎨 Helpful VS Code extensions
+- **Markdown All in One** – handy shortcuts
+- **Markdown Preview Enhanced** – live preview pane
+- **Code Spell Checker** – quick spelling fixes
 
-### 🎨 VS Code Extensions
-Install these for better Markdown editing:
-- Markdown All in One
-- Markdown Preview Enhanced
-- Code Spell Checker
-
-### 📁 Organize Your Docs
+### 📁 Keep things tidy
 ```
 docs/
 ├── reports/
@@ -98,45 +98,34 @@ docs/
 
 ## Troubleshooting
 
-**"pandoc: command not found"**
-```bash
-brew install pandoc
-```
+- **“pandoc: command not found”**  
+  Run `brew install pandoc`
 
-**"No .docx files found"**
-- Make sure your Word documents are in the `docs/` folder
-- The script looks for *.docx files there
+- **“No .docx files found”**  
+  Make sure the Word files are inside the `docs/` folder.
 
-**Watch mode not working**
-```bash
-cd /path/to/PandocPro && npm install
-```
+- **Watch mode says packages are missing**  
+  Run `cd /path/to/PandocPro && npm install`
 
 ---
 
-## Getting Help
+## Need a Hand?
 
-Run the menu and explore the options:
 ```bash
 dsync
 ```
 
-Or check the full README.md for advanced usage.
+The menu is always the fastest way to explore what’s possible. Prefer reading? The full [README](README.md) dives into advanced tips.
 
 ---
 
-## Optional: Claude Desktop + MCP Automation
+## Optional Extras
 
-Want Claude to run the scripts for you? Install **Claude Desktop** (Desktop Commander) and copy the MCP configuration from [MCP-INTEGRATION.md](MCP-INTEGRATION.md) into `~/mcp/tools/docsync.yaml`, then restart the app. After that you can ask Claude things like “Convert report.docx to markdown” or “Improve notes.md and export to Word” and it will invoke the right tools automatically.
+### Claude Desktop + MCP (voice-controlled automation)
+Install **Claude Desktop** (Desktop Commander) and copy the YAML from [MCP-INTEGRATION.md](MCP-INTEGRATION.md) into `~/mcp/tools/docsync.yaml`. Restart the app and you can say things like “Convert report.docx to markdown” or “Improve notes.md and export to Word.”
 
----
-
-## Optional: Pick Your Local LLM
-
-Prefer running your own model? Detect what's already installed:
-
+### Pick the AI model you want to use
 ```bash
 ./scripts/configure-llm.sh
 ```
-
-You'll get a menu with any local runtimes (Ollama, LM Studio, llama.cpp, etc.) and a custom option. The selection is saved to `config/llm-selection.json` so you can reuse it in MCP configs or other automation scripts.
+The helper finds Ollama, LM Studio, or llama.cpp if they’re installed, and stores your choice in `config/llm-selection.json` for reuse.

@@ -87,55 +87,55 @@ echo -e "${GREEN}Selected: $(basename "$SELECTED_DOCX")${NC}"
 echo ""
 echo "What would you like to do?"
 echo ""
-echo "  1) 📄 Convert to Markdown (for editing)"
-echo "  2) 📘 Export to Word (from markdown)"
-echo "  3) 🔄 Auto-sync (newest file wins)"
-echo "  4) 👀 Watch mode (auto-export on save)"
-echo "  5) ✏️  Edit markdown in VS Code"
-echo "  6) 📂 Open Word document"
-echo "  7) 📜 View recent history"
-echo "  8) ↩️  Undo last conversion"
-echo "  9) 🧭 Beginner wizard (guides the whole process)"
-echo " 10) 🤖 Configure AI assistant (choose local LLM)"
+echo "  1) 📄 Make a Markdown copy so I can edit here"
+echo "  2) 📘 Create a fresh Word file from my Markdown"
+echo "  3) 🔄 Keep Word and Markdown matched automatically"
+echo "  4) 👀 Live update Word while I edit (watch mode)"
+echo "  5) ✏️  Open the Markdown in VS Code"
+echo "  6) 📂 Open this file in Microsoft Word"
+echo "  7) 📜 Show recent activity"
+echo "  8) ↩️  Undo the last thing I did"
+echo "  9) 🧭 Step-by-step helper (beginner mode)"
+echo " 10) 🤖 Pick which AI helper to use"
 echo ""
 read -p "Choose action (1-10): " action
 
 case $action in
     1)
-        echo -e "${BLUE}Converting to Markdown...${NC}"
+        echo -e "${BLUE}Creating an easy-to-edit Markdown copy...${NC}"
         ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
-        echo -e "${GREEN}✓ Done! Edit: $SELECTED_MD${NC}"
+        echo -e "${GREEN}✓ All set! Open $SELECTED_MD to start editing.${NC}"
         ;;
     2)
-        echo -e "${BLUE}Exporting to Word...${NC}"
+        echo -e "${BLUE}Building a polished Word file from your Markdown...${NC}"
         ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-docx
-        echo -e "${GREEN}✓ Done! Open: $SELECTED_DOCX${NC}"
+        echo -e "${GREEN}✓ Done! Open $SELECTED_DOCX in Word to review.${NC}"
         ;;
     3)
-        echo -e "${BLUE}Auto-syncing...${NC}"
+        echo -e "${BLUE}Checking which version is newer and syncing...${NC}"
         ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" auto
-        echo -e "${GREEN}✓ Done!${NC}"
+        echo -e "${GREEN}✓ Both copies now match.${NC}"
         ;;
     4)
         if [[ ! -f "$SELECTED_MD" ]]; then
-            echo -e "${YELLOW}Markdown file doesn't exist. Converting first...${NC}"
+            echo -e "${YELLOW}No Markdown copy yet—creating one for you first...${NC}"
             ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
         fi
         if ! command -v npm >/dev/null 2>&1; then
-            echo -e "${RED}Watch mode requires Node.js (npm) to run.${NC}"
-            echo -e "${YELLOW}Install it on macOS with:${NC} brew install node"
+            echo -e "${RED}Live updates need Node.js (npm) to be installed.${NC}"
+            echo -e "${YELLOW}Tip:${NC} Install it with: brew install node"
             exit 1
         fi
         if [[ ! -d node_modules ]]; then
-            echo -e "${BLUE}Installing JavaScript dependencies (one-time setup)...${NC}"
+            echo -e "${BLUE}Downloading a few helper packages (one-time step)...${NC}"
             if ! npm install; then
-                echo -e "${RED}npm install failed. Check your internet connection and try again.${NC}"
+                echo -e "${RED}npm install failed. Please check your internet connection and try again.${NC}"
                 exit 1
             fi
         fi
-        echo -e "${BLUE}Starting watch mode...${NC}"
-        echo -e "${YELLOW}Watching $SELECTED_MD for changes${NC}"
-        echo -e "${YELLOW}Press Ctrl+C to stop${NC}"
+        echo -e "${BLUE}Live updates are running!${NC}"
+        echo -e "${YELLOW}Every time you save $SELECTED_MD, the Word file updates automatically.${NC}"
+        echo -e "${YELLOW}Leave this window open. Press Ctrl+C to stop when you’re finished.${NC}"
         MD_FILE="$SELECTED_MD" DOCX_FILE="$SELECTED_DOCX" npm run watch
         ;;
     5)

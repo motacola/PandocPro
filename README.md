@@ -1,64 +1,61 @@
 # Word ↔ Markdown Sync 🚀
 
-The easiest way to edit Word documents in VS Code with full automation support.
+PandocPro lets anyone work on Word documents without living inside Word. Drop a `.docx` file in the project, press `dsync`, and follow the friendly menu—no coding knowledge required.
 
-## 🛠️ macOS Prerequisites
+## 👋 What You’ll Need (macOS)
 
-- **Homebrew** (recommended) – install from [brew.sh](https://brew.sh) to use the commands below.
-- **Pandoc** – required for every conversion: `brew install pandoc`
-- **Node.js 18+ (includes npm)** – needed for watch mode and menu automation: `brew install node`
-- **Microsoft Word** – for final formatting and review
-- **Visual Studio Code** – recommended editor: `brew install --cask visual-studio-code`
-- *(Optional, for AI automation)* **Claude Desktop (Desktop Commander)** – enables the `docSync` MCP tools described below; grab the macOS app from [anthropic.com/desktop](https://www.anthropic.com/desktop)
-- *(Optional, for AI automation)* **docSync MCP configuration** – copy the provided YAML into `~/mcp/tools/docsync.yaml` so Claude can call these scripts (see [MCP-INTEGRATION.md](MCP-INTEGRATION.md) for the exact snippet and walkthrough)
+- **Homebrew** – easiest way to install the tools below: [brew.sh](https://brew.sh)
+- **Pandoc** – handles the Word ↔ Markdown conversions: `brew install pandoc`
+- **Node.js 18+** – powers the “live update” feature: `brew install node`
+- **Microsoft Word** – for final polish and sharing
+- **Visual Studio Code** – comfortable place to edit: `brew install --cask visual-studio-code`
+- *(Optional)* **Claude Desktop (Desktop Commander)** – lets AI run the workflow for you
+- *(Optional)* **docSync MCP config** – see [MCP-INTEGRATION.md](MCP-INTEGRATION.md) for a copy‑paste YAML snippet
 
-After cloning the repo, run `npm install` once inside the project folder to download the watcher dependencies.
+> **Tip:** After cloning the repo, run `npm install` once so watch mode works later.
 
-## ⚡ Quick Start
+## ⚡ Get Going in Minutes
 
-1. **Clone & enter the project**
+1. **Grab the project**
    ```bash
    git clone https://github.com/motacola/PandocPro.git
    cd PandocPro
    ```
 
-2. **Install JavaScript dependencies** (watch mode)
+2. **Install the helper command**
    ```bash
    npm install
-   ```
-
-3. **One-time setup** (creates `dsync` command):
-   ```bash
    ./scripts/setup-alias.sh
-   source ~/.zshrc  # or restart terminal
+   source ~/.zshrc  # or open a new terminal window
    ```
 
-4. **Add your Word documents** to the `docs/` folder
+3. **Drop your Word files** into the `docs/` folder (feel free to make subfolders).
 
-5. **Run the interactive menu**:
+4. **Run the menu**
    ```bash
    dsync
    ```
+   Pick your document, choose what you need, and the script walks you through it.
 
-6. *(Optional)* **Configure your AI assistant**:
+5. *(Optional)* **Choose your AI helper**
    ```bash
    ./scripts/configure-llm.sh
    ```
+   This finds Ollama/LM Studio/llama.cpp installs—or lets you type in a custom endpoint.
 
-That's it! 🎉
+That’s all most people need. You can always come back to the menu later.
 
 ---
 
-## ✨ Features
+## 🌟 Why People Like It
 
-- 📄 **Convert Word → Markdown** for editing in VS Code
-- 📘 **Export Markdown → Word** with one command
-- 🔄 **Auto-sync** - smart detection of which file is newer
-- 👀 **Watch mode** - auto-exports on save
-- 🎨 **Interactive menu** - no need to remember commands
-- 🛠️ **VS Code tasks** - keyboard shortcuts for conversions
-- 🤖 **MCP integration** - use with Desktop Commander for AI assistance
-- 🧠 **Local LLM chooser** - auto-detect Ollama, LM Studio, llama.cpp, or custom endpoints
+- 📁 **Simple file flow** – Copy Word files into Markdown for editing and back again.
+- 💬 **Plain-English prompts** – The menu says what will happen in everyday language.
+- 🔄 **One button sync** – Let the tool decide which version is newer and keep both aligned.
+- 👀 **Live updates** – Turn on watch mode so saving your Markdown instantly refreshes Word.
+- 🧰 **VS Code ready** – Tasks and workspace settings are already tuned for Markdown.
+- 🤖 **Optional AI assist** – Wire in Claude Desktop or any local LLM in a couple of minutes.
+- 🧠 **Local model picker** – Detect and remember whichever AI model you prefer.
 
 ---
 
@@ -70,17 +67,14 @@ That's it! 🎉
 dsync
 ```
 
-You'll see a beautiful menu:
-- Select your document from a list
-- Choose what you want to do
-- Everything happens automatically
+The menu lists your Word files and explains each action in plain English. Pick what you need and it does the rest.
 
 ### VS Code Integration
 
 Open the Command Palette (`⇧⌘P`) → "Tasks: Run Task" → Choose:
-- **DOCX → MD** - Convert to Markdown
-- **MD → DOCX** - Export to Word
-- **Sync (auto)** - Smart sync
+- **DOCX → MD** – Make a Markdown copy of the selected Word file
+- **MD → DOCX** – Build a fresh Word document from your Markdown edits
+- **Sync (auto)** – Let the script choose the newer file and copy that over
 
 ### Watch Mode
 
@@ -88,10 +82,10 @@ Start watch mode for live updates:
 ```bash
 dsync
 # Select document
-# Choose "4) Watch mode"
+# Choose "Live update while I edit"
 ```
 
-Now every save in VS Code updates your Word doc! ✨
+Now every time you press ⌘S in VS Code, the matching Word document refreshes automatically. ✨
 
 ---
 
@@ -99,11 +93,11 @@ Now every save in VS Code updates your Word doc! ✨
 
 1. Drop your Word doc in `docs/`
 2. Run `dsync`
-3. Convert to Markdown
-4. Edit in VS Code (with all your extensions!)
-5. Use MCP tools for AI-powered improvements
-6. Export back to Word
-7. Polish formatting in Word
+3. Choose “Make a Markdown copy” (option 1)
+4. Edit the `.md` file in VS Code (extensions welcome!)
+5. Optional: ask the AI helper to tidy things up
+6. Choose “Create a Word file from my Markdown” (option 2)
+7. Open the refreshed `.docx` in Word for final formatting
 
 ---
 

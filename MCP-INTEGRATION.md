@@ -187,11 +187,17 @@ You don't need to know tool names or parameters!
 
 ---
 
+## 🧠 Choose Your Preferred Model
+
+Run `./scripts/configure-llm.sh` to detect local runtimes (Ollama, LM Studio, llama.cpp, or a custom endpoint) and save your choice to `config/llm-selection.json`. Use the values from that file when updating `~/mcp/tools/docsync.yaml` so Claude (or any MCP-capable client) talks to the model you prefer.
+
+---
+
 ## 📍 File Paths
 
 For best results, use paths like:
-- `~/Documents/docx-md-sync/docs/report.docx`
-- `docs/presentation.md` (relative to project)
+- `/path/to/PandocPro/docs/report.docx` (replace with your clone location)
+- `docs/presentation.md` (relative to the project root)
 - Or just the filename if it's in the docs folder
 
 I'll figure out the full path automatically!
@@ -297,7 +303,7 @@ Only for active editing sessions:
 
 ### **"Watch mode isn't working"**
 → Make sure npm dependencies are installed
-→ Try: "cd ~/Documents/docx-md-sync && npm install"
+→ Try: "cd /path/to/PandocPro && npm install"
 
 ---
 
@@ -316,7 +322,7 @@ Ask me anything like:
 ## 📖 Related Documentation
 
 - **MCP YAML**: `~/mcp/tools/docsync.yaml` (the configuration)
-- **Tool Scripts**: `~/Documents/docx-md-sync/scripts/`
+- **Tool Scripts**: `/path/to/PandocPro/scripts/`
 - **Main Docs**: See `INDEX.md` for complete documentation
 
 ---

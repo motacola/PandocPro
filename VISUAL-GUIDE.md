@@ -76,7 +76,7 @@ dsync
 ## File Organization
 
 ```
-~/Documents/docx-md-sync/
+/path/to/PandocPro/
 │
 ├── 📁 docs/                    ← Your documents go here
 │   ├── 📄 report.docx
@@ -88,7 +88,8 @@ dsync
 │   ├── 🚀 menu.sh             ← Interactive menu
 │   ├── 🔄 docx-sync.sh        ← Conversion engine
 │   ├── ⚙️  setup-alias.sh      ← Install dsync command
-│   └── 👋 welcome.sh          ← First-run greeting
+│   ├── 👋 welcome.sh          ← First-run greeting
+│   └── 🧠 configure-llm.sh    ← Detect & save local LLMs
 │
 ├── 📁 .vscode/
 │   └── ⚙️  tasks.json          ← VS Code shortcuts

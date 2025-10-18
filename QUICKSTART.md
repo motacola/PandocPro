@@ -2,10 +2,12 @@
 
 ## Super Simple Setup (One-Time)
 
-Run this once to set up a global command:
+Clone the repo wherever you like and set up the helper command:
 
 ```bash
-cd ~/Documents/docx-md-sync
+git clone https://github.com/motacola/PandocPro.git
+cd PandocPro
+npm install
 ./scripts/setup-alias.sh
 source ~/.zshrc  # or open a new terminal
 ```
@@ -34,7 +36,7 @@ You'll see a friendly menu that lets you:
 ### Option 2: Direct Commands
 
 ```bash
-cd ~/Documents/docx-md-sync
+cd /path/to/PandocPro
 
 # Convert Word to Markdown
 ./scripts/docx-sync.sh docs/yourfile.docx docs/yourfile.md to-md
@@ -107,8 +109,7 @@ brew install pandoc
 
 **Watch mode not working**
 ```bash
-cd ~/Documents/docx-md-sync
-npm install
+cd /path/to/PandocPro && npm install
 ```
 
 ---
@@ -121,3 +122,21 @@ dsync
 ```
 
 Or check the full README.md for advanced usage.
+
+---
+
+## Optional: Claude Desktop + MCP Automation
+
+Want Claude to run the scripts for you? Install **Claude Desktop** (Desktop Commander) and copy the MCP configuration from [MCP-INTEGRATION.md](MCP-INTEGRATION.md) into `~/mcp/tools/docsync.yaml`, then restart the app. After that you can ask Claude things like “Convert report.docx to markdown” or “Improve notes.md and export to Word” and it will invoke the right tools automatically.
+
+---
+
+## Optional: Pick Your Local LLM
+
+Prefer running your own model? Detect what's already installed:
+
+```bash
+./scripts/configure-llm.sh
+```
+
+You'll get a menu with any local runtimes (Ollama, LM Studio, llama.cpp, etc.) and a custom option. The selection is saved to `config/llm-selection.json` so you can reuse it in MCP configs or other automation scripts.

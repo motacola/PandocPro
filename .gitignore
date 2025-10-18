@@ -27,3 +27,4 @@ yarn-error.log*
 .augment/rules/byterover-rules.md
 logs/
 backups/
+config/

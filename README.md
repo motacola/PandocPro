@@ -2,20 +2,47 @@
 
 The easiest way to edit Word documents in VS Code with full automation support.
 
+## 🛠️ macOS Prerequisites
+
+- **Homebrew** (recommended) – install from [brew.sh](https://brew.sh) to use the commands below.
+- **Pandoc** – required for every conversion: `brew install pandoc`
+- **Node.js 18+ (includes npm)** – needed for watch mode and menu automation: `brew install node`
+- **Microsoft Word** – for final formatting and review
+- **Visual Studio Code** – recommended editor: `brew install --cask visual-studio-code`
+- *(Optional, for AI automation)* **Claude Desktop (Desktop Commander)** – enables the `docSync` MCP tools described below; grab the macOS app from [anthropic.com/desktop](https://www.anthropic.com/desktop)
+- *(Optional, for AI automation)* **docSync MCP configuration** – copy the provided YAML into `~/mcp/tools/docsync.yaml` so Claude can call these scripts (see [MCP-INTEGRATION.md](MCP-INTEGRATION.md) for the exact snippet and walkthrough)
+
+After cloning the repo, run `npm install` once inside the project folder to download the watcher dependencies.
+
 ## ⚡ Quick Start
 
-1. **One-time setup** (creates `dsync` command):
+1. **Clone & enter the project**
    ```bash
-   cd ~/Documents/docx-md-sync
+   git clone https://github.com/motacola/PandocPro.git
+   cd PandocPro
+   ```
+
+2. **Install JavaScript dependencies** (watch mode)
+   ```bash
+   npm install
+   ```
+
+3. **One-time setup** (creates `dsync` command):
+   ```bash
    ./scripts/setup-alias.sh
    source ~/.zshrc  # or restart terminal
    ```
 
-2. **Add your Word documents** to the `docs/` folder
+4. **Add your Word documents** to the `docs/` folder
 
-3. **Run the interactive menu**:
+5. **Run the interactive menu**:
    ```bash
    dsync
+   ```
+
+6. *(Optional)* **Configure your AI assistant**:
+   ```bash
+   ./scripts/configure-llm.sh
    ```
 
 That's it! 🎉
@@ -31,6 +58,7 @@ That's it! 🎉
 - 🎨 **Interactive menu** - no need to remember commands
 - 🛠️ **VS Code tasks** - keyboard shortcuts for conversions
 - 🤖 **MCP integration** - use with Desktop Commander for AI assistance
+- 🧠 **Local LLM chooser** - auto-detect Ollama, LM Studio, llama.cpp, or custom endpoints
 
 ---
 
@@ -93,10 +121,40 @@ I can read, edit, and convert your documents automatically!
 
 ---
 
+## 🤖 MCP Automation Setup (Optional)
+
+Want to drive everything through Claude Desktop? Set up the `docSync` MCP once:
+
+1. Install **Claude Desktop for macOS** and enable **Desktop Commander** in the app preferences.
+2. Create `~/mcp/tools/docsync.yaml` and paste the configuration from [MCP-INTEGRATION.md](MCP-INTEGRATION.md) (the YAML registers every `docSync.*` tool shown above).
+3. Restart Claude Desktop so it discovers the new MCP tool suite.
+
+After that you can ask Claude things like “Convert report.docx to markdown”, “Improve presentation.md and export to Word”, or “Start watch mode for notes.md” and it will invoke the right commands automatically.
+
+---
+
+## 🧠 Configure Your Local LLM (Optional)
+
+Prefer running your own models? Use the helper to discover what's on your Mac:
+
+```bash
+./scripts/configure-llm.sh
+```
+
+The script will:
+- Detect installs such as **Ollama**, **LM Studio**, or **llama.cpp**
+- Let you register any custom HTTP endpoint
+- Save your choice to `config/llm-selection.json` for reuse
+- *(Optional)* Install `jq` (`brew install jq`) for a pretty summary after the script runs
+
+Reference that JSON file when wiring up MCP configs, VS Code extensions, or other automations so they call the model you prefer.
+
+---
+
 ## 📁 Project Structure
 
 ```
-docx-md-sync/
+PandocPro/
 ├── docs/               # Put your Word docs here
 │   ├── *.docx         # Word documents
 │   └── *.md           # Generated Markdown files
@@ -115,7 +173,7 @@ docx-md-sync/
 ### Direct Commands
 
 ```bash
-cd ~/Documents/docx-md-sync
+cd /path/to/PandocPro
 
 # Convert specific file
 ./scripts/docx-sync.sh docs/report.docx docs/report.md to-md
@@ -171,7 +229,7 @@ source ~/.zshrc  # or restart terminal
 
 **Watch mode errors**
 ```bash
-cd ~/Documents/docx-md-sync && npm install
+cd /path/to/PandocPro && npm install
 ```
 
 ---

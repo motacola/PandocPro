@@ -54,6 +54,7 @@ Your Word ↔ Markdown setup is now **incredibly user-friendly**! Here's everyth
 - Progress indicators
 - Colored output for clarity
 - Smart file detection
+- New `configure-llm.sh` helper to detect local AI runtimes (Ollama, LM Studio, llama.cpp, or custom)
 
 ### 7. **Test Suite** 🧪
 - `test-setup.sh` verifies everything works
@@ -83,7 +84,7 @@ Your Word ↔ Markdown setup is now **incredibly user-friendly**! Here's everyth
 ### Before (Basic Setup)
 ```bash
 # Long commands to remember
-cd ~/Documents/docx-md-sync
+cd /path/to/PandocPro
 ./scripts/docx-sync.sh docs/file.docx docs/file.md to-md
 
 # No menu, manual file selection

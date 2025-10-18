@@ -142,6 +142,12 @@ Claude will:
 
 ---
 
+## 🧠 Point Automation at Your Preferred LLM
+
+Before asking for AI help, run `./scripts/configure-llm.sh` to detect local runtimes (Ollama, LM Studio, llama.cpp, or custom endpoints). The tool saves your choice to `config/llm-selection.json`; plug those values into your MCP configuration so every request uses the model you want.
+
+---
+
 ## Best Practices
 
 ### 1. Be Specific

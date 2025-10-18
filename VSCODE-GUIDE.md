@@ -51,7 +51,7 @@ code --install-extension streetsidesoftware.code-spell-checker
 Open the workspace file for enhanced experience:
 
 ```bash
-open ~/Documents/docx-md-sync/docx-sync.code-workspace
+open /path/to/PandocPro/docx-sync.code-workspace
 ```
 
 **What you get:**

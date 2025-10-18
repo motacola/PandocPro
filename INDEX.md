@@ -156,6 +156,8 @@ Welcome! Here's everything you need to know about Word ↔ Markdown Sync.
 ### Automation
 - MCP-AUTOMATION.md → "What You Can Ask"
 - MCP-AUTOMATION.md → "Example Workflows"
+- README.md → "Configure Your Local LLM"
+- QUICKSTART.md → "Optional: Pick Your Local LLM"
 
 ### Setup
 - QUICKSTART.md → "One-Time Setup"

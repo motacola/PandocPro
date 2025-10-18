@@ -57,6 +57,11 @@ You have a **professional-grade**, **AI-powered** document workflow with **multi
 - Examples and workflows
 - Troubleshooting guide
 
+✅ **Local LLM Chooser**
+- `./scripts/configure-llm.sh`
+- Detect Ollama, LM Studio, llama.cpp, or custom endpoints
+- Saves selection to `config/llm-selection.json`
+
 ---
 
 ## 📊 Complete Feature Matrix
@@ -235,7 +240,7 @@ Me: [Reads report.md]
 ```
 YOUR SETUP
 │
-├── 📂 ~/Documents/docx-md-sync/
+├── 📂 /path/to/PandocPro/
 │   ├── docs/                      ← Your documents
 │   ├── scripts/                   ← Automation scripts
 │   ├── .vscode/                   ← VS Code integration
@@ -259,7 +264,7 @@ Run these to verify everything:
 
 ```bash
 # 1. Test the setup
-cd ~/Documents/docx-md-sync && ./test-setup.sh
+cd /path/to/PandocPro && ./test-setup.sh
 
 # 2. Check MCP YAML
 cat ~/mcp/tools/docsync.yaml

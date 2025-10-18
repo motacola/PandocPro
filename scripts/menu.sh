@@ -96,8 +96,9 @@ echo "  6) 📂 Open Word document"
 echo "  7) 📜 View recent history"
 echo "  8) ↩️  Undo last conversion"
 echo "  9) 🧭 Beginner wizard (guides the whole process)"
+echo " 10) 🤖 Configure AI assistant (choose local LLM)"
 echo ""
-read -p "Choose action (1-9): " action
+read -p "Choose action (1-10): " action
 
 case $action in
     1)
@@ -119,6 +120,18 @@ case $action in
         if [[ ! -f "$SELECTED_MD" ]]; then
             echo -e "${YELLOW}Markdown file doesn't exist. Converting first...${NC}"
             ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
+        fi
+        if ! command -v npm >/dev/null 2>&1; then
+            echo -e "${RED}Watch mode requires Node.js (npm) to run.${NC}"
+            echo -e "${YELLOW}Install it on macOS with:${NC} brew install node"
+            exit 1
+        fi
+        if [[ ! -d node_modules ]]; then
+            echo -e "${BLUE}Installing JavaScript dependencies (one-time setup)...${NC}"
+            if ! npm install; then
+                echo -e "${RED}npm install failed. Check your internet connection and try again.${NC}"
+                exit 1
+            fi
         fi
         echo -e "${BLUE}Starting watch mode...${NC}"
         echo -e "${YELLOW}Watching $SELECTED_MD for changes${NC}"
@@ -210,6 +223,10 @@ case $action in
     9)
         echo -e "${BLUE}Starting the beginner-friendly wizard...${NC}"
         ./scripts/guided-sync.sh
+        ;;
+    10)
+        echo -e "${BLUE}Scanning for local LLM runtimes...${NC}"
+        ./scripts/configure-llm.sh
         ;;
     *)
         echo -e "${RED}Invalid action${NC}"

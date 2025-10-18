@@ -8,10 +8,12 @@ NC='\033[0m'
 
 DESKTOP="$HOME/Desktop"
 LAUNCHER="$DESKTOP/Word-Markdown-Sync.command"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-cat > "$LAUNCHER" << 'EOF'
+cat > "$LAUNCHER" << EOF
 #!/usr/bin/env bash
-cd ~/Documents/docx-md-sync && ./scripts/menu.sh
+cd "$PROJECT_ROOT" && ./scripts/menu.sh
 EOF
 
 chmod +x "$LAUNCHER"

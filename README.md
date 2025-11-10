@@ -249,14 +249,15 @@ cd /path/to/PandocPro && npm install
 
 ## 🖥️ Desktop GUI (Preview)
 
-Prefer windows and buttons over terminals? A new Electron-based GUI is bundled in `gui/` and already knows how to list your docs, trigger conversions, and show live logs/history.
+Prefer windows and buttons over terminals? A new Electron-based GUI is bundled in `gui/` and already knows how to list your docs, trigger conversions, edit Markdown visually, and show live logs/history.
 
 ```bash
 npm run gui:dev    # start the Electron + Vite app in dev mode
 # In the Electron window:
 # 1. Pick a .docx from the dropdown
-# 2. Choose an action (Convert, Export, Auto Sync) and click “Run Selected Action”
-# 3. Watch stdout/stderr per-run logs, copy them if needed, and review Recent Activity pulled from logs/history.log
+# 2. Use the TipTap editor to rewrite Markdown with WYSIWYG controls, save, or “Save & Export”
+# 3. Choose an action (Convert, Export, Auto Sync) and click “Run Selected Action”
+# 4. Watch stdout/stderr per-run logs, copy them if needed, and review Recent Activity pulled from logs/history.log
 ```
 
 When you’re ready to distribute the desktop app, build installers with:
@@ -265,7 +266,7 @@ When you’re ready to distribute the desktop app, build installers with:
 npm run gui:build  # produces DMG + ZIP bundles in gui/release/
 ```
 
-Upcoming milestones will add a TipTap-based WYSIWYG editor, watch controls, and onboarding wizards so non-technical teammates never have to see raw Markdown.
+The GUI now ships with a TipTap-based editor, watch controls are on deck, and onboarding wizards are planned so non-technical teammates never have to see raw Markdown or the terminal.
 
 ---
 

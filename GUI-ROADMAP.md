@@ -121,7 +121,7 @@ Once the GUI MVP works, we can layer in richer UX (drag-and-drop, WYSIWYG editor
 
 ---
 
-## Current Status & Testing Notes (Milestone 2)
+## Current Status & Testing Notes (Milestones 2–3)
 
 - ✅ Electron workspace scaffolded under `gui/`
 - ✅ IPC contract implemented (`conversion:start/stdout/stderr/exit/error`, `docs:list`)
@@ -143,3 +143,41 @@ Package the preview build with:
 ```bash
 npm run gui:build   # Produces DMG/ZIP artifacts in gui/release/
 ```
+
+---
+
+## WYSIWYG Editor Integration Plan (Upcoming)
+
+### Editor Choice
+| Option | Pros | Cons | Status |
+| --- | --- | --- | --- |
+| **TipTap (ProseMirror)** | True WYSIWYG feel, toolbar support, Markdown extensions available, React-friendly | Heavier dependency, requires serialization to Markdown | ✅ Recommended |
+| Monaco | Familiar to developers, built-in Markdown support, easy diffing | Still shows Markdown syntax (not WYSIWYG), keyboard-heavy | ❌ |
+| SimpleMDE / Milkdown | Lightweight, Markdown-first | Less extensible, limited toolbar options | ❌ |
+
+### Architecture
+1. **Editor component** (`renderer/components/EditorPane.tsx`)
+   - Wrap TipTap with Markdown extension for round-trip editing.
+   - Toolbar buttons for bold/italic/headings/lists/table/undo-redo.
+   - Command palette / keyboard shortcuts for power users.
+2. **Preview pane**
+   - Split view: editor on left, preview on right.
+   - Preview renders Markdown to HTML (client-side) using `marked` or `markdown-it` with Pandoc-friendly styles.
+   - Toggle to show/hide preview.
+3. **File synchronization**
+   - Load `.md` via IPC (`fs.readFile` from main process).
+   - Auto-save on interval / blur / explicit save button.
+   - Expose “Save & Export” action to trigger conversion once user saves.
+4. **State management**
+   - Keep current document + dirty flag in renderer state.
+   - Show toast/notification when file saved, exported, or watch mode syncs.
+5. **Error handling**
+   - Detect Pandoc failures or file write errors and surface them inline.
+
+### Implementation Tasks
+1. Add IPC handlers (`file:read`, `file:write`) that restrict access to the `docs/` directory.
+2. Install TipTap packages (`@tiptap/react`, `@tiptap/starter-kit`, Markdown extension).
+3. Build `EditorPane` component with toolbar + preview toggle.
+4. Add document picker route/state linking selection → editor.
+5. Hook up save/export buttons (call existing conversion IPC).
+6. QA: ensure large docs perform acceptably; fall back to text mode if needed.

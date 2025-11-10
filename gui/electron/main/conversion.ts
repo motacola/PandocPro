@@ -15,6 +15,9 @@ interface ConversionRequest {
 interface DocsListEntry {
   docx: string
   md: string
+  mdExists: boolean
+  docxMtime: number
+  mdMtime: number | null
 }
 
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
@@ -53,7 +56,23 @@ function discoverDocs(): DocsListEntry[] {
       }
       if (entry.isFile() && /\.docx$/i.test(entry.name)) {
         const mdPath = fullPath.replace(/\.docx$/i, '.md')
-        entries.push({ docx: fullPath, md: mdPath })
+        const docxStats = fs.statSync(fullPath)
+        let mdMtime: number | null = null
+        const mdExists = fs.existsSync(mdPath)
+        if (mdExists) {
+          try {
+            mdMtime = fs.statSync(mdPath).mtimeMs
+          } catch {
+            mdMtime = null
+          }
+        }
+        entries.push({
+          docx: fullPath,
+          md: mdPath,
+          mdExists,
+          docxMtime: docxStats.mtimeMs,
+          mdMtime,
+        })
       }
     }
   }

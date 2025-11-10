@@ -22,6 +22,14 @@ export interface ConversionErrorPayload {
   message: string
 }
 
+export interface DocsListEntry {
+  docx: string
+  md: string
+  mdExists: boolean
+  docxMtime: number
+  mdMtime: number | null
+}
+
 declare global {
   interface Window {
     pandocPro: {
@@ -31,7 +39,7 @@ declare global {
       onStderr(listener: (data: ConversionChunkPayload) => void): () => void
       onExit(listener: (data: ConversionExitPayload) => void): () => void
       onError(listener: (data: ConversionErrorPayload) => void): () => void
-      listDocuments(): Promise<{ docx: string; md: string }[]>
+      listDocuments(): Promise<DocsListEntry[]>
     }
   }
 }

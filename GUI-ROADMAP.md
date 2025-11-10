@@ -244,3 +244,28 @@ npm run gui:build   # Produces DMG/ZIP artifacts in gui/release/
 3. Wire docs-path changes back to the existing doc discovery and TipTap loader.
 4. Persist configuration to `~/.config/pandocpro/settings.json`.
 5. Update README to explain how to open the Settings pane and what each checklist item means.
+
+---
+
+## Milestone 7: Packaging & Release Automation
+
+### Goals
+- Provide a repeatable way to generate signed/notarized macOS builds (and future Windows/Linux installers).
+- Keep GUI + CLI versions aligned via CI, with artifacts attached to GitHub releases.
+
+### Tasks
+1. **Build Scripts**
+   - Add `npm run gui:package` wrapping `electron-builder --mac dmg zip`.
+   - Provide `.env` template for Apple Developer ID credentials (optional).
+2. **Code Signing / Notarization**
+   - Detect when signing certs are available; otherwise skip with helpful warning (already partially output by electron-builder).
+   - Document how to set `CSC_IDENTITY_AUTO_DISCOVERY=false` and provide `CSC_NAME`/`APPLE_ID`/`APPLE_ID_PASSWORD`.
+3. **Continuous Integration**
+   - GitHub Actions workflow that runs `npm ci`, `npm run gui:build`, uploads DMG/ZIP as release artifacts.
+   - Cache `node_modules` / `gui/node_modules` to keep build times reasonable.
+4. **Version Management**
+   - Update `package.json` scripts to bump both CLI and GUI versions together (`npm version` hooks).
+   - Optionally add `scripts/release.sh` to tag and run the build pipeline locally.
+5. **Documentation**
+   - README section describing how to run `npm run gui:package`, where artifacts end up, and how to distribute them.
+   - Add troubleshooting tips for code signing failures.

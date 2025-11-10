@@ -180,4 +180,26 @@ npm run gui:build   # Produces DMG/ZIP artifacts in gui/release/
 3. Build `EditorPane` component with toolbar + preview toggle.
 4. Add document picker route/state linking selection → editor.
 5. Hook up save/export buttons (call existing conversion IPC).
-6. QA: ensure large docs perform acceptably; fall back to text mode if needed.
+6. Auto-save (debounced) and dirty state indicator.
+7. QA: ensure large docs perform acceptably; fall back to text mode if needed.
+
+---
+
+## Milestone 4: Action Controls & Activity Log Enhancements
+
+1. **Action Tray**
+   - Replace three separate buttons with a segmented control (Convert to Markdown / Export to Word / Auto Sync).
+   - Add tooltips explaining what each mode does in plain English.
+   - Show estimated runtime + last successful run timestamp pulled from `logs/history.log`.
+2. **History Sidebar**
+   - IPC handler to read the last N entries from `logs/history.log`.
+   - Renderer panel listing recent conversions with status badges and “open file” shortcuts.
+3. **Improved Activity Log**
+   - Persist logs per request; allow user to expand/collapse past runs.
+   - Add “Copy output” button and auto-scroll toggle.
+4. **Status Indicators**
+   - Show top-level banner when a conversion is running (with spinner + cancel).
+   - Display success/failure toast when `conversion:exit` arrives.
+5. **Testing/Docs**
+   - Document how to run the GUI tests (`npm run gui:dev`, `gui:build`).
+   - Add smoke test instructions for verifying history/log panels.

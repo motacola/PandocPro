@@ -6,7 +6,7 @@ import { marked } from 'marked'
 import TurndownService from 'turndown'
 import './App.css'
 
-import type { DocsListEntry, HistoryEntry } from './type/pandoc-pro'
+import type { DocsListEntry, HistoryEntry, WatchStatus } from './type/pandoc-pro'
 
 type LogEntry =
   | { type: 'stdout'; text: string }
@@ -39,6 +39,8 @@ function App() {
   const [dirty, setDirty] = useState<boolean>(false)
   const [liveMarkdown, setLiveMarkdown] = useState<string>('')
   const [previewHtml, setPreviewHtml] = useState<string>('')
+  const [watchStatus, setWatchStatus] = useState<WatchStatus | null>(null)
+  const [isStartingWatch, setIsStartingWatch] = useState<boolean>(false)
 
   const turndown = useMemo(() => new TurndownService(), [])
 
@@ -134,6 +136,16 @@ function App() {
         appendLogEntry(requestId, { type: 'stderr', text: `Error: ${message}` })
         setBanner({ type: 'error', message })
       }),
+      window.pandocPro.onWatchUpdate((status) => {
+        setWatchStatus({
+          docxPath: status.docxPath,
+          mdPath: status.mdPath,
+          running: status.running,
+          lastSync: status.lastSync,
+          mode: status.mode,
+          message: status.message,
+        })
+      }),
     ]
 
     return () => {
@@ -201,6 +213,21 @@ function App() {
       setBanner({ type: 'error', message })
     } finally {
       setIsSavingMarkdown(false)
+    }
+  }
+
+  const toggleWatch = async () => {
+    if (!selectedDoc) return
+    if (watchStatus?.running) {
+      await window.pandocPro.stopWatch()
+      setWatchStatus((prev) => (prev ? { ...prev, running: false, mode: 'paused' } : prev))
+      return
+    }
+    setIsStartingWatch(true)
+    try {
+      await window.pandocPro.startWatch({ docxPath: selectedDoc.docx, mdPath: selectedDoc.md })
+    } finally {
+      setIsStartingWatch(false)
     }
   }
 
@@ -308,6 +335,29 @@ function App() {
           )}
         </div>
         {banner && <div className={`banner banner-${banner.type}`}>{banner.message}</div>}
+      </section>
+
+      <section className='panel'>
+        <div className='panel-header'>
+          <h2>Watch mode</h2>
+          <button className='secondary' onClick={toggleWatch} disabled={!selectedDoc || isStartingWatch}>
+            {watchStatus?.running ? 'Stop watching' : isStartingWatch ? 'Starting…' : 'Start watching'}
+          </button>
+        </div>
+        {watchStatus?.running ? (
+          <div className='watch-status running'>
+            <span className='badge badge-success'>Watching</span>
+            <p>
+              Auto-exporting <code>{watchStatus.mdPath}</code> → <code>{watchStatus.docxPath}</code> on save.
+            </p>
+            {watchStatus.lastSync && (
+              <p className='muted'>Last sync: {new Date(watchStatus.lastSync).toLocaleString()}</p>
+            )}
+            {watchStatus.message && <pre className='watch-log'>{watchStatus.message}</pre>}
+          </div>
+        ) : (
+          <p className='muted'>Watch mode keeps Word in sync every time you save the Markdown file.</p>
+        )}
       </section>
 
       <section className='panel'>

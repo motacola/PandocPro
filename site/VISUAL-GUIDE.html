@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Visual Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Visual Guide</h1>
+</header>
+<h1 id="visual-workflow-guide">📊 Visual Workflow Guide</h1>
+<h2 id="the-complete-workflow">The Complete Workflow</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│  📄 Your Word Document (presentation.docx)                 │
+│     ↓                                                       │
+│     │ dsync → &quot;Convert to Markdown&quot;                        │
+│     ↓                                                       │
+│  📝 Markdown File (presentation.md)                        │
+│     ↓                                                       │
+│     │ Edit in VS Code                                      │
+│     │ - Use extensions                                     │
+│     │ - AI improvements                                    │
+│     │ - Version control                                    │
+│     ↓                                                       │
+│  ✨ Enhanced Markdown                                       │
+│     ↓                                                       │
+│     │ dsync → &quot;Export to Word&quot;                             │
+│     ↓                                                       │
+│  📘 Updated Word Document                                   │
+│     ↓                                                       │
+│     │ Polish in Word                                       │
+│     ↓                                                       │
+│  🎯 Final Professional Document                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="access-points">Access Points</h2>
+<pre><code>┌──────────────────────────────────────────┐
+│                                          │
+│  💻 Terminal      → type: dsync          │
+│  🖥️  Desktop      → double-click icon     │
+│  ⌨️  VS Code      → ⇧⌘P → Run Task       │
+│  🤖 Claude        → ask for help         │
+│                                          │
+└──────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="interactive-menu-flow">Interactive Menu Flow</h2>
+<pre><code>dsync
+  ↓
+┌────────────────────────────────────────┐
+│  📄 Available Documents                │
+│  1) presentation.docx                  │
+│  2) report.docx                        │
+│  3) proposal.docx                      │
+└────────────────────────────────────────┘
+  ↓ (Select number)
+┌────────────────────────────────────────┐
+│  What would you like to do?            │
+│  1) 📄 Convert to Markdown             │
+│  2) 📘 Export to Word                  │
+│  3) 🔄 Auto-sync                       │
+│  4) 👀 Watch mode                      │
+│  5) ✏️  Edit in VS Code                │
+│  6) 📂 Open Word                       │
+└────────────────────────────────────────┘
+  ↓ (Select action)
+✨ Task completed!</code></pre>
+<hr />
+<h2 id="file-organization">File Organization</h2>
+<pre><code>~/Documents/docx-md-sync/
+│
+├── 📁 docs/                    ← Your documents go here
+│   ├── 📄 report.docx
+│   ├── 📝 report.md
+│   ├── 📄 presentation.docx
+│   └── 📝 presentation.md
+│
+├── 📁 scripts/
+│   ├── 🚀 menu.sh             ← Interactive menu
+│   ├── 🔄 docx-sync.sh        ← Conversion engine
+│   ├── ⚙️  setup-alias.sh      ← Install dsync command
+│   └── 👋 welcome.sh          ← First-run greeting
+│
+├── 📁 .vscode/
+│   └── ⚙️  tasks.json          ← VS Code shortcuts
+│
+├── 📚 Documentation
+│   ├── QUICKSTART.md
+│   ├── CHEATSHEET.md
+│   ├── INDEX.md
+│   ├── VSCODE-GUIDE.md
+│   └── MCP-AUTOMATION.md
+│
+└── 🚀 sync                     ← Quick launcher</code></pre>
+<hr />
+<h2 id="watch-mode-flow">Watch Mode Flow</h2>
+<pre><code>Start Watch Mode
+    ↓
+┌─────────────────────────────────────┐
+│  👀 Watching: presentation.md       │
+│  📘 Will export to: presentation.docx│
+└─────────────────────────────────────┘
+    ↓
+Edit file in VS Code
+    ↓
+Save (⌘S)
+    ↓
+┌─────────────────────────────────────┐
+│  ✏️  Change detected!                │
+│  🔄 Exporting to Word...            │
+│  ✅ Export complete!                │
+└─────────────────────────────────────┘
+    ↓
+Repeat as needed
+    ↓
+Ctrl+C to stop</code></pre>
+<hr />
+<h2 id="vs-code-integration">VS Code Integration</h2>
+<pre><code>┌─────────────────────────────────────────────┐
+│  VS Code                                    │
+│  ┌───────────────────────────────────────┐ │
+│  │  presentation.md                      │ │
+│  │                                       │ │
+│  │  # My Presentation                    │ │
+│  │                                       │ │
+│  │  ## Introduction                      │ │
+│  │  - Point 1                            │ │
+│  │  - Point 2                            │ │
+│  └───────────────────────────────────────┘ │
+│                                             │
+│  Press ⇧⌘P                                  │
+│  ↓                                          │
+│  &quot;Tasks: Run Task&quot;                          │
+│  ↓                                          │
+│  Select: &quot;MD → DOCX&quot;                        │
+│  ↓                                          │
+│  ✅ presentation.docx updated!               │
+└─────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="ai-automation-flow">AI Automation Flow</h2>
+<pre><code>You: &quot;Polish my report and export to Word&quot;
+         ↓
+┌─────────────────────────────────────────┐
+│  Claude (MCP)                           │
+│                                         │
+│  1. Read docs/report.md                 │
+│  2. Improve writing quality             │
+│  3. Fix formatting                      │
+│  4. Run export script                   │
+│                                         │
+│  ✅ Done! Check docs/report.docx        │
+└─────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="decision-tree-which-tool-to-use">Decision Tree: Which Tool to
+Use?</h2>
+<pre><code>                    Need to convert?
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+      One file      Multiple files    Routine task
+         │               │               │
+         ↓               ↓               ↓
+    Run: dsync    Use: VS Code Tasks   Set up: Watch mode
+         │               │               │
+         ↓               ↓               ↓
+  Interactive     Keyboard          Auto-export
+     menu          shortcuts         on save</code></pre>
+<hr />
+<h2 id="feature-comparison">Feature Comparison</h2>
+<pre><code>┌────────────────────────────────────────────────────────────┐
+│  Method          │ Speed  │ Ease  │ Best For              │
+├────────────────────────────────────────────────────────────┤
+│  dsync           │ ⚡⚡    │ ⭐⭐⭐ │ First-time users      │
+│  VS Code Tasks   │ ⚡⚡⚡  │ ⭐⭐   │ Regular editing       │
+│  Watch Mode      │ ⚡⚡⚡  │ ⭐⭐⭐ │ Active sessions       │
+│  Direct Script   │ ⚡⚡⚡  │ ⭐     │ Automation/scripts    │
+│  Claude (MCP)    │ ⚡⚡    │ ⭐⭐⭐ │ Content improvement   │
+└────────────────────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="success-indicators">Success Indicators</h2>
+<pre><code>✅ All Green Checkmarks in test-setup.sh
+✅ dsync command works from any directory
+✅ Desktop launcher created
+✅ VS Code tasks appear in Command Palette
+✅ Test conversion completes successfully
+✅ Documentation accessible and clear</code></pre>
+<hr />
+<h2 id="quick-reference-commands">Quick Reference Commands</h2>
+<pre><code>╔════════════════════════════════════════════════════╗
+║  Command                  │  What It Does          ║
+╠════════════════════════════════════════════════════╣
+║  dsync                    │  Open interactive menu ║
+║  source ~/.zshrc          │  Activate alias        ║
+║  ./sync                   │  Direct launcher       ║
+║  ./test-setup.sh          │  Test installation     ║
+║  cd ~/Documents/docx...   │  Go to project         ║
+║  npm run watch            │  Start watch mode      ║
+╚════════════════════════════════════════════════════╝</code></pre>
+<hr />
+<h2 id="troubleshooting-map">Troubleshooting Map</h2>
+<pre><code>        Problem?
+            │
+    ┌───────┼───────┐
+    │       │       │
+  dsync   Watch   Convert
+  fails   broken   error
+    │       │       │
+    ↓       ↓       ↓
+ source  npm     Check
+ .zshrc  install  file</code></pre>
+<hr />
+<h2 id="next-steps-visual">Next Steps Visual</h2>
+<pre><code>   Start Here
+      ↓
+   QUICKSTART.md
+      ↓
+   Try dsync
+      ↓
+   ┌─────────┬─────────┐
+   │         │         │
+   Easy?   Want more   Love it?
+   │         │         │
+   ↓         ↓         ↓
+   Use it!  VS Code   Automate
+            Guide     with MCP</code></pre>
+<hr />
+<p><strong>Tip:</strong> Keep this open while learning the tool! 📖</p>
+</body>
+</html>

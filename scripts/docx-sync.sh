@@ -9,6 +9,21 @@ HISTORY_FILE="$LOG_DIR/history.log"
 
 mkdir -p "$LOG_DIR" "$BACKUP_DIR"
 
+show_step() {
+  local current="$1"
+  local total="$2"
+  shift 2
+  printf "[%s/%s] %s\n" "$current" "$total" "$*"
+}
+
+send_notification() {
+  local title="$1"
+  local message="$2"
+  if command -v osascript >/dev/null 2>&1; then
+    osascript -e "display notification \"${message}\" with title \"${title}\"" >/dev/null
+  fi
+}
+
 sanitize_field() {
   local value="${1//$'\r'/ }"
   value="${value//$'\n'/ }"
@@ -121,6 +136,14 @@ run_conversion() {
     echo "⏱️  Completed in ${duration}s · Output size: ${size_human}"
     log_history "success" "$mode" "$source" "$target" "$duration" \
       "${warnings:-none}" "$backup_path" "completed"
+    local notify_title notify_message
+    if [[ "$mode" == "to-docx" || "$mode" == "auto-to-docx" ]]; then
+      notify_title="Markdown → Word complete"
+    else
+      notify_title="Word → Markdown complete"
+    fi
+    notify_message="$(basename "$source") → $(basename "$target")"
+    send_notification "$notify_title" "$notify_message"
     rm -f "$tmp_err"
     return 0
   else
@@ -136,6 +159,7 @@ run_conversion() {
     restore_backup_if_needed "$backup_path" "$target"
     log_history "failure" "$mode" "$source" "$target" "$duration" \
       "error" "$backup_path" "$error_detail"
+    send_notification "Conversion failed" "$(basename "$source")"
     rm -f "$tmp_err"
     exit 1
   fi
@@ -178,36 +202,49 @@ if ! command -v pandoc >/dev/null 2>&1; then
   echo "📦 Install with: brew install pandoc" >&2
   exit 1
 fi
+echo "[1/3] ✅ Pandoc detected"
 
 case "$MODE" in
   to-md)
     echo "📄 Converting Word → Markdown..."
+    show_step 2 3 "Preparing Markdown folder..."
     mkdir -p "$(dirname "$MD")"
+    show_step 3 3 "Running pandoc (Word → Markdown)..."
     run_conversion "to-md" "$DOCX" "$MD" -t gfm
     ;;
   to-docx)
     echo "📘 Converting Markdown → Word..."
+    show_step 2 3 "Preparing Word folder..."
     mkdir -p "$(dirname "$DOCX")"
+    show_step 3 3 "Running pandoc (Markdown → Word)..."
     run_conversion "to-docx" "$MD" "$DOCX"
     ;;
   auto)
     if [[ -f "$DOCX" && -f "$MD" ]]; then
       if [[ "$DOCX" -nt "$MD" ]]; then
         echo "🔍 Word file is newer, converting to Markdown..."
+        show_step 2 3 "Preparing Markdown folder..."
         mkdir -p "$(dirname "$MD")"
+        show_step 3 3 "Running pandoc (Word → Markdown)..."
         run_conversion "auto-to-md" "$DOCX" "$MD" -t gfm
       else
         echo "🔍 Markdown file is newer, converting to Word..."
+        show_step 2 3 "Preparing Word folder..."
         mkdir -p "$(dirname "$DOCX")"
+        show_step 3 3 "Running pandoc (Markdown → Word)..."
         run_conversion "auto-to-docx" "$MD" "$DOCX"
       fi
     elif [[ -f "$DOCX" ]]; then
       echo "📄 Found Word file, converting to Markdown..."
+      show_step 2 3 "Preparing Markdown folder..."
       mkdir -p "$(dirname "$MD")"
+      show_step 3 3 "Running pandoc (Word → Markdown)..."
       run_conversion "auto-to-md" "$DOCX" "$MD" -t gfm
     elif [[ -f "$MD" ]]; then
       echo "📘 Found Markdown file, converting to Word..."
+      show_step 2 3 "Preparing Word folder..."
       mkdir -p "$(dirname "$DOCX")"
+      show_step 3 3 "Running pandoc (Markdown → Word)..."
       run_conversion "auto-to-docx" "$MD" "$DOCX"
     else
       echo "❌ Error: Neither $DOCX nor $MD exists" >&2

@@ -22,7 +22,13 @@ PandocPro lets anyone work on Word documents without living inside Word. Drop a 
    cd PandocPro
    ```
 
-2. **Install the helper command**
+2. **Install the helper command (guided or manual)**
+   ```bash
+   ./scripts/setup.sh
+   ```
+   The guided setup checks for Homebrew/Pandoc/Node, runs `npm install`, offers to add the `dsync` alias, and can even drop a Desktop launcher for double-click access.
+
+   Prefer to do it manually? Run:
    ```bash
    npm install
    ./scripts/setup-alias.sh
@@ -36,6 +42,8 @@ PandocPro lets anyone work on Word documents without living inside Word. Drop a 
    dsync
    ```
    Pick your document, choose what you need, and the script walks you through it.
+
+   *(Prefer double-clicking? Run `./scripts/create-launcher.sh`—or answer “yes” during `setup.sh`—to drop a `Word-Markdown-Sync.command` launcher on your Desktop.)*
 
 5. *(Optional)* **Choose your AI helper**
    ```bash
@@ -233,6 +241,7 @@ cd /path/to/PandocPro && npm install
 - **QUICKSTART.md** - Step-by-step guide
 - **README.md** - This file
 - VS Code tasks - Press `⇧⌘P` → "Tasks: Run Task"
+- Prefer a browser? Run `./scripts/build-docs.sh` once, then open `site/index.html` for a polished docs hub.
 
 ---
 

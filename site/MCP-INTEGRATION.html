@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>MCP Integration</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">MCP Integration</h1>
+</header>
+<h1 id="mcp-integration-guide">🤖 MCP Integration Guide</h1>
+<p><strong>Your docSync workflow is now available as native MCP
+tools!</strong></p>
+<hr />
+<h2 id="what-this-means">🎯 What This Means</h2>
+<p>You can now ask me (Claude) to handle your documents using
+<strong>natural language</strong>, and I’ll automatically use the right
+tools. No need to remember commands!</p>
+<hr />
+<h2 id="available-commands-just-ask">🚀 Available Commands (Just
+Ask!)</h2>
+<h3 id="document-discovery"><strong>Document Discovery</strong></h3>
+<p><strong>“What documents are available?”</strong> - I’ll list all
+.docx files in your docs folder</p>
+<p><strong>“Show me the files in the docs folder”</strong> - Lists
+everything available for conversion</p>
+<hr />
+<h3 id="conversion"><strong>Conversion</strong></h3>
+<p><strong>“Convert report.docx to markdown”</strong> - Converts your
+Word doc for editing in VS Code</p>
+<p><strong>“Turn presentation.docx into markdown”</strong> - Same thing,
+natural language!</p>
+<p><strong>“Export notes.md back to Word”</strong> - Converts markdown
+back to .docx</p>
+<p><strong>“Create a Word version of summary.md”</strong> - Export
+markdown to Word format</p>
+<hr />
+<h3 id="auto-sync"><strong>Auto-Sync</strong></h3>
+<p><strong>“Sync presentation files (auto-detect which is
+newer)”</strong> - Smart sync based on modification time</p>
+<p><strong>“Update whichever file is older between report.docx and
+report.md”</strong> - Automatic detection and sync</p>
+<hr />
+<h3 id="content-improvement"><strong>Content Improvement</strong></h3>
+<p><strong>“Read report.md and improve the writing”</strong> - I’ll
+read, enhance, and update the markdown</p>
+<p><strong>“Polish presentation.md and export to Word”</strong> -
+Complete workflow: improve → export</p>
+<p><strong>“Make summary.md more concise and professional, then create
+the Word version”</strong> - Multi-step automation</p>
+<p><strong>“Fix spelling and grammar in draft.md, then export”</strong>
+- Quality check + export</p>
+<hr />
+<h3 id="batch-operations"><strong>Batch Operations</strong></h3>
+<p><strong>“Convert all Word docs in the docs folder to
+markdown”</strong> - Processes multiple files</p>
+<p><strong>“Export all markdown files back to Word”</strong> - Batch
+export operation</p>
+<hr />
+<h3 id="watch-mode"><strong>Watch Mode</strong></h3>
+<p><strong>“Watch notes.md and auto-export to Word when I save”</strong>
+- Starts background watcher</p>
+<p><strong>“Set up auto-export for presentation.md”</strong> - Live sync
+as you edit</p>
+<hr />
+<h2 id="complete-tool-reference">📋 Complete Tool Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What I Can Do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docSync.listDocuments</code></td>
+<td>Show available documents</td>
+</tr>
+<tr>
+<td><code>docSync.convertDocxToMd</code></td>
+<td>Convert Word → Markdown</td>
+</tr>
+<tr>
+<td><code>docSync.exportMdToDocx</code></td>
+<td>Export Markdown → Word</td>
+</tr>
+<tr>
+<td><code>docSync.syncAuto</code></td>
+<td>Smart sync (newest wins)</td>
+</tr>
+<tr>
+<td><code>docSync.readMarkdown</code></td>
+<td>Read and analyze content</td>
+</tr>
+<tr>
+<td><code>docSync.updateMarkdown</code></td>
+<td>Edit specific sections</td>
+</tr>
+<tr>
+<td><code>docSync.improveAndExport</code></td>
+<td>Improve content + export</td>
+</tr>
+<tr>
+<td><code>docSync.watchMode</code></td>
+<td>Auto-export on save</td>
+</tr>
+<tr>
+<td><code>docSync.openMenu</code></td>
+<td>Launch interactive menu</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="example-workflows">💡 Example Workflows</h2>
+<h3 id="workflow-1-quick-conversion"><strong>Workflow 1: Quick
+Conversion</strong></h3>
+<pre><code>You: &quot;Convert test.docx to markdown&quot;
+
+Me: [Uses docSync.convertDocxToMd]
+    &quot;✅ Converted test.docx → test.md
+     You can now edit it in VS Code!&quot;</code></pre>
+<h3 id="workflow-2-content-improvement"><strong>Workflow 2: Content
+Improvement</strong></h3>
+<pre><code>You: &quot;Improve the writing in report.md and export to Word&quot;
+
+Me: [Uses docSync.readMarkdown]
+    [Analyzes and improves content]
+    [Uses docSync.updateMarkdown]
+    [Uses docSync.exportMdToDocx]
+    &quot;✅ Enhanced report.md and exported to report.docx&quot;</code></pre>
+<h3 id="workflow-3-batch-processing"><strong>Workflow 3: Batch
+Processing</strong></h3>
+<pre><code>You: &quot;Convert all my Word docs to markdown&quot;
+
+Me: [Uses docSync.listDocuments]
+    [Loops through each file]
+    [Uses docSync.convertDocxToMd for each]
+    &quot;✅ Converted 5 documents:
+     - report.docx → report.md
+     - presentation.docx → presentation.md
+     - notes.docx → notes.md
+     - summary.docx → summary.md
+     - draft.docx → draft.md&quot;</code></pre>
+<h3 id="workflow-4-smart-editing"><strong>Workflow 4: Smart
+Editing</strong></h3>
+<pre><code>You: &quot;The introduction in presentation.md is too wordy. Make it concise.&quot;
+
+Me: [Uses docSync.readMarkdown]
+    [Finds introduction section]
+    [Uses docSync.updateMarkdown to replace it]
+    &quot;✅ Tightened the introduction from 3 paragraphs to 1&quot;</code></pre>
+<hr />
+<h2 id="advanced-use-cases">🎨 Advanced Use Cases</h2>
+<h3 id="style-transformations"><strong>Style
+Transformations</strong></h3>
+<ul>
+<li>“Make report.md more formal and export”</li>
+<li>“Convert presentation.md to use UK spelling”</li>
+<li>“Rewrite summary.md in active voice”</li>
+</ul>
+<h3 id="content-analysis"><strong>Content Analysis</strong></h3>
+<ul>
+<li>“Summarize the key points in report.md”</li>
+<li>“What’s the main message of presentation.md?”</li>
+<li>“Extract action items from notes.md”</li>
+</ul>
+<h3 id="quality-assurance"><strong>Quality Assurance</strong></h3>
+<ul>
+<li>“Check draft.md for grammar errors”</li>
+<li>“Find and fix inconsistencies in report.md”</li>
+<li>“Ensure all dates use UK format”</li>
+</ul>
+<h3 id="structure-improvements"><strong>Structure
+Improvements</strong></h3>
+<ul>
+<li>“Add more headings to report.md for better organization”</li>
+<li>“Convert these bullet points to a table”</li>
+<li>“Create a table of contents for presentation.md”</li>
+</ul>
+<hr />
+<h2 id="behind-the-scenes">🔧 Behind the Scenes</h2>
+<p>When you ask me to help with documents, I:</p>
+<ol type="1">
+<li><strong>Understand your intent</strong> from natural language</li>
+<li><strong>Choose the right tool</strong> automatically</li>
+<li><strong>Execute the operation</strong> using Desktop Commander</li>
+<li><strong>Report results</strong> in friendly language</li>
+<li><strong>Handle errors gracefully</strong> with suggestions</li>
+</ol>
+<p>You don’t need to know tool names or parameters!</p>
+<hr />
+<h2 id="file-paths">📍 File Paths</h2>
+<p>For best results, use paths like: -
+<code>~/Documents/docx-md-sync/docs/report.docx</code> -
+<code>docs/presentation.md</code> (relative to project) - Or just the
+filename if it’s in the docs folder</p>
+<p>I’ll figure out the full path automatically!</p>
+<hr />
+<h2 id="quick-tips">⚡ Quick Tips</h2>
+<h3 id="be-natural"><strong>Be Natural</strong></h3>
+<p>❌ “Execute docSync.convertDocxToMd with parameter ~/Documents/…” ✅
+“Convert my report to markdown”</p>
+<h3 id="be-specific"><strong>Be Specific</strong></h3>
+<p>❌ “Fix the document” ✅ “Fix spelling errors in report.md and export
+to Word”</p>
+<h3 id="ask-for-combinations"><strong>Ask for Combinations</strong></h3>
+<p>✅ “Read presentation.md, improve the bullet points, and export” ✅
+“Convert all docs to markdown, then create a summary”</p>
+<h3 id="use-context"><strong>Use Context</strong></h3>
+<p>If we’re already discussing a file: ✅ “Now export it to Word” ✅
+“Make it more concise”</p>
+<hr />
+<h2 id="what-i-cant-do-yet">🚨 What I Can’t Do (Yet)</h2>
+<ul>
+<li>❌ Modify complex Word formatting (use Word for final polish)</li>
+<li>❌ Handle images embedded in documents (text only)</li>
+<li>❌ Edit .docx files directly (always convert to .md first)</li>
+<li>❌ Undo operations (but originals are preserved!)</li>
+</ul>
+<hr />
+<h2 id="integration-with-other-workflows">🔄 Integration with Other
+Workflows</h2>
+<h3 id="with-git"><strong>With Git</strong></h3>
+<p>“Convert report.docx to markdown and commit the changes”</p>
+<h3 id="with-email"><strong>With Email</strong></h3>
+<p>“Improve draft.md and send me the key points”</p>
+<h3 id="with-analysis"><strong>With Analysis</strong></h3>
+<p>“Extract data from report.md and create a summary”</p>
+<hr />
+<h2 id="learning-path">📚 Learning Path</h2>
+<h3 id="day-1-basic-conversions"><strong>Day 1: Basic
+Conversions</strong></h3>
+<ul>
+<li>“Convert this Word doc”</li>
+<li>“Export this markdown”</li>
+</ul>
+<h3 id="week-1-content-improvements"><strong>Week 1: Content
+Improvements</strong></h3>
+<ul>
+<li>“Improve the writing”</li>
+<li>“Make it more professional”</li>
+</ul>
+<h3 id="week-2-complex-workflows"><strong>Week 2: Complex
+Workflows</strong></h3>
+<ul>
+<li>“Read, improve, and export”</li>
+<li>“Convert all, then summarize”</li>
+</ul>
+<h3 id="week-3-advanced-automation"><strong>Week 3: Advanced
+Automation</strong></h3>
+<ul>
+<li>Custom batch operations</li>
+<li>Complex multi-step workflows</li>
+</ul>
+<hr />
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="always-preview-before-export"><strong>1. Always Preview Before
+Export</strong></h3>
+<p>Ask me to show you changes before exporting: - “Show me the improved
+version first” - “Let me review before you export”</p>
+<h3 id="be-specific-about-style"><strong>2. Be Specific About
+Style</strong></h3>
+<ul>
+<li>“UK spelling” not just “spelling”</li>
+<li>“Active voice” not just “better”</li>
+<li>“Formal tone” not just “professional”</li>
+</ul>
+<h3 id="work-iteratively"><strong>3. Work Iteratively</strong></h3>
+<ul>
+<li>First: “Convert to markdown”</li>
+<li>Then: “Improve section 2”</li>
+<li>Finally: “Export to Word”</li>
+</ul>
+<h3 id="use-watch-mode-wisely"><strong>4. Use Watch Mode
+Wisely</strong></h3>
+<p>Only for active editing sessions: - “Start watch mode for
+presentation.md” - [Edit and save multiple times] - “Stop watching”</p>
+<hr />
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="i-cant-find-that-file"><strong>“I can’t find that
+file”</strong></h3>
+<p>→ Use full path or ask me to list available documents</p>
+<h3 id="the-conversion-failed"><strong>“The conversion
+failed”</strong></h3>
+<p>→ Check if the file is a valid Word document → Make sure it’s not
+open in Word</p>
+<h3 id="watch-mode-isnt-working"><strong>“Watch mode isn’t
+working”</strong></h3>
+<p>→ Make sure npm dependencies are installed → Try: “cd
+~/Documents/docx-md-sync &amp;&amp; npm install”</p>
+<hr />
+<h2 id="try-it-now">🎉 Try It Now!</h2>
+<p>Ask me anything like: - “What documents do I have?” - “Convert
+test.docx to markdown” - “Improve the writing in presentation.md” -
+“Export summary.md to Word”</p>
+<p><strong>I’m ready to help!</strong> 🚀</p>
+<hr />
+<h2 id="related-documentation">📖 Related Documentation</h2>
+<ul>
+<li><strong>MCP YAML</strong>: <code>~/mcp/tools/docsync.yaml</code>
+(the configuration)</li>
+<li><strong>Tool Scripts</strong>:
+<code>~/Documents/docx-md-sync/scripts/</code></li>
+<li><strong>Main Docs</strong>: See <code>INDEX.md</code> for complete
+documentation</li>
+</ul>
+<hr />
+<p><strong>Remember:</strong> Just describe what you want in plain
+English, and I’ll handle the technical details! ✨</p>
+</body>
+</html>

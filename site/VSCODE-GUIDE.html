@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>VS Code Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">VS Code Guide</h1>
+</header>
+<h1 id="vs-code-integration-guide">🎨 VS Code Integration Guide</h1>
+<h2 id="setup-vs-code-for-optimal-markdown-editing">Setup VS Code for
+Optimal Markdown Editing</h2>
+<h3 id="recommended-extensions">Recommended Extensions</h3>
+<p>Open VS Code and install these (or let the workspace suggest
+them):</p>
+<ol type="1">
+<li><strong>Markdown All in One</strong>
+(<code>yzhang.markdown-all-in-one</code>)
+<ul>
+<li>Keyboard shortcuts, table of contents, auto preview</li>
+</ul></li>
+<li><strong>Markdown Preview Enhanced</strong>
+(<code>shd101wyy.markdown-preview-enhanced</code>)
+<ul>
+<li>Live preview with scroll sync</li>
+</ul></li>
+<li><strong>Code Spell Checker</strong>
+(<code>streetsidesoftware.code-spell-checker</code>)
+<ul>
+<li>Catch typos before exporting</li>
+</ul></li>
+</ol>
+<h3 id="quick-install-command">Quick Install Command</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> <span class="at">--install-extension</span> yzhang.markdown-all-in-one</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> <span class="at">--install-extension</span> shd101wyy.markdown-preview-enhanced</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> <span class="at">--install-extension</span> streetsidesoftware.code-spell-checker</span></code></pre></div>
+<hr />
+<h2 id="using-vs-code-tasks">Using VS Code Tasks</h2>
+<h3 id="open-command-palette">Open Command Palette</h3>
+<ul>
+<li>Mac: <code>⇧⌘P</code></li>
+<li>Type: “Tasks: Run Task”</li>
+</ul>
+<h3 id="available-tasks">Available Tasks</h3>
+<ol type="1">
+<li><strong>DOCX → MD</strong> - Convert Word to Markdown</li>
+<li><strong>MD → DOCX</strong> - Export Markdown to Word</li>
+<li><strong>Sync (auto)</strong> - Smart sync based on modification
+time</li>
+</ol>
+<h3 id="set-up-keyboard-shortcuts">Set Up Keyboard Shortcuts</h3>
+<ol type="1">
+<li>Open Keyboard Shortcuts: <code>⌘K ⌘S</code></li>
+<li>Search for “Run Task”</li>
+<li>Add your preferred shortcut</li>
+<li>Example: <code>⌘⇧M</code> for “DOCX → MD”</li>
+</ol>
+<hr />
+<h2 id="workspace-features">Workspace Features</h2>
+<p>Open the workspace file for enhanced experience:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">open</span> ~/Documents/docx-md-sync/docx-sync.code-workspace</span></code></pre></div>
+<p><strong>What you get:</strong> - ✅ Word wrap enabled by default - ✅
+Format on save - ✅ Better preview settings - ✅ Hidden system files -
+✅ Extension recommendations</p>
+<hr />
+<h2 id="live-preview">Live Preview</h2>
+<p>While editing Markdown:</p>
+<ol type="1">
+<li>Press <code>⌘K V</code> to open preview side-by-side</li>
+<li>Or click the preview icon in the top right</li>
+<li>Preview updates as you type!</li>
+</ol>
+<hr />
+<h2 id="markdown-shortcuts">Markdown Shortcuts</h2>
+<table>
+<thead>
+<tr>
+<th>Shortcut</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>⌘B</code></td>
+<td>Bold</td>
+</tr>
+<tr>
+<td><code>⌘I</code></td>
+<td>Italic</td>
+</tr>
+<tr>
+<td><code>⌥⇧F</code></td>
+<td>Format table</td>
+</tr>
+<tr>
+<td><code>⌘⇧V</code></td>
+<td>Open preview</td>
+</tr>
+<tr>
+<td><code>⌘K V</code></td>
+<td>Open preview to side</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="tips-for-better-editing">Tips for Better Editing</h2>
+<h3 id="use-snippets">1. Use Snippets</h3>
+<p>Type <code>table</code> and press Tab → instant Markdown table!</p>
+<h3 id="paste-as-markdown">2. Paste as Markdown</h3>
+<p>Copy from web, paste into VS Code → auto-formatted!</p>
+<h3 id="outline-view">3. Outline View</h3>
+<p>Click the outline icon in sidebar → navigate by headings</p>
+<h3 id="multi-cursor-editing">4. Multi-Cursor Editing</h3>
+<p><code>⌘D</code> to select next occurrence <code>⌥⌘↓</code> to add
+cursor below</p>
+<hr />
+<h2 id="integrated-terminal">Integrated Terminal</h2>
+<p>Run sync commands without leaving VS Code:</p>
+<ol type="1">
+<li>Open terminal: <code>⌃`</code></li>
+<li>Run: <code>dsync</code></li>
+<li>Or use tasks (faster!)</li>
+</ol>
+<hr />
+<h2 id="git-integration">Git Integration</h2>
+<p>The project is already initialized with Git:</p>
+<ol type="1">
+<li><strong>View changes</strong>: Click Source Control icon
+(sidebar)</li>
+<li><strong>Stage changes</strong>: Click <code>+</code> next to
+files</li>
+<li><strong>Commit</strong>: Type message, press
+<code>⌘Enter</code></li>
+</ol>
+<p><strong>Recommended commits:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add docs/report.md docs/report.docx</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;Update quarterly report&quot;</span></span></code></pre></div>
+<hr />
+<h2 id="watch-mode-vs-code">Watch Mode + VS Code</h2>
+<p>Perfect combo:</p>
+<ol type="1">
+<li>Start watch mode in terminal</li>
+<li>Edit .md file in VS Code</li>
+<li>Save → Word doc updates automatically</li>
+<li>Check Word doc → see your changes!</li>
+</ol>
+<hr />
+<h2 id="advanced-custom-tasks">Advanced: Custom Tasks</h2>
+<p>Edit <code>.vscode/tasks.json</code> to add your own tasks:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;label&quot;</span><span class="fu">:</span> <span class="st">&quot;Export All&quot;</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;shell&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;command&quot;</span><span class="fu">:</span> <span class="st">&quot;for f in docs/*.md; do ./scripts/docx-sync.sh </span><span class="ch">\&quot;</span><span class="st">${f%.md}.docx</span><span class="ch">\&quot;</span><span class="st"> </span><span class="ch">\&quot;</span><span class="st">$f</span><span class="ch">\&quot;</span><span class="st"> to-docx; done&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p><strong>Tasks not showing?</strong> - Reload VS Code:
+<code>⇧⌘P</code> → “Reload Window”</p>
+<p><strong>Preview not working?</strong> - Install Markdown extensions -
+Check extension recommendations in workspace</p>
+<p><strong>Can’t run shell scripts?</strong> - Make sure you’re in the
+project folder - Check script has execute permissions</p>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<ol type="1">
+<li>Open workspace: <code>docx-sync.code-workspace</code></li>
+<li>Install recommended extensions</li>
+<li>Set up keyboard shortcuts for tasks</li>
+<li>Start editing!</li>
+</ol>
+<p>Happy editing! ✨</p>
+</body>
+</html>

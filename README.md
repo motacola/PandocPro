@@ -265,9 +265,12 @@ When you’re ready to distribute the desktop app, build installers with:
 
 ```bash
 npm run gui:build  # produces DMG + ZIP bundles in gui/release/
+npm run gui:package  # same as build, then reveals gui/release/ in Finder
 ```
 
 The GUI now ships with a TipTap-based editor, watch controls, and an environment checklist so teammates never have to touch the terminal once setup is complete. Onboarding wizards remain on the roadmap.
+
+> ℹ️ **CI reminder:** A GitHub Actions workflow (`.github/workflows/gui-build.yml`) builds these artifacts automatically. Be sure to push/sync that workflow from an account/token with `workflow` scope so GitHub accepts the update.
 
 ---
 

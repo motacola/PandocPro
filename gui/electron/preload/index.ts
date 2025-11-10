@@ -64,6 +64,12 @@ contextBridge.exposeInMainWorld('pandocPro', {
   async listHistory(limit?: number) {
     return ipcRenderer.invoke('history:list', limit)
   },
+  readFile(filePath: string) {
+    return ipcRenderer.invoke('file:read', filePath)
+  },
+  writeFile(filePath: string, contents: string) {
+    return ipcRenderer.invoke('file:write', filePath, contents)
+  },
 })
 
 // --------- Preload scripts loading ---------

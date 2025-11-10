@@ -52,6 +52,8 @@ declare global {
       onError(listener: (data: ConversionErrorPayload) => void): () => void
       listDocuments(): Promise<DocsListEntry[]>
       listHistory(limit?: number): Promise<HistoryEntry[]>
+      readFile(filePath: string): Promise<string>
+      writeFile(filePath: string, contents: string): Promise<boolean>
     }
   }
 }

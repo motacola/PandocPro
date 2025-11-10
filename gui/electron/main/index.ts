@@ -6,6 +6,7 @@ import os from 'node:os'
 import { update } from './update'
 import { registerConversionHandlers } from './conversion'
 import { registerHistoryHandlers } from './history'
+import { registerFileHandlers } from './files'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -86,6 +87,7 @@ async function createWindow() {
 app.whenReady().then(createWindow)
 app.whenReady().then(() => registerConversionHandlers(() => win))
 app.whenReady().then(registerHistoryHandlers)
+app.whenReady().then(registerFileHandlers)
 
 app.on('window-all-closed', () => {
   win = null

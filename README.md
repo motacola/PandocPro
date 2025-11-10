@@ -268,6 +268,15 @@ npm run gui:build  # produces DMG + ZIP bundles in gui/release/
 npm run gui:package  # same as build, then reveals gui/release/ in Finder
 ```
 
+To sign/notarize builds on macOS, set these environment variables before running the commands (or configure them in CI):
+
+```bash
+export CSC_IDENTITY_AUTO_DISCOVERY=false
+export CSC_NAME="Developer ID Application: YOUR NAME (TEAMID)"
+export APPLE_ID="your-apple-id@example.com"
+export APPLE_ID_PASSWORD="app-specific-password"
+```
+
 The GUI now ships with a TipTap-based editor, watch controls, and an environment checklist so teammates never have to touch the terminal once setup is complete. Onboarding wizards remain on the roadmap.
 
 > ℹ️ **CI reminder:** A GitHub Actions workflow (`.github/workflows/gui-build.yml`) builds these artifacts automatically. Be sure to push/sync that workflow from an account/token with `workflow` scope so GitHub accepts the update.

@@ -6,7 +6,7 @@ import { marked } from 'marked'
 import TurndownService from 'turndown'
 import './App.css'
 
-import type { DocsListEntry, HistoryEntry, WatchStatus } from './type/pandoc-pro'
+import type { DocsListEntry, HistoryEntry, WatchStatus, SettingsData, SystemInfo } from './type/pandoc-pro'
 
 type LogEntry =
   | { type: 'stdout'; text: string }
@@ -41,6 +41,9 @@ function App() {
   const [previewHtml, setPreviewHtml] = useState<string>('')
   const [watchStatus, setWatchStatus] = useState<WatchStatus | null>(null)
   const [isStartingWatch, setIsStartingWatch] = useState<boolean>(false)
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
+  const [settings, setSettings] = useState<SettingsData | null>(null)
 
   const turndown = useMemo(() => new TurndownService(), [])
 
@@ -112,6 +115,8 @@ function App() {
   useEffect(() => {
     fetchDocs()
     fetchHistory()
+    window.pandocPro.getSystemInfo().then(setSystemInfo)
+    window.pandocPro.getSettings().then(setSettings)
 
     const cleanups = [
       window.pandocPro.onStdout(({ chunk, requestId }) => appendLogEntry(requestId, { type: 'stdout', text: chunk })),
@@ -289,6 +294,71 @@ function App() {
               </div>
             )}
           </>
+        )}
+      </section>
+
+      <section className='panel'>
+        <div className='panel-header'>
+          <h2>Quick settings</h2>
+          <button className='secondary' onClick={() => setSettingsOpen((prev) => !prev)}>
+            {settingsOpen ? 'Hide settings' : 'Show settings'}
+          </button>
+        </div>
+        {settingsOpen && systemInfo && settings ? (
+          <div className='settings-grid'>
+            <div className='settings-card'>
+              <h3>Environment</h3>
+              <ul>
+                <li>
+                  Pandoc:{' '}
+                  {systemInfo.pandocVersion ? (
+                    <span className='badge badge-success'>{systemInfo.pandocVersion}</span>
+                  ) : (
+                    <span className='badge badge-error'>Not installed</span>
+                  )}
+                </li>
+                <li>
+                  Node.js: <span className='badge badge-success'>{systemInfo.nodeVersion}</span>
+                </li>
+              </ul>
+            </div>
+            <div className='settings-card'>
+              <h3>Docs folder</h3>
+              <code>{settings.docsPath}</code>
+              <div className='settings-actions'>
+                <button className='secondary' onClick={async () => {
+                  const updated = await window.pandocPro.chooseDocsPath()
+                  if (updated) {
+                    setSettings(updated)
+                    window.pandocPro.listDocuments().then(setDocs)
+                  }
+                }}>
+                  Change…
+                </button>
+                <button className='secondary' onClick={() => window.pandocPro.listDocuments().then(setDocs)}>
+                  Refresh list
+                </button>
+              </div>
+            </div>
+            <div className='settings-card'>
+              <h3>Notifications</h3>
+              <label className='toggle'>
+                <input
+                  type='checkbox'
+                  checked={settings.notificationsEnabled}
+                  onChange={async (event) => {
+                    const updated = await window.pandocPro.updateSettings({
+                      notificationsEnabled: event.target.checked,
+                    })
+                    setSettings(updated)
+                  }}
+                />
+                <span>Desktop notifications</span>
+              </label>
+            </div>
+          </div>
+        ) : (
+          !settingsOpen && <p className='muted'>Open settings to change docs folder and view dependency status.</p>
         )}
       </section>
 

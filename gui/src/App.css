@@ -320,6 +320,46 @@ button:not(:disabled):hover {
   color: #e2e8f0;
 }
 
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.settings-card {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.settings-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+
+.settings-card code {
+  display: block;
+  margin: 0.5rem 0;
+  background: #0b1220;
+  padding: 0.4rem;
+  border-radius: 8px;
+  word-break: break-all;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .log-error {
   color: #f87171;
 }

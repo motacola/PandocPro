@@ -7,6 +7,7 @@ import { update } from './update'
 import { registerConversionHandlers } from './conversion'
 import { registerHistoryHandlers } from './history'
 import { registerFileHandlers } from './files'
+import { registerWatchHandlers } from './watch'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -88,6 +89,7 @@ app.whenReady().then(createWindow)
 app.whenReady().then(() => registerConversionHandlers(() => win))
 app.whenReady().then(registerHistoryHandlers)
 app.whenReady().then(registerFileHandlers)
+app.whenReady().then(() => registerWatchHandlers(() => win))
 
 app.on('window-all-closed', () => {
   win = null

@@ -41,6 +41,15 @@ export interface HistoryEntry {
   note: string
 }
 
+export interface WatchStatus {
+  docxPath: string
+  mdPath: string
+  running: boolean
+  lastSync: string | null
+  mode: 'paused' | 'running'
+  message?: string
+}
+
 declare global {
   interface Window {
     pandocPro: {
@@ -54,6 +63,9 @@ declare global {
       listHistory(limit?: number): Promise<HistoryEntry[]>
       readFile(filePath: string): Promise<string>
       writeFile(filePath: string, contents: string): Promise<boolean>
+      startWatch(payload: { docxPath: string; mdPath: string }): Promise<void>
+      stopWatch(): Promise<void>
+      onWatchUpdate(listener: (data: WatchStatus) => void): () => void
     }
   }
 }

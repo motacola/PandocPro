@@ -70,6 +70,18 @@ contextBridge.exposeInMainWorld('pandocPro', {
   writeFile(filePath: string, contents: string) {
     return ipcRenderer.invoke('file:write', filePath, contents)
   },
+  startWatch(payload: { docxPath: string; mdPath: string }) {
+    return ipcRenderer.invoke('watch:start', payload)
+  },
+  stopWatch() {
+    return ipcRenderer.invoke('watch:stop')
+  },
+  onWatchUpdate(listener: (data: any) => void) {
+    const channel = 'watch:update'
+    const handler = (_event: Electron.IpcRendererEvent, payload: any) => listener(payload)
+    ipcRenderer.on(channel, handler)
+    return () => ipcRenderer.off(channel, handler)
+  },
 })
 
 // --------- Preload scripts loading ---------

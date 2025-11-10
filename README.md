@@ -16,42 +16,44 @@ PandocPro lets anyone work on Word documents without living inside Word. Drop a 
 
 ## ⚡ Get Going in Minutes
 
-1. **Grab the project**
+1. **Clone the project**
    ```bash
    git clone https://github.com/motacola/PandocPro.git
    cd PandocPro
    ```
 
-2. **Install the helper command (guided or manual)**
+2. **Run the guided setup (recommended)**
    ```bash
    ./scripts/setup.sh
    ```
-   The guided setup checks for Homebrew/Pandoc/Node, runs `npm install`, offers to add the `dsync` alias, and can even drop a Desktop launcher for double-click access.
+   This checks for Homebrew, Pandoc, Node.js, runs `npm install`, offers to add the `dsync` alias, and can even drop a Desktop launcher—no manual editing required.
 
-   Prefer to do it manually? Run:
+   Prefer manual steps?
    ```bash
    npm install
    ./scripts/setup-alias.sh
    source ~/.zshrc  # or open a new terminal window
    ```
 
-3. **Drop your Word files** into the `docs/` folder (feel free to make subfolders).
+3. **Add your documents**
+   - Copy `.docx` files into `docs/` (subfolders are fine).
+   - The first time, run `dsync` option 1 to create the Markdown twin automatically.
 
-4. **Run the menu**
+4. **Use the interactive menu**
    ```bash
    dsync
    ```
-   Pick your document, choose what you need, and the script walks you through it.
+   Pick a document, choose **Convert → Markdown**, **Export → Word**, **Auto Sync**, **Watch Mode**, etc. The menu explains each action in plain English.
 
-   *(Prefer double-clicking? Run `./scripts/create-launcher.sh`—or answer “yes” during `setup.sh`—to drop a `Word-Markdown-Sync.command` launcher on your Desktop.)*
+   *(Prefer double-clicking? Run `./scripts/create-launcher.sh`—or say “yes” during `setup.sh`—to place a `Word-Markdown-Sync.command` launcher on your Desktop.)*
 
-5. *(Optional)* **Choose your AI helper**
+5. *(Optional)* **Wire up AI helpers**
    ```bash
    ./scripts/configure-llm.sh
    ```
-   This finds Ollama/LM Studio/llama.cpp installs—or lets you type in a custom endpoint.
+   The helper detects Ollama/LM Studio/llama.cpp installs or lets you point to any custom HTTP endpoint, then saves the selection for use in MCP workflows.
 
-That’s all most people need. You can always come back to the menu later.
+That’s enough to edit Word docs in VS Code without touching advanced commands. Come back to the menu whenever you need another conversion.
 
 ---
 
@@ -247,14 +249,23 @@ cd /path/to/PandocPro && npm install
 
 ## 🖥️ Desktop GUI (Preview)
 
-Prefer windows and buttons over terminals? A new Electron-based GUI is scaffolded under `gui/`.
+Prefer windows and buttons over terminals? A new Electron-based GUI is bundled in `gui/` and already knows how to list your docs, trigger conversions, and show live logs.
 
 ```bash
 npm run gui:dev    # start the Electron + Vite app in dev mode
-npm run gui:build  # bundle the desktop app (uses electron-builder)
+# In the Electron window:
+# 1. Pick a .docx from the dropdown
+# 2. Click “Convert to Markdown” or “Export to Word”
+# 3. Watch stdout/stderr stream in the Activity panel
 ```
 
-The GUI currently shares the same conversion engine (`scripts/docx-sync.sh`) and will expand to include drag-and-drop, watch controls, and onboarding wizards in upcoming milestones.
+When you’re ready to distribute the desktop app, build installers with:
+
+```bash
+npm run gui:build  # produces DMG + ZIP bundles in gui/release/
+```
+
+Upcoming milestones will add a TipTap-based WYSIWYG editor, watch controls, and onboarding wizards so non-technical teammates never have to see raw Markdown.
 
 ---
 

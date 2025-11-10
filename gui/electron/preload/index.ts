@@ -23,6 +23,46 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   // ...
 })
 
+contextBridge.exposeInMainWorld('pandocPro', {
+  startConversion(payload: { docxPath: string; mdPath: string; mode: string; requestId: string }) {
+    ipcRenderer.send('conversion:start', payload)
+  },
+  cancelConversion(requestId: string) {
+    ipcRenderer.send('conversion:cancel', requestId)
+  },
+  onStdout(listener: (data: { requestId: string; chunk: string }) => void) {
+    const channel = 'conversion:stdout'
+    const handler = (_event: Electron.IpcRendererEvent, payload: { requestId: string; chunk: string }) =>
+      listener(payload)
+    ipcRenderer.on(channel, handler)
+    return () => ipcRenderer.off(channel, handler)
+  },
+  onStderr(listener: (data: { requestId: string; chunk: string }) => void) {
+    const channel = 'conversion:stderr'
+    const handler = (_event: Electron.IpcRendererEvent, payload: { requestId: string; chunk: string }) =>
+      listener(payload)
+    ipcRenderer.on(channel, handler)
+    return () => ipcRenderer.off(channel, handler)
+  },
+  onExit(listener: (data: { requestId: string; code: number }) => void) {
+    const channel = 'conversion:exit'
+    const handler = (_event: Electron.IpcRendererEvent, payload: { requestId: string; code: number }) =>
+      listener(payload)
+    ipcRenderer.on(channel, handler)
+    return () => ipcRenderer.off(channel, handler)
+  },
+  onError(listener: (data: { requestId: string; message: string }) => void) {
+    const channel = 'conversion:error'
+    const handler = (_event: Electron.IpcRendererEvent, payload: { requestId: string; message: string }) =>
+      listener(payload)
+    ipcRenderer.on(channel, handler)
+    return () => ipcRenderer.off(channel, handler)
+  },
+  async listDocuments() {
+    return ipcRenderer.invoke('docs:list')
+  },
+})
+
 // --------- Preload scripts loading ---------
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise(resolve => {

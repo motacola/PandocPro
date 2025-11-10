@@ -82,6 +82,21 @@ docx-md-sync/
 | **M6: Settings & telemetry** | Detect pandoc/node versions, show dependency checklist, optional macOS notifications, path picker for `docs/` | UI equivalents of `scripts/setup.sh` |
 | **M7: Packaging** | `electron-builder` config, notarization placeholders, CI script to produce `.dmg` + zipped app bundle | Keep CLI + GUI install paths in sync |
 
+### IPC Contract (Milestone 2)
+
+| Channel | Direction | Payload | Description |
+| --- | --- | --- | --- |
+| `conversion:start` | Renderer → Main | `{ mode: 'to-md' \| 'to-docx' \| 'auto'; docxPath: string; mdPath: string; requestId: string }` | Request a conversion. Main process validates paths and spawns `scripts/docx-sync.sh`. A unique `requestId` lets the renderer correlate responses. |
+| `conversion:stdout` | Main → Renderer | `{ requestId: string; chunk: string }` | Streamed standard output from the Bash script for live log updates. |
+| `conversion:stderr` | Main → Renderer | `{ requestId: string; chunk: string }` | Streamed standard error output (warnings/errors). |
+| `conversion:exit` | Main → Renderer | `{ requestId: string; code: number }` | Emitted when the child process exits; `code === 0` indicates success. |
+| `conversion:error` | Main → Renderer | `{ requestId: string; message: string }` | Raised if spawning fails (missing script, permissions, etc.). |
+| `watch:start` | Renderer → Main | `{ docxPath: string; mdPath: string; requestId: string }` | Launch `watch-md.js` with env overrides; returns same stdout/stderr events plus a `watch:status` heartbeat. |
+| `watch:stop` | Renderer → Main | `{ requestId: string }` | Terminates the watcher process. |
+| `docs:list` | Renderer ⇄ Main (invoke) | *(none)* → `{ files: { docx: string; md: string }[] }` | Provides UI with the discovered document pairs (reusing menu discovery logic). |
+
+All renderer calls go through `window.pandocPro` (exposed in preload) to avoid direct `ipcRenderer` usage in React components.
+
 ---
 
 ## 5. Dependencies & Open Questions
@@ -103,3 +118,28 @@ docx-md-sync/
 4. Iterate towards watch mode, settings, and packaging.
 
 Once the GUI MVP works, we can layer in richer UX (drag-and-drop, WYSIWYG editor, onboarding wizard) using the same foundation.
+
+---
+
+## Current Status & Testing Notes (Milestone 2)
+
+- ✅ Electron workspace scaffolded under `gui/`
+- ✅ IPC contract implemented (`conversion:start/stdout/stderr/exit/error`, `docs:list`)
+- ✅ Preload now exposes `window.pandocPro` helpers for the renderer
+- ✅ React preview screen lists `.docx` files, triggers conversions, and streams logs
+
+### Try it locally
+
+```bash
+npm run gui:dev   # Launch Electron + Vite in dev mode
+```
+
+1. Ensure `docs/` contains at least one `.docx`.
+2. Pick it from the dropdown, click **Convert to Markdown** or **Export to Word**.
+3. Watch stdout/stderr stream into the “Activity” panel.
+
+Package the preview build with:
+
+```bash
+npm run gui:build   # Produces DMG/ZIP artifacts in gui/release/
+```

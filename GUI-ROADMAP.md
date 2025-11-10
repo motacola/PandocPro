@@ -203,3 +203,44 @@ npm run gui:build   # Produces DMG/ZIP artifacts in gui/release/
 5. **Testing/Docs**
    - Document how to run the GUI tests (`npm run gui:dev`, `gui:build`).
    - Add smoke test instructions for verifying history/log panels.
+
+---
+
+## Milestone 6: Settings & Telemetry
+
+### Goals
+- Mirror key parts of `scripts/setup.sh` inside the GUI so users can confirm dependencies without opening Terminal.
+- Let users switch the `docs/` root if they keep files elsewhere.
+- Surface telemetry (Pandoc version, Node version, CLI history counts) and emit desktop notifications on long runs.
+
+### IPC & Storage
+1. `system:info` (invoke)
+   - Returns `{ pandocVersion?: string; nodeVersion: string; docsPath: string }`.
+   - Pandoc version retrieved via `pandoc -v`; if missing, note that it needs installation.
+2. `settings:updateDocsPath`
+   - Accepts a directory, validates it exists, saves to `~/.config/pandocpro/settings.json`.
+   - `docs:list` should reference this custom path.
+3. `settings:get`
+   - Loads persisted settings (docs path, notifications enabled, auto-save interval, etc.).
+4. Optional: `notify:send`
+   - Wrapper for macOS notifications so renderer can trigger them without direct `Notification` API.
+
+### Renderer Tasks
+1. **Settings View**
+   - Tabbed layout or side panel with sections: *Environment*, *Folders*, *Notifications*.
+   - Environment: show Pandoc status (installed? version), Node version, CLI availability.
+   - Folders: show current docs path, allow selecting a different directory (via `dialog.showOpenDialog` on main process).
+   - Notifications: enable/disable desktop notifications for conversions/watch events.
+2. **Telemetry Counters**
+   - Small cards showing # of conversions in last 7 days, # of watch sessions, last error message.
+   - Leverage existing `logs/history.log` to compute counts.
+3. **Automatic Checks**
+   - When GUI launches, show a checklist: Pandoc installed? Node installed? Watch dependencies ready?
+   - Link out to QuickStart docs or run `scripts/setup.sh` as fallback instructions.
+
+### Implementation Steps
+1. Add settings/telemetry IPC handlers in `gui/electron/main` (system info, docs path persistence, notifications).
+2. Create a Settings component in the renderer with summary cards and configuration controls.
+3. Wire docs-path changes back to the existing doc discovery and TipTap loader.
+4. Persist configuration to `~/.config/pandocpro/settings.json`.
+5. Update README to explain how to open the Settings pane and what each checklist item means.

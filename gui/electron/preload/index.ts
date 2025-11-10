@@ -61,6 +61,9 @@ contextBridge.exposeInMainWorld('pandocPro', {
   async listDocuments() {
     return ipcRenderer.invoke('docs:list')
   },
+  async listHistory(limit?: number) {
+    return ipcRenderer.invoke('history:list', limit)
+  },
 })
 
 // --------- Preload scripts loading ---------

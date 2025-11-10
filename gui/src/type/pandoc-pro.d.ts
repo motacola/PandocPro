@@ -30,6 +30,17 @@ export interface DocsListEntry {
   mdMtime: number | null
 }
 
+export interface HistoryEntry {
+  timestamp: string
+  mode: string
+  source: string
+  target: string
+  status: string
+  duration: number
+  warnings: string
+  note: string
+}
+
 declare global {
   interface Window {
     pandocPro: {
@@ -40,6 +51,7 @@ declare global {
       onExit(listener: (data: ConversionExitPayload) => void): () => void
       onError(listener: (data: ConversionErrorPayload) => void): () => void
       listDocuments(): Promise<DocsListEntry[]>
+      listHistory(limit?: number): Promise<HistoryEntry[]>
     }
   }
 }

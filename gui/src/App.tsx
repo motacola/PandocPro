@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-import type { DocsListEntry } from './type/pandoc-pro'
+import type { DocsListEntry, HistoryEntry } from './type/pandoc-pro'
 
 type LogEntry =
   | { type: 'stdout'; text: string }
@@ -14,6 +14,8 @@ function App() {
   const [activeRequest, setActiveRequest] = useState<string | null>(null)
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [isLoadingDocs, setIsLoadingDocs] = useState<boolean>(false)
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false)
 
   const fetchDocs = () => {
     setIsLoadingDocs(true)
@@ -42,8 +44,23 @@ function App() {
       .finally(() => setIsLoadingDocs(false))
   }
 
+  const fetchHistory = () => {
+    setIsLoadingHistory(true)
+    window.pandocPro
+      .listHistory(6)
+      .then((entries) => setHistory(entries))
+      .catch((err) =>
+        setLogs((prev) => [
+          ...prev,
+          { type: 'stderr', text: `Failed to load history: ${err.message ?? String(err)}` },
+        ]),
+      )
+      .finally(() => setIsLoadingHistory(false))
+  }
+
   useEffect(() => {
     fetchDocs()
+    fetchHistory()
 
     const cleanups = [
       window.pandocPro.onStdout(({ chunk }) => setLogs((prev) => [...prev, { type: 'stdout', text: chunk }])),
@@ -56,10 +73,17 @@ function App() {
             ? { type: 'status', text: '✅ Conversion finished successfully.' }
             : { type: 'stderr', text: `Conversion exited with code ${code}.` },
         ])
+        fetchHistory()
+        setBanner(
+          code === 0
+            ? { type: 'success', message: 'Conversion finished successfully.' }
+            : { type: 'error', message: `Conversion exited with code ${code}.` },
+        )
       }),
       window.pandocPro.onError(({ message, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
         setLogs((prev) => [...prev, { type: 'stderr', text: `Error: ${message}` }])
+        setBanner({ type: 'error', message })
       }),
     ]
 
@@ -68,15 +92,16 @@ function App() {
     }
   }, [])
 
-  const startConversion = (mode: 'to-md' | 'to-docx' | 'auto') => {
+  const startConversion = () => {
     if (!selectedDoc) return
     const requestId = crypto.randomUUID()
     setActiveRequest(requestId)
-    setLogs([{ type: 'status', text: `▶️ Starting conversion (${mode})...` }])
+    setBanner({ type: 'info', message: `Running ${selectedMode}…` })
+    setLogs([{ type: 'status', text: `▶️ Starting conversion (${selectedMode})...` }])
     window.pandocPro.startConversion({
       docxPath: selectedDoc.docx,
       mdPath: selectedDoc.md,
-      mode,
+      mode: selectedMode,
       requestId,
     })
   }
@@ -144,15 +169,32 @@ function App() {
 
       <section className='panel'>
         <h2>Actions</h2>
-        <div className='actions'>
-          <button disabled={disableActions} onClick={() => startConversion('to-md')}>
+        <div className='mode-selector'>
+          <button
+            className={selectedMode === 'to-md' ? 'selected' : ''}
+            onClick={() => setSelectedMode('to-md')}
+            title='Convert Word → Markdown and open the .md file for editing.'
+          >
             Convert to Markdown
           </button>
-          <button disabled={disableActions} onClick={() => startConversion('to-docx')}>
+          <button
+            className={selectedMode === 'to-docx' ? 'selected' : ''}
+            onClick={() => setSelectedMode('to-docx')}
+            title='Export Markdown → Word so you can polish it in Word.'
+          >
             Export to Word
           </button>
-          <button disabled={disableActions} onClick={() => startConversion('auto')}>
+          <button
+            className={selectedMode === 'auto' ? 'selected' : ''}
+            onClick={() => setSelectedMode('auto')}
+            title='Let PandocPro pick the newer file and sync the older one.'
+          >
             Auto Sync
+          </button>
+        </div>
+        <div className='actions'>
+          <button disabled={disableActions} onClick={startConversion}>
+            {activeRequest ? 'Running…' : 'Run Selected Action'}
           </button>
           {activeRequest && (
             <button
@@ -160,12 +202,14 @@ function App() {
               onClick={() => {
                 window.pandocPro.cancelConversion(activeRequest)
                 setActiveRequest(null)
+                setBanner(null)
               }}
             >
               Cancel
             </button>
           )}
         </div>
+        {banner && <div className={`banner banner-${banner.type}`}>{banner.message}</div>}
       </section>
 
       <section className='panel'>
@@ -180,6 +224,38 @@ function App() {
             </span>
           ))}
         </pre>
+      </section>
+
+      <section className='panel'>
+        <div className='panel-header'>
+          <h2>Recent activity</h2>
+          <button className='secondary' onClick={fetchHistory} disabled={isLoadingHistory}>
+            {isLoadingHistory ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
+        {history.length === 0 ? (
+          <p className='muted'>No conversions logged yet.</p>
+        ) : (
+          <ul className='history-list'>
+            {history.map((entry) => (
+              <li key={`${entry.timestamp}-${entry.mode}`} className='history-item'>
+                <div className='history-row '>
+                  <span className={`badge ${entry.status === 'success' ? 'badge-success' : 'badge-error'}`}>
+                    {entry.status}
+                  </span>
+                  <strong>{entry.mode}</strong>
+                  <span className='muted'>{new Date(entry.timestamp).toLocaleString()}</span>
+                </div>
+                <div className='history-files'>
+                  <code>{entry.source}</code>
+                  <span>→</span>
+                  <code>{entry.target}</code>
+                </div>
+                {entry.note && entry.note !== 'completed' && <p className='muted'>{entry.note}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   )

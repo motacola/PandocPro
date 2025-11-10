@@ -8,14 +8,23 @@ type LogEntry =
   | { type: 'stderr'; text: string }
   | { type: 'status'; text: string }
 
+interface LogRun {
+  requestId: string
+  messages: LogEntry[]
+}
+
+type BannerState = { type: 'info' | 'success' | 'error'; message: string } | null
+
 function App() {
   const [docs, setDocs] = useState<DocsListEntry[]>([])
   const [selectedDoc, setSelectedDoc] = useState<DocsListEntry | null>(null)
   const [activeRequest, setActiveRequest] = useState<string | null>(null)
-  const [logs, setLogs] = useState<LogEntry[]>([])
+  const [logs, setLogs] = useState<LogRun[]>([])
   const [isLoadingDocs, setIsLoadingDocs] = useState<boolean>(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false)
+  const [selectedMode, setSelectedMode] = useState<'to-md' | 'to-docx' | 'auto'>('to-md')
+  const [banner, setBanner] = useState<BannerState>(null)
 
   const fetchDocs = () => {
     setIsLoadingDocs(true)
@@ -62,17 +71,30 @@ function App() {
     fetchDocs()
     fetchHistory()
 
+    const appendLog = (requestId: string, entry: LogEntry) => {
+      setLogs((prev) => {
+        const next = [...prev]
+        let run = next.find((item) => item.requestId === requestId)
+        if (!run) {
+          run = { requestId, messages: [] }
+          next.push(run)
+        }
+        run.messages.push(entry)
+        return next
+      })
+    }
+
     const cleanups = [
-      window.pandocPro.onStdout(({ chunk }) => setLogs((prev) => [...prev, { type: 'stdout', text: chunk }])),
-      window.pandocPro.onStderr(({ chunk }) => setLogs((prev) => [...prev, { type: 'stderr', text: chunk }])),
+      window.pandocPro.onStdout(({ chunk, requestId }) => appendLog(requestId, { type: 'stdout', text: chunk })),
+      window.pandocPro.onStderr(({ chunk, requestId }) => appendLog(requestId, { type: 'stderr', text: chunk })),
       window.pandocPro.onExit(({ code, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
-        setLogs((prev) => [
-          ...prev,
+        appendLog(
+          requestId,
           code === 0
             ? { type: 'status', text: '✅ Conversion finished successfully.' }
             : { type: 'stderr', text: `Conversion exited with code ${code}.` },
-        ])
+        )
         fetchHistory()
         setBanner(
           code === 0
@@ -82,7 +104,7 @@ function App() {
       }),
       window.pandocPro.onError(({ message, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
-        setLogs((prev) => [...prev, { type: 'stderr', text: `Error: ${message}` }])
+        appendLog(requestId, { type: 'stderr', text: `Error: ${message}` })
         setBanner({ type: 'error', message })
       }),
     ]
@@ -97,7 +119,10 @@ function App() {
     const requestId = crypto.randomUUID()
     setActiveRequest(requestId)
     setBanner({ type: 'info', message: `Running ${selectedMode}…` })
-    setLogs([{ type: 'status', text: `▶️ Starting conversion (${selectedMode})...` }])
+    setLogs((prev) => [
+      ...prev,
+      { requestId, messages: [{ type: 'status', text: `▶️ Starting conversion (${selectedMode})...` }] },
+    ])
     window.pandocPro.startConversion({
       docxPath: selectedDoc.docx,
       mdPath: selectedDoc.md,
@@ -214,16 +239,35 @@ function App() {
 
       <section className='panel'>
         <h2>Activity</h2>
-        <pre className='log'>
-          {logs.map((entry, index) => (
-            <span
-              key={`${entry.type}-${index}`}
-              className={entry.type === 'stderr' ? 'log-error' : entry.type === 'status' ? 'log-status' : ''}
-            >
-              {entry.text}
-            </span>
+        <div className='log-runs'>
+          {logs.length === 0 && <p className='muted'>No logs yet. Run an action to see details.</p>}
+          {logs.map((run) => (
+            <div key={run.requestId} className='log-run'>
+              <div className='log-run-header'>
+                <span className='muted'>Run {run.requestId.slice(0, 6)}</span>
+                <button
+                  className='secondary'
+                  onClick={() => {
+                    const text = run.messages.map((entry) => entry.text).join('\n')
+                    navigator.clipboard.writeText(text)
+                  }}
+                >
+                  Copy log
+                </button>
+              </div>
+              <pre className='log'>
+                {run.messages.map((entry, index) => (
+                  <span
+                    key={`${run.requestId}-${index}`}
+                    className={entry.type === 'stderr' ? 'log-error' : entry.type === 'status' ? 'log-status' : ''}
+                  >
+                    {entry.text}
+                  </span>
+                ))}
+              </pre>
+            </div>
           ))}
-        </pre>
+        </div>
       </section>
 
       <section className='panel'>

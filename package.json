@@ -9,7 +9,8 @@
     "menu": "./scripts/menu.sh",
     "setup": "./scripts/setup-alias.sh",
     "gui:dev": "npm run dev --prefix gui",
-    "gui:build": "npm run build --prefix gui"
+    "gui:build": "npm run build --prefix gui",
+    "gui:package": "npm run build --prefix gui && open gui/release"
   },
   "keywords": ["word", "markdown", "pandoc", "sync"],
   "dependencies": {

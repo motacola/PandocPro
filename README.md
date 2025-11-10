@@ -245,6 +245,19 @@ cd /path/to/PandocPro && npm install
 
 ---
 
+## 🖥️ Desktop GUI (Preview)
+
+Prefer windows and buttons over terminals? A new Electron-based GUI is scaffolded under `gui/`.
+
+```bash
+npm run gui:dev    # start the Electron + Vite app in dev mode
+npm run gui:build  # bundle the desktop app (uses electron-builder)
+```
+
+The GUI currently shares the same conversion engine (`scripts/docx-sync.sh`) and will expand to include drag-and-drop, watch controls, and onboarding wizards in upcoming milestones.
+
+---
+
 **Made with ❤️ for efficient document workflows**
 
 Just type `dsync` and let the magic happen! ✨

@@ -7,7 +7,9 @@
     "watch": "node watch-md.js",
     "export": "node watch-md.js --once",
     "menu": "./scripts/menu.sh",
-    "setup": "./scripts/setup-alias.sh"
+    "setup": "./scripts/setup-alias.sh",
+    "gui:dev": "npm run dev --prefix gui",
+    "gui:build": "npm run build --prefix gui"
   },
   "keywords": ["word", "markdown", "pandoc", "sync"],
   "dependencies": {

@@ -50,6 +50,18 @@ export interface WatchStatus {
   message?: string
 }
 
+export interface SystemInfo {
+  pandocVersion: string | null
+  nodeVersion: string
+  docsPath: string
+  notificationsEnabled: boolean
+}
+
+export interface SettingsData {
+  docsPath: string
+  notificationsEnabled: boolean
+}
+
 declare global {
   interface Window {
     pandocPro: {
@@ -66,6 +78,11 @@ declare global {
       startWatch(payload: { docxPath: string; mdPath: string }): Promise<void>
       stopWatch(): Promise<void>
       onWatchUpdate(listener: (data: WatchStatus) => void): () => void
+      getSystemInfo(): Promise<SystemInfo>
+      getSettings(): Promise<SettingsData>
+      updateDocsPath(path: string): Promise<SettingsData>
+      chooseDocsPath(): Promise<SettingsData | null>
+      updateSettings(payload: Partial<SettingsData>): Promise<SettingsData>
     }
   }
 }

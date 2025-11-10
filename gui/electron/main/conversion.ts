@@ -21,7 +21,27 @@ interface DocsListEntry {
 }
 
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
-const DOCS_DIR = path.join(PROJECT_ROOT, 'docs')
+const SETTINGS_FILE = path.join(process.env.HOME ?? '', '.config', 'pandocpro', 'settings.json')
+const DEFAULT_DOCS_DIR = path.join(PROJECT_ROOT, 'docs')
+let cachedDocsDir = DEFAULT_DOCS_DIR
+
+function loadDocsDir() {
+  try {
+    const contents = fs.readFileSync(SETTINGS_FILE, 'utf8')
+    const parsed = JSON.parse(contents)
+    if (parsed.docsPath && fs.existsSync(parsed.docsPath)) {
+      cachedDocsDir = parsed.docsPath
+      return
+    }
+  } catch {
+    // ignore
+  }
+  cachedDocsDir = DEFAULT_DOCS_DIR
+}
+
+function getDocsDir() {
+  return cachedDocsDir
+}
 const DOCX_SCRIPT = path.join(PROJECT_ROOT, 'scripts', 'docx-sync.sh')
 
 const processes = new Map<string, ChildProcessWithoutNullStreams>()
@@ -40,10 +60,11 @@ function validateRequest(payload: ConversionRequest) {
 }
 
 function discoverDocs(): DocsListEntry[] {
-  if (!fs.existsSync(DOCS_DIR)) return []
+  const docsDir = getDocsDir()
+  if (!fs.existsSync(docsDir)) return []
 
   const entries: DocsListEntry[] = []
-  const stack: string[] = [DOCS_DIR]
+  const stack: string[] = [docsDir]
 
   while (stack.length > 0) {
     const current = stack.pop()!
@@ -81,6 +102,7 @@ function discoverDocs(): DocsListEntry[] {
 }
 
 export function registerConversionHandlers(getWindow: () => BrowserWindow | null) {
+  loadDocsDir()
   ipcMain.handle('docs:list', () => discoverDocs())
 
   ipcMain.on('conversion:start', (_event, payload: ConversionRequest) => {

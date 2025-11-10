@@ -82,6 +82,21 @@ contextBridge.exposeInMainWorld('pandocPro', {
     ipcRenderer.on(channel, handler)
     return () => ipcRenderer.off(channel, handler)
   },
+  getSystemInfo() {
+    return ipcRenderer.invoke('system:info')
+  },
+  getSettings() {
+    return ipcRenderer.invoke('settings:get')
+  },
+  updateDocsPath(path: string) {
+    return ipcRenderer.invoke('settings:updateDocsPath', path)
+  },
+  chooseDocsPath() {
+    return ipcRenderer.invoke('settings:chooseDocsPath')
+  },
+  updateSettings(payload: any) {
+    return ipcRenderer.invoke('settings:update', payload)
+  },
 })
 
 // --------- Preload scripts loading ---------

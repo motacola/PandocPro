@@ -20,12 +20,20 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "electron-updater": "^6.3.9"
+    "@tiptap/extension-code-block-lowlight": "^3.10.5",
+    "@tiptap/extension-placeholder": "^3.10.5",
+    "@tiptap/react": "^3.10.5",
+    "@tiptap/starter-kit": "^3.10.5",
+    "electron-updater": "^6.3.9",
+    "lowlight": "^3.3.0",
+    "marked": "^17.0.0",
+    "turndown": "^7.2.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/turndown": "^5.0.6",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
     "electron": "^33.2.0",

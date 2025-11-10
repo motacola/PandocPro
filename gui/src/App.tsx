@@ -1,4 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Placeholder from '@tiptap/extension-placeholder'
+import { marked } from 'marked'
+import TurndownService from 'turndown'
 import './App.css'
 
 import type { DocsListEntry, HistoryEntry } from './type/pandoc-pro'
@@ -13,7 +18,10 @@ interface LogRun {
   messages: LogEntry[]
 }
 
+type ConversionMode = 'to-md' | 'to-docx' | 'auto'
 type BannerState = { type: 'info' | 'success' | 'error'; message: string } | null
+
+const renderMarkdown = (markdown: string) => marked.parse(markdown ?? '') as string
 
 function App() {
   const [docs, setDocs] = useState<DocsListEntry[]>([])
@@ -23,8 +31,46 @@ function App() {
   const [isLoadingDocs, setIsLoadingDocs] = useState<boolean>(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false)
-  const [selectedMode, setSelectedMode] = useState<'to-md' | 'to-docx' | 'auto'>('to-md')
+  const [selectedMode, setSelectedMode] = useState<ConversionMode>('to-md')
   const [banner, setBanner] = useState<BannerState>(null)
+  const [isEditorLoading, setIsEditorLoading] = useState<boolean>(false)
+  const [isPreviewVisible, setIsPreviewVisible] = useState<boolean>(true)
+  const [isSavingMarkdown, setIsSavingMarkdown] = useState<boolean>(false)
+  const [dirty, setDirty] = useState<boolean>(false)
+  const [liveMarkdown, setLiveMarkdown] = useState<string>('')
+  const [previewHtml, setPreviewHtml] = useState<string>('')
+
+  const turndown = useMemo(() => new TurndownService(), [])
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder: 'Start editing your Markdown…',
+      }),
+    ],
+    content: '',
+    onUpdate: ({ editor }) => {
+      setDirty(true)
+      const html = editor.getHTML()
+      const markdown = turndown.turndown(html)
+      setLiveMarkdown(markdown)
+      setPreviewHtml(renderMarkdown(markdown))
+    },
+  })
+
+  const appendLogEntry = useCallback((requestId: string, entry: LogEntry) => {
+    setLogs((prev) => {
+      const next = [...prev]
+      let run = next.find((item) => item.requestId === requestId)
+      if (!run) {
+        run = { requestId, messages: [] }
+        next.push(run)
+      }
+      run.messages.push(entry)
+      return next
+    })
+  }, [])
 
   const fetchDocs = () => {
     setIsLoadingDocs(true)
@@ -45,10 +91,7 @@ function App() {
         }
       })
       .catch((err) => {
-        setLogs((prev) => [
-          ...prev,
-          { type: 'stderr', text: `Failed to list documents: ${err.message ?? String(err)}` },
-        ])
+        appendLogEntry('system', { type: 'stderr', text: `Failed to list documents: ${err.message ?? String(err)}` })
       })
       .finally(() => setIsLoadingDocs(false))
   }
@@ -59,10 +102,7 @@ function App() {
       .listHistory(6)
       .then((entries) => setHistory(entries))
       .catch((err) =>
-        setLogs((prev) => [
-          ...prev,
-          { type: 'stderr', text: `Failed to load history: ${err.message ?? String(err)}` },
-        ]),
+        appendLogEntry('system', { type: 'stderr', text: `Failed to load history: ${err.message ?? String(err)}` }),
       )
       .finally(() => setIsLoadingHistory(false))
   }
@@ -71,25 +111,12 @@ function App() {
     fetchDocs()
     fetchHistory()
 
-    const appendLog = (requestId: string, entry: LogEntry) => {
-      setLogs((prev) => {
-        const next = [...prev]
-        let run = next.find((item) => item.requestId === requestId)
-        if (!run) {
-          run = { requestId, messages: [] }
-          next.push(run)
-        }
-        run.messages.push(entry)
-        return next
-      })
-    }
-
     const cleanups = [
-      window.pandocPro.onStdout(({ chunk, requestId }) => appendLog(requestId, { type: 'stdout', text: chunk })),
-      window.pandocPro.onStderr(({ chunk, requestId }) => appendLog(requestId, { type: 'stderr', text: chunk })),
+      window.pandocPro.onStdout(({ chunk, requestId }) => appendLogEntry(requestId, { type: 'stdout', text: chunk })),
+      window.pandocPro.onStderr(({ chunk, requestId }) => appendLogEntry(requestId, { type: 'stderr', text: chunk })),
       window.pandocPro.onExit(({ code, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
-        appendLog(
+        appendLogEntry(
           requestId,
           code === 0
             ? { type: 'status', text: '✅ Conversion finished successfully.' }
@@ -104,7 +131,7 @@ function App() {
       }),
       window.pandocPro.onError(({ message, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
-        appendLog(requestId, { type: 'stderr', text: `Error: ${message}` })
+        appendLogEntry(requestId, { type: 'stderr', text: `Error: ${message}` })
         setBanner({ type: 'error', message })
       }),
     ]
@@ -112,23 +139,69 @@ function App() {
     return () => {
       cleanups.forEach((cleanup) => cleanup())
     }
-  }, [])
+  }, [appendLogEntry])
 
-  const startConversion = () => {
+  useEffect(() => {
+    if (!selectedDoc || !editor) return
+    setIsEditorLoading(true)
+    window.pandocPro
+      .readFile(selectedDoc.md)
+      .then((markdown) => {
+        const normalized = markdown ?? ''
+        const html = renderMarkdown(normalized)
+        editor.commands.setContent(html, { emitUpdate: false })
+        setLiveMarkdown(normalized)
+        setPreviewHtml(html)
+        setDirty(false)
+      })
+      .catch(() => {
+        const placeholder = '<p><em>No Markdown file yet. Click “Save Markdown” to create one.</em></p>'
+        editor.commands.setContent(placeholder, { emitUpdate: false })
+        setLiveMarkdown('')
+        setPreviewHtml(renderMarkdown(''))
+        setDirty(false)
+      })
+      .finally(() => setIsEditorLoading(false))
+  }, [selectedDoc, editor])
+
+  const triggerConversion = (modeOverride?: ConversionMode) => {
     if (!selectedDoc) return
+    const mode = modeOverride ?? selectedMode
     const requestId = crypto.randomUUID()
     setActiveRequest(requestId)
-    setBanner({ type: 'info', message: `Running ${selectedMode}…` })
+    setBanner({ type: 'info', message: `Running ${mode}…` })
     setLogs((prev) => [
       ...prev,
-      { requestId, messages: [{ type: 'status', text: `▶️ Starting conversion (${selectedMode})...` }] },
+      { requestId, messages: [{ type: 'status', text: `▶️ Starting conversion (${mode})...` }] },
     ])
     window.pandocPro.startConversion({
       docxPath: selectedDoc.docx,
       mdPath: selectedDoc.md,
-      mode: selectedMode,
+      mode,
       requestId,
     })
+  }
+
+  const handleSaveMarkdown = async (modeAfterSave?: ConversionMode) => {
+    if (!selectedDoc || !editor) return
+    setIsSavingMarkdown(true)
+    try {
+      const html = editor.getHTML()
+      const markdown = turndown.turndown(html)
+      await window.pandocPro.writeFile(selectedDoc.md, markdown)
+      setDirty(false)
+      setLiveMarkdown(markdown)
+      setPreviewHtml(renderMarkdown(markdown))
+      setBanner({ type: 'success', message: 'Markdown saved.' })
+      if (modeAfterSave) {
+        triggerConversion(modeAfterSave)
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save Markdown file.'
+      setBanner({ type: 'error', message })
+    } finally {
+      setIsSavingMarkdown(false)
+    }
   }
 
   const disableActions = useMemo(() => !selectedDoc || !!activeRequest, [selectedDoc, activeRequest])
@@ -218,7 +291,7 @@ function App() {
           </button>
         </div>
         <div className='actions'>
-          <button disabled={disableActions} onClick={startConversion}>
+          <button disabled={disableActions} onClick={() => triggerConversion()}>
             {activeRequest ? 'Running…' : 'Run Selected Action'}
           </button>
           {activeRequest && (
@@ -235,6 +308,42 @@ function App() {
           )}
         </div>
         {banner && <div className={`banner banner-${banner.type}`}>{banner.message}</div>}
+      </section>
+
+      <section className='panel'>
+        <div className='panel-header'>
+          <h2>Markdown editor</h2>
+          <div className='editor-controls'>
+            <span className={`dirty-dot ${dirty ? 'dirty' : ''}`}>
+              {dirty ? 'Unsaved changes' : 'Saved'}
+            </span>
+            <button className='secondary' onClick={() => setIsPreviewVisible((prev) => !prev)}>
+              {isPreviewVisible ? 'Hide preview' : 'Show preview'}
+            </button>
+            <button className='secondary' disabled={isSavingMarkdown || !dirty} onClick={() => handleSaveMarkdown()}>
+              {isSavingMarkdown ? 'Saving…' : 'Save Markdown'}
+            </button>
+            <button
+              className='secondary'
+              disabled={isSavingMarkdown}
+              onClick={() => handleSaveMarkdown('to-docx')}
+            >
+              {isSavingMarkdown ? 'Saving…' : 'Save & Export'}
+            </button>
+          </div>
+        </div>
+        {isEditorLoading || !editor ? (
+          <p className='muted'>Loading editor…</p>
+        ) : (
+          <div className={`editor-layout ${isPreviewVisible ? 'with-preview' : ''}`}>
+            <div className='editor-pane'>
+              <EditorContent editor={editor} />
+            </div>
+            {isPreviewVisible && (
+              <div className='preview-pane' dangerouslySetInnerHTML={{ __html: previewHtml }} />
+            )}
+          </div>
+        )}
       </section>
 
       <section className='panel'>

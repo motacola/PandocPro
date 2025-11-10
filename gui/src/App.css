@@ -128,6 +128,56 @@ select {
   margin-top: 1rem;
 }
 
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dirty-dot {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.dirty-dot.dirty::before {
+  content: '● ';
+  color: #facc15;
+}
+
+.editor-layout {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.editor-layout.with-preview {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.editor-pane {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  background: #0b1220;
+  padding: 0.75rem;
+  min-height: 320px;
+}
+
+.editor-pane .ProseMirror {
+  outline: none;
+  min-height: 280px;
+  color: #e2e8f0;
+}
+
+.preview-pane {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.6);
+  min-height: 320px;
+  overflow-y: auto;
+}
+
 button {
   flex: 1;
   min-width: 140px;

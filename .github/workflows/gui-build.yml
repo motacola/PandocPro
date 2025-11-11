@@ -1,0 +1,50 @@
+name: GUI Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root deps
+        run: npm ci
+
+      - name: Cache GUI node_modules
+        uses: actions/cache@v4
+        with:
+          path: gui/node_modules
+          key: ${{ runner.os }}-gui-${{ hashFiles('gui/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-gui-
+
+      - name: Install GUI deps
+        run: npm ci
+        working-directory: gui
+
+      - name: Build GUI
+        run: npm run gui:build
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_IDENTITY_AUTO_DISCOVERY }}
+          CSC_NAME: ${{ secrets.CSC_NAME }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pandocpro-gui-${{ github.sha }}
+          path: gui/release/**

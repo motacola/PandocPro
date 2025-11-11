@@ -69,6 +69,18 @@ That’s enough to edit Word docs in VS Code without touching advanced commands.
 
 ---
 
+## 🎨 See the New Welcome Experience
+
+Want a fast preview of the refreshed ASCII art welcome screen and menu without running the script? Open `pandocpro.html` in a browser—it includes the before/after comparison plus a render of the terminal experience.
+
+```bash
+open pandocpro.html
+```
+
+Bring it up in demos or share the file so teammates can see what the first-run flow looks like.
+
+---
+
 ## 📖 Usage
 
 ### Interactive Menu (Recommended)

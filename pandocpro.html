@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PandocPro Enhanced Interface</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Monaco', 'Courier New', monospace;
+            padding: 20px;
+            color: #fff;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        .terminal {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        .terminal-header {
+            background: #2d2d2d;
+            margin: -30px -30px 20px -30px;
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-red, .btn-yellow, .btn-green {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .btn-red { background: #ff5f56; }
+        .btn-yellow { background: #ffbd2e; }
+        .btn-green { background: #27c93f; }
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+        }
+        .blue { color: #61dafb; }
+        .cyan { color: #00ffff; }
+        .green { color: #4ade80; }
+        .yellow { color: #fbbf24; }
+        .magenta { color: #d946ef; }
+        .red { color: #f87171; }
+        .dim { opacity: 0.6; }
+        .bold { font-weight: bold; }
+        .section-header {
+            border-top: 2px solid #444;
+            padding-top: 15px;
+            margin-top: 20px;
+            color: #fbbf24;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .ascii-logo {
+            color: #00ffff;
+            font-size: 11px;
+            line-height: 1.2;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .comparison-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .comparison-box h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .checkmark { color: #4ade80; }
+        .cross { color: #f87171; }
+        
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 10px;
+            }
+            .terminal {
+                padding: 15px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 PandocPro Enhanced Interface</h1>
+        <p class="subtitle">Beautiful ASCII art, rich colors, and user-friendly design</p>
+        
+        <div class="comparison">
+            <div class="comparison-box">
+                <h3>❌ Before</h3>
+                <ul class="feature-list">
+                    <li><span class="cross">✗</span> Basic box header</li>
+                    <li><span class="cross">✗</span> Limited colors</li>
+                    <li><span class="cross">✗</span> Plain text only</li>
+                    <li><span class="cross">✗</span> Technical feel</li>
+                    <li><span class="cross">✗</span> Hard to scan</li>
+                </ul>
+            </div>
+            <div class="comparison-box">
+                <h3>✅ After</h3>
+                <ul class="feature-list">
+                    <li><span class="checkmark">✓</span> ASCII art logo</li>
+                    <li><span class="checkmark">✓</span> Rich color palette</li>
+                    <li><span class="checkmark">✓</span> Icons & emojis</li>
+                    <li><span class="checkmark">✓</span> Friendly tone</li>
+                    <li><span class="checkmark">✓</span> Visual hierarchy</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="terminal">
+            <div class="terminal-header">
+                <span class="btn-red"></span>
+                <span class="btn-yellow"></span>
+                <span class="btn-green"></span>
+                <span class="terminal-title">Terminal — bash — 80×24</span>
+            </div>
+            
+            <div class="ascii-logo">
+╔════════════════════════════════════════════════════════════════╗<br>
+║                                                                ║<br>
+║   ██████╗  █████╗ ███╗   ██╗██████╗  ██████╗  ██████╗        ║<br>
+║   ██╔══██╗██╔══██╗████╗  ██║██╔══██╗██╔═══██╗██╔════╝        ║<br>
+║   ██████╔╝███████║██╔██╗ ██║██║  ██║██║   ██║██║             ║<br>
+║   ██╔═══╝ ██╔══██║██║╚██╗██║██║  ██║██║   ██║██║             ║<br>
+║   ██║     ██║  ██║██║ ╚████║██████╔╝╚██████╔╝╚██████╗        ║<br>
+║   ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝  ╚═════╝  ╚═════╝        ║<br>
+║                                                                ║<br>
+║   <span class="magenta bold">PRO</span>                  <span class="dim">Word ↔ Markdown Sync</span>               ║<br>
+║                                                                ║<br>
+╚════════════════════════════════════════════════════════════════╝
+            </div>
+            
+            <div>
+<span class="green bold">🎉 Welcome to PandocPro!</span><br>
+<span class="dim">Edit Word documents like native Markdown projects — no coding required.</span><br>
+<br>
+<br>
+<span class="section-header">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br>
+  HOW IT WORKS<br>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><br>
+<br>
+  <span class="cyan">1</span> 📁 <span class="bold">Drop</span> any .docx file into  <span class="cyan">docs/</span><br>
+       <span class="dim">└─ Organize them in subfolders if you like!</span><br>
+<br>
+  <span class="cyan">2</span> ⚡ <span class="bold">Run</span> <span class="green bold">dsync</span> in your terminal<br>
+       <span class="dim">└─ A friendly menu appears with your documents</span><br>
+<br>
+  <span class="cyan">3</span> ✨ <span class="bold">Choose</span> what you need:<br>
+       <span class="dim">• Convert to Markdown for easy editing</span><br>
+       <span class="dim">• Export back to Word for sharing</span><br>
+       <span class="dim">• Auto-sync (keeps both files matched)</span><br>
+       <span class="dim">• Live watch mode (instant updates!)</span><br>
+<br>
+  <span class="cyan">4</span> ✏️  <span class="bold">Edit</span> in VS Code, commit to Git, use AI tools<br>
+       <span class="dim">└─ Work the way developers work, with Word docs</span><br>
+<br>
+<br>
+<span class="magenta section-header">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br>
+  GETTING STARTED<br>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><br>
+<br>
+  <span class="green">📚 Complete Guides:</span><br>
+     • <span class="bold">START-HERE.md</span>      <span class="dim">→ New user? Start here!</span><br>
+     • <span class="bold">QUICKSTART.md</span>      <span class="dim">→ Step-by-step walkthrough</span><br>
+     • <span class="bold">VISUAL-GUIDE.md</span>    <span class="dim">→ Screenshots of every action</span><br>
+<br>
+  <span class="blue">🧭 Beginner Wizard:</span><br>
+     • Run <span class="green">dsync</span> and choose <span class="yellow">option 9</span><br>
+       <span class="dim">└─ Interactive helper walks you through everything</span><br>
+<br>
+  <span class="cyan">🤖 AI Power User?</span><br>
+     • Ask <span class="bold">Claude Desktop</span> to convert, edit, and export docs<br>
+     • See <span class="bold">MCP-INTEGRATION.md</span> for automation setup<br>
+<br>
+<br>
+<span class="blue section-header">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br>
+  PRO TIPS<br>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><br>
+<br>
+  <span class="green">💡</span> Keep <span class="green">dsync</span> running for quick one-off conversions<br>
+  <span class="green">💡</span> Use <span class="yellow">watch mode</span> for live exports while editing<br>
+  <span class="green">💡</span> Both .docx and .md files are <span class="cyan">Git-friendly</span><br>
+  <span class="green">💡</span> Let Word handle complex formatting, Markdown for content<br>
+  <span class="green">💡</span> Automate repetitive tasks with Claude/MCP tools<br>
+<br>
+<br>
+<span class="green bold">✅ You're all set — ready to sync some docs!</span><br>
+<br>
+<span class="dim">Tip: Type <span class="green">dsync</span> anytime to access the menu</span><br>
+<br>
+Press Enter to continue..._
+            </div>
+        </div>
+
+        <div class="terminal">
+            <div class="terminal-header">
+                <span class="btn-red"></span>
+                <span class="btn-yellow"></span>
+                <span class="btn-green"></span>
+                <span class="terminal-title">Terminal — bash — 80×24</span>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+<span class="cyan" style="font-size: 11px; line-height: 1.2;">
+╔══════════════════════════════════════════════════════╗<br>
+║                                                      ║<br>
+║   ██████╗ ██████╗  ██████╗                          ║<br>
+║   ██╔══██╗██╔══██╗██╔═══██╗  <span class="magenta bold">PandocPro</span>              ║<br>
+║   ██████╔╝██████╔╝██║   ██║                          ║<br>
+║   ██╔═══╝ ██╔══██╗██║   ██║  <span class="dim">Word ↔ Markdown</span>       ║<br>
+║   ██║     ██║  ██║╚██████╔╝                          ║<br>
+║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝                           ║<br>
+║                                                      ║<br>
+╚══════════════════════════════════════════════════════╝
+</span>
+            </div>
+            
+            <div>
+<span class="green bold">📄 Available Documents:</span><br>
+<br>
+  <span class="cyan">1</span>) Christopher_Belgrave_CV_March_2025.docx<br>
+  <span class="cyan">2</span>) presentation.docx<br>
+  <span class="cyan">3</span>) test.docx<br>
+<br>
+<span class="cyan">Select document number</span> <span class="dim">(or 'q' to quit)</span>: 1<br>
+<br>
+<span class="green bold">✓ Selected:</span> Christopher_Belgrave_CV_March_2025.docx<br>
+<br>
+<span class="yellow section-header">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br>
+  What would you like to do?<br>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><br>
+<br>
+  <span class="cyan">1</span>) 📄 <span class="bold">Make a Markdown copy</span> so I can edit here<br>
+     <span class="dim">└─ Convert .docx → .md for easy editing</span><br>
+<br>
+  <span class="cyan">2</span>) 📘 <span class="bold">Create a fresh Word file</span> from my Markdown<br>
+     <span class="dim">└─ Convert .md → .docx for sharing/printing</span><br>
+<br>
+  <span class="cyan">3</span>) 🔄 <span class="bold">Keep both files matched</span> automatically<br>
+     <span class="dim">└─ Auto-detect which is newer and sync</span><br>
+<br>
+  <span class="cyan">4</span>) 👀 <span class="bold">Live update Word</span> while I edit (watch mode)<br>
+     <span class="dim">└─ Every save in VS Code refreshes the .docx</span><br>
+<br>
+  <span class="cyan">5</span>) ✏️  <span class="bold">Open the Markdown</span> in VS Code<br>
+     <span class="dim">└─ Launch editor for the .md file</span><br>
+<br>
+  <span class="cyan">6</span>) 📂 <span class="bold">Open this file</span> in Microsoft Word<br>
+     <span class="dim">└─ View/edit the .docx in Word</span><br>
+<br>
+  <span class="cyan">7</span>) 📜 <span class="bold">Show recent activity</span><br>
+     <span class="dim">└─ View conversion history and logs</span><br>
+<br>
+  <span class="cyan">8</span>) ↩️  <span class="bold">Undo the last thing</span> I did<br>
+     <span class="dim">└─ Restore from backup if available</span><br>
+<br>
+  <span class="cyan">9</span>) 🧭 <span class="bold">Step-by-step helper</span> (beginner mode)<br>
+     <span class="dim">└─ Interactive wizard walks you through</span><br>
+<br>
+ <span class="cyan">10</span>) 🤖 <span class="bold">Pick which AI helper</span> to use<br>
+     <span class="dim">└─ Configure local LLM (Ollama/LM Studio)</span><br>
+<br>
+<span class="cyan">Choose action (1-10)</span>: _
+            </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 12px; backdrop-filter: blur(10px); margin-top: 40px;">
+            <h2 style="text-align: center; margin-top: 0;">🎨 Color Coding System</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div>
+                    <div style="background: #00ffff; color: #000; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 5px;"><strong>CYAN</strong></div>
+                    <p style="font-size: 0.9em; margin: 5px 0;">Numbers, commands, paths</p>
+                </div>
+                <div>
+                    <div style="background: #4ade80; color: #000; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 5px;"><strong>GREEN</strong></div>
+                    <p style="font-size: 0.9em; margin: 5px 0;">Success, tips, dsync</p>
+                </div>
+                <div>
+                    <div style="background: #fbbf24; color: #000; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 5px;"><strong>YELLOW</strong></div>
+                    <p style="font-size: 0.9em; margin: 5px 0;">Headers, warnings</p>
+                </div>
+                <div>
+                    <div style="background: #61dafb; color: #000; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 5px;"><strong>BLUE</strong></div>
+                    <p style="font-size: 0.9em; margin: 5px 0;">Processing, info</p>
+                </div>
+                <div>
+                    <div style="background: #f87171; color: #000; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 5px;"><strong>RED</strong></div>
+                    <p style="font-size: 0.9em; margin: 5px 0;">Errors, failures</p>
+                </div>
+                <div>
+                    <div style="background: #d946ef; color: #000; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 5px;"><strong>MAGENTA</strong></div>
+                    <p style="font-size: 0.9em; margin: 5px 0;">Brand (PRO)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -53,6 +53,39 @@ select {
   margin-bottom: 0.75rem;
 }
 
+.doc-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.doc-search {
+  flex: 1;
+  min-width: 220px;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #0b1220;
+  color: #f8fafc;
+}
+
+.doc-search::placeholder {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.doc-sort {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.doc-sort select {
+  min-width: 160px;
+}
+
 .doc-summary {
   margin-top: 1rem;
   display: grid;
@@ -324,6 +357,89 @@ button:not(:disabled):hover {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
+}
+
+.faq-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 1rem;
+}
+
+.faq-sidebar {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.faq-sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.faq-search {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #0b1220;
+  color: #f8fafc;
+}
+
+.faq-link {
+  width: 100%;
+  text-align: left;
+  background: none !important;
+  border: none !important;
+  color: #f8fafc;
+  padding: 0.5rem;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  cursor: pointer;
+  min-width: auto;
+}
+
+.faq-link.active {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.faq-section {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.faq-answer {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.faq-answer h3 {
+  margin-top: 0;
+}
+
+.faq-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.faq-ai-response {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.15);
+  color: #f8fafc;
+  white-space: pre-wrap;
 }
 
 .settings-card {

@@ -37,6 +37,17 @@ Welcome! Here's everything you need to know about Word ↔ Markdown Sync.
 - File organization
 - Common workflows
 
+### [FAQ.md](FAQ.md)
+**Frequently asked questions** - rapid answers when you bump into trouble.
+
+**Covers:**
+- Setup requirements
+- Menu vs auto sync
+- Watch mode gotchas
+- GUI & AI helpers
+- Troubleshooting + backups
+- Interactive helper: `./scripts/faq.sh`
+
 ---
 
 ## 🎨 VS Code Integration

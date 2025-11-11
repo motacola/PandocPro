@@ -21,11 +21,19 @@ interface LogRun {
 type ConversionMode = 'to-md' | 'to-docx' | 'auto'
 type BannerState = { type: 'info' | 'success' | 'error'; message: string } | null
 
+interface FaqEntry {
+  question: string
+  answer: string
+  section: string
+}
+
 const renderMarkdown = (markdown: string) => marked.parse(markdown ?? '') as string
 
 function App() {
   const [docs, setDocs] = useState<DocsListEntry[]>([])
   const [selectedDoc, setSelectedDoc] = useState<DocsListEntry | null>(null)
+  const [docFilter, setDocFilter] = useState<string>('')
+  const [docSort, setDocSort] = useState<'alpha' | 'recent'>('alpha')
   const [activeRequest, setActiveRequest] = useState<string | null>(null)
   const [logs, setLogs] = useState<LogRun[]>([])
   const [isLoadingDocs, setIsLoadingDocs] = useState<boolean>(false)
@@ -44,6 +52,12 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [settings, setSettings] = useState<SettingsData | null>(null)
+  const [faqEntries, setFaqEntries] = useState<FaqEntry[]>([])
+  const [selectedFaq, setSelectedFaq] = useState<FaqEntry | null>(null)
+  const [faqFilter, setFaqFilter] = useState<string>('')
+  const [faqAiStatus, setFaqAiStatus] = useState<{ configured: boolean; displayName?: string }>({ configured: false })
+  const [faqAiLoading, setFaqAiLoading] = useState<boolean>(false)
+  const [faqAiResponse, setFaqAiResponse] = useState<string>('')
 
   const turndown = useMemo(() => new TurndownService(), [])
 
@@ -64,6 +78,70 @@ function App() {
     },
   })
 
+  const normalizedDocsRoot = useMemo(() => settings?.docsPath?.replace(/\\/g, '/') ?? '', [settings])
+
+  const filteredFaqEntries = useMemo(() => {
+    if (!faqEntries.length) return []
+    const needle = faqFilter.trim().toLowerCase()
+    if (!needle) return faqEntries
+    return faqEntries.filter((entry) =>
+      entry.question.toLowerCase().includes(needle) || entry.section.toLowerCase().includes(needle),
+    )
+  }, [faqEntries, faqFilter])
+
+  const formatDocLabel = useCallback(
+    (entry: DocsListEntry) => {
+      const normalizedPath = entry.docx.replace(/\\/g, '/').trim()
+      if (normalizedDocsRoot) {
+        const root = normalizedDocsRoot.endsWith('/') ? normalizedDocsRoot : `${normalizedDocsRoot}/`
+        if (normalizedPath.startsWith(root)) {
+          const relative = normalizedPath.slice(root.length)
+          if (relative) return relative
+        }
+      }
+      if (normalizedPath.includes('/docs/')) {
+        return normalizedPath.split('/docs/')[1]
+      }
+      const windowsMarker = '\\docs\\'
+      if (entry.docx.includes(windowsMarker)) {
+        return entry.docx.split(windowsMarker)[1]
+      }
+      const segments = normalizedPath.split('/')
+      return segments[segments.length - 1] ?? entry.docx
+    },
+    [normalizedDocsRoot],
+  )
+
+  const filteredDocs = useMemo(() => {
+    const filter = docFilter.trim().toLowerCase()
+    let list = [...docs]
+    if (filter) {
+      list = list.filter((entry) => formatDocLabel(entry).toLowerCase().includes(filter))
+    }
+    list.sort((a, b) => {
+      if (docSort === 'recent') {
+        return (b.docxMtime ?? 0) - (a.docxMtime ?? 0)
+      }
+      return formatDocLabel(a).localeCompare(formatDocLabel(b))
+    })
+    return list
+  }, [docs, docFilter, docSort, formatDocLabel])
+
+  useEffect(() => {
+    if (filteredDocs.length === 0) {
+      setSelectedDoc(null)
+      return
+    }
+    if (!selectedDoc) {
+      setSelectedDoc(filteredDocs[0])
+      return
+    }
+    const stillVisible = filteredDocs.some((entry) => entry.docx === selectedDoc.docx)
+    if (!stillVisible) {
+      setSelectedDoc(filteredDocs[0] ?? null)
+    }
+  }, [filteredDocs, selectedDoc])
+
   const appendLogEntry = useCallback((requestId: string, entry: LogEntry) => {
     setLogs((prev) => {
       const next = [...prev]
@@ -83,15 +161,7 @@ function App() {
       .listDocuments()
       .then((files) => {
         setDocs(files)
-        if (files.length > 0) {
-          setSelectedDoc((current) => {
-            if (current) {
-              const stillExists = files.find((entry) => entry.docx === current.docx)
-              return stillExists ?? files[0]
-            }
-            return files[0]
-          })
-        } else {
+        if (files.length === 0) {
           setSelectedDoc(null)
         }
       })
@@ -117,6 +187,12 @@ function App() {
     fetchHistory()
     window.pandocPro.getSystemInfo().then(setSystemInfo)
     window.pandocPro.getSettings().then(setSettings)
+    window.pandocPro.getFaq().then((content) => {
+      const parsed = parseFaq(content)
+      setFaqEntries(parsed)
+      setSelectedFaq(parsed[0] ?? null)
+    })
+    window.pandocPro.getLlmStatus().then((status) => setFaqAiStatus(status))
 
     const cleanups = [
       window.pandocPro.onStdout(({ chunk, requestId }) => appendLogEntry(requestId, { type: 'stdout', text: chunk })),
@@ -238,6 +314,30 @@ function App() {
 
   const disableActions = useMemo(() => !selectedDoc || !!activeRequest, [selectedDoc, activeRequest])
 
+  const handleFaqAi = async () => {
+    if (!selectedFaq || !faqAiStatus.configured) return
+    const followUp = window.prompt('What would you like to ask the AI?', selectedFaq.question)
+    if (followUp === null || followUp.trim() === '') {
+      return
+    }
+    setFaqAiLoading(true)
+    setFaqAiResponse('')
+    try {
+      const reply = await window.pandocPro.askFaqAi({
+        question: selectedFaq.question,
+        answer: selectedFaq.answer,
+        followUp: followUp.trim(),
+      })
+      setFaqAiResponse(reply)
+    } catch (err) {
+      setFaqAiResponse(err instanceof Error ? `Error: ${err.message}` : 'AI request failed.')
+    } finally {
+      setFaqAiLoading(false)
+    }
+  }
+
+  const faqAnswerHtml = selectedFaq ? renderMarkdown(selectedFaq.answer) : ''
+
   return (
     <div className='App'>
       <header>
@@ -256,42 +356,59 @@ function App() {
         {docs.length === 0 && <p className='muted'>No .docx files found in your docs folder.</p>}
         {docs.length > 0 && (
           <>
-            <select
-              value={selectedDoc?.docx ?? ''}
-              onChange={(event) => {
-                const doc = docs.find((entry) => entry.docx === event.target.value)
-                setSelectedDoc(doc ?? null)
-              }}
-            >
-              {docs.map((entry) => {
-                const label = entry.docx.includes('/docs/')
-                  ? entry.docx.split('/docs/')[1]
-                  : entry.docx.split('\\docs\\')[1] ?? entry.docx
-                return (
-                  <option key={entry.docx} value={entry.docx}>
-                    {label}
-                  </option>
-                )
-              })}
-            </select>
-            {selectedDoc && (
-              <div className='doc-summary'>
-                <div>
-                  <span className='muted'>Word source</span>
-                  <code>{selectedDoc.docx}</code>
-                  <span className='muted'>Updated {new Date(selectedDoc.docxMtime).toLocaleString()}</span>
-                </div>
-                <div>
-                  <span className='muted'>Markdown twin</span>
-                  <code>{selectedDoc.md}</code>
-                  <span className={selectedDoc.mdExists ? 'badge badge-success' : 'badge badge-warning'}>
-                    {selectedDoc.mdExists ? 'Markdown exists' : 'Markdown missing'}
-                  </span>
-                  {selectedDoc.mdExists && selectedDoc.mdMtime && (
-                    <span className='muted'>Updated {new Date(selectedDoc.mdMtime).toLocaleString()}</span>
-                  )}
-                </div>
-              </div>
+            <div className='doc-controls'>
+              <input
+                type='search'
+                className='doc-search'
+                placeholder='Search documents'
+                value={docFilter}
+                onChange={(event) => setDocFilter(event.target.value)}
+              />
+              <label className='doc-sort'>
+                Sort
+                <select value={docSort} onChange={(event) => setDocSort(event.target.value as 'alpha' | 'recent')}>
+                  <option value='alpha'>A → Z</option>
+                  <option value='recent'>Recently updated</option>
+                </select>
+              </label>
+            </div>
+            {filteredDocs.length === 0 ? (
+              <p className='muted'>No documents match “{docFilter}”. Try a different search.</p>
+            ) : (
+              <>
+                <select
+                  value={selectedDoc?.docx ?? ''}
+                  onChange={(event) => {
+                    const doc = filteredDocs.find((entry) => entry.docx === event.target.value)
+                    setSelectedDoc(doc ?? null)
+                  }}
+                >
+                  {filteredDocs.map((entry) => (
+                    <option key={entry.docx} value={entry.docx}>
+                      {formatDocLabel(entry)}
+                    </option>
+                  ))}
+                </select>
+                {selectedDoc && (
+                  <div className='doc-summary'>
+                    <div>
+                      <span className='muted'>Word source</span>
+                      <code>{selectedDoc.docx}</code>
+                      <span className='muted'>Updated {new Date(selectedDoc.docxMtime).toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className='muted'>Markdown twin</span>
+                      <code>{selectedDoc.md}</code>
+                      <span className={selectedDoc.mdExists ? 'badge badge-success' : 'badge badge-warning'}>
+                        {selectedDoc.mdExists ? 'Markdown exists' : 'Markdown missing'}
+                      </span>
+                      {selectedDoc.mdExists && selectedDoc.mdMtime && (
+                        <span className='muted'>Updated {new Date(selectedDoc.mdMtime).toLocaleString()}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -359,6 +476,68 @@ function App() {
           </div>
         ) : (
           !settingsOpen && <p className='muted'>Open settings to change docs folder and view dependency status.</p>
+        )}
+      </section>
+
+      <section className='panel'>
+        <div className='panel-header'>
+          <h2>FAQ</h2>
+          <span className={`badge ${faqAiStatus.configured ? 'badge-success' : 'badge-warning'}`}>
+            {faqAiStatus.configured ? `AI ready${faqAiStatus.displayName ? ` · ${faqAiStatus.displayName}` : ''}` : 'AI optional'}
+          </span>
+        </div>
+        {faqEntries.length === 0 ? (
+          <p className='muted'>Loading FAQ…</p>
+        ) : (
+          <div className='faq-layout'>
+            <div className='faq-sidebar'>
+              <input
+                className='faq-search'
+                type='search'
+                placeholder='Search FAQ'
+                value={faqFilter}
+                onChange={(event) => setFaqFilter(event.target.value)}
+              />
+              <ul>
+                {filteredFaqEntries.length === 0 && <li className='muted'>No questions match that search.</li>}
+                {filteredFaqEntries.map((entry) => (
+                  <li key={entry.question}>
+                    <button
+                      className={selectedFaq?.question === entry.question ? 'faq-link active' : 'faq-link'}
+                      onClick={() => {
+                        setSelectedFaq(entry)
+                        setFaqAiResponse('')
+                      }}
+                    >
+                      <span className='faq-section'>{entry.section}</span>
+                      <span>{entry.question.replace('**Q: ', '').replace('**', '')}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className='faq-answer'>
+              {selectedFaq ? (
+                <>
+                  <h3>{selectedFaq.question.replace('**', '')}</h3>
+                  <div dangerouslySetInnerHTML={{ __html: faqAnswerHtml }} />
+                  <div className='faq-actions'>
+                    <button className='secondary' onClick={() => navigator.clipboard.writeText(selectedFaq.answer)}>
+                      Copy answer
+                    </button>
+                    {faqAiStatus.configured && (
+                      <button className='secondary' onClick={handleFaqAi} disabled={faqAiLoading}>
+                        {faqAiLoading ? 'Asking AI…' : 'Ask AI follow-up'}
+                      </button>
+                    )}
+                  </div>
+                  {faqAiResponse && <div className='faq-ai-response'>{faqAiResponse}</div>}
+                </>
+              ) : (
+                <p className='muted'>Select a question to see the answer.</p>
+              )}
+            </div>
+          </div>
         )}
       </section>
 
@@ -535,3 +714,37 @@ function App() {
 }
 
 export default App
+
+function parseFaq(markdown: string): FaqEntry[] {
+  const lines = markdown.split(/\r?\n/)
+  const entries: FaqEntry[] = []
+  let currentSection = ''
+  let currentQuestion = ''
+  let currentAnswer: string[] = []
+
+  const flush = () => {
+    if (currentQuestion) {
+      entries.push({ question: currentQuestion, answer: currentAnswer.join('\n').trim(), section: currentSection })
+      currentQuestion = ''
+      currentAnswer = []
+    }
+  }
+
+  for (const line of lines) {
+    if (line.startsWith('## ')) {
+      flush()
+      currentSection = line.replace(/^##\s+/, '')
+      continue
+    }
+    if (line.startsWith('**Q:')) {
+      flush()
+      currentQuestion = line.replace(/\*\*/g, '')
+      continue
+    }
+    if (currentQuestion) {
+      currentAnswer.push(line)
+    }
+  }
+  flush()
+  return entries
+}

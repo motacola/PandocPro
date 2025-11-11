@@ -23,24 +23,18 @@ interface DocsListEntry {
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
 const SETTINGS_FILE = path.join(process.env.HOME ?? '', '.config', 'pandocpro', 'settings.json')
 const DEFAULT_DOCS_DIR = path.join(PROJECT_ROOT, 'docs')
-let cachedDocsDir = DEFAULT_DOCS_DIR
 
-function loadDocsDir() {
+function getDocsDir() {
   try {
     const contents = fs.readFileSync(SETTINGS_FILE, 'utf8')
     const parsed = JSON.parse(contents)
     if (parsed.docsPath && fs.existsSync(parsed.docsPath)) {
-      cachedDocsDir = parsed.docsPath
-      return
+      return parsed.docsPath
     }
   } catch {
-    // ignore
+    // ignore missing config; fall back to default
   }
-  cachedDocsDir = DEFAULT_DOCS_DIR
-}
-
-function getDocsDir() {
-  return cachedDocsDir
+  return DEFAULT_DOCS_DIR
 }
 const DOCX_SCRIPT = path.join(PROJECT_ROOT, 'scripts', 'docx-sync.sh')
 
@@ -102,7 +96,6 @@ function discoverDocs(): DocsListEntry[] {
 }
 
 export function registerConversionHandlers(getWindow: () => BrowserWindow | null) {
-  loadDocsDir()
   ipcMain.handle('docs:list', () => discoverDocs())
 
   ipcMain.on('conversion:start', (_event, payload: ConversionRequest) => {

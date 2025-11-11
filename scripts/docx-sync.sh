@@ -9,6 +9,53 @@ HISTORY_FILE="$LOG_DIR/history.log"
 
 mkdir -p "$LOG_DIR" "$BACKUP_DIR"
 
+SPINNER_FRAMES=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+SPINNER_PID=""
+SPINNER_ACTIVE=0
+CURSOR_HIDDEN=0
+
+start_spinner() {
+  local watch_pid="$1"
+  local message="$2"
+  if [[ ! -t 1 ]]; then
+    SPINNER_ACTIVE=0
+    SPINNER_PID=""
+    return
+  fi
+  {
+    local text="$message"
+    local i=0
+    local frame_count=${#SPINNER_FRAMES[@]}
+    while kill -0 "$watch_pid" 2>/dev/null; do
+      printf "\r%s %s" "${SPINNER_FRAMES[$i]}" "$text"
+      sleep 0.1
+      ((i=(i + 1) % frame_count))
+    done
+  } &
+  SPINNER_PID=$!
+  SPINNER_ACTIVE=1
+  if command -v tput >/dev/null 2>&1; then
+    if tput civis >/dev/null 2>&1; then
+      CURSOR_HIDDEN=1
+    fi
+  fi
+}
+
+stop_spinner() {
+  if [[ "${SPINNER_ACTIVE:-0}" -eq 1 ]]; then
+    wait "$SPINNER_PID" 2>/dev/null || true
+    printf "\r\033[K"
+    if [[ "$CURSOR_HIDDEN" -eq 1 ]] && command -v tput >/dev/null 2>&1; then
+      tput cnorm >/dev/null 2>&1 || true
+    fi
+    SPINNER_ACTIVE=0
+    CURSOR_HIDDEN=0
+    SPINNER_PID=""
+  fi
+}
+
+trap stop_spinner EXIT
+
 show_step() {
   local current="$1"
   local total="$2"
@@ -118,7 +165,13 @@ run_conversion() {
   fi
   pandoc_cmd+=(-o "$target")
 
-  if "${pandoc_cmd[@]}" 2>"$tmp_err"; then
+  "${pandoc_cmd[@]}" 2>"$tmp_err" &
+  local pandoc_pid=$!
+  local spinner_msg="Converting $(basename "$source")…"
+  start_spinner "$pandoc_pid" "$spinner_msg"
+
+  if wait "$pandoc_pid"; then
+    stop_spinner
     local duration="$SECONDS"
     local warnings=""
     if [[ -s "$tmp_err" ]]; then
@@ -147,6 +200,7 @@ run_conversion() {
     rm -f "$tmp_err"
     return 0
   else
+    stop_spinner
     local duration="$SECONDS"
     local error_detail
     if [[ -s "$tmp_err" ]]; then
@@ -156,6 +210,8 @@ run_conversion() {
       error_detail="pandoc failed"
     fi
     echo "❌ Conversion failed. Leaving existing file untouched." >&2
+    echo "💡 Tip: Check the Pandoc error above, confirm the source path exists, and try running with an explicit mode (to-md/to-docx)." >&2
+    echo "🔁 If the issue persists, run 'brew upgrade pandoc' or open the document in Word once to ensure it's not locked." >&2
     restore_backup_if_needed "$backup_path" "$target"
     log_history "failure" "$mode" "$source" "$target" "$duration" \
       "error" "$backup_path" "$error_detail"
@@ -200,6 +256,7 @@ MODE="${3:-auto}"   # auto | to-md | to-docx
 if ! command -v pandoc >/dev/null 2>&1; then
   echo "❌ Error: pandoc not found" >&2
   echo "📦 Install with: brew install pandoc" >&2
+  echo "💡 Tip: After installing, rerun ./scripts/setup.sh so watch mode dependencies stay in sync." >&2
   exit 1
 fi
 echo "[1/3] ✅ Pandoc detected"
@@ -248,12 +305,14 @@ case "$MODE" in
       run_conversion "auto-to-docx" "$MD" "$DOCX"
     else
       echo "❌ Error: Neither $DOCX nor $MD exists" >&2
-      echo "💡 Tip: Run 'dsync' for an interactive menu" >&2
+      echo "💡 Tip: Run 'dsync' option 1 to create the Markdown twin automatically." >&2
+      echo "📂 You can also drop a .docx file into docs/ and rerun this command." >&2
       exit 1
     fi
     ;;
   *)
     echo "❌ Unknown mode: $MODE" >&2
+    echo "💡 Tip: Use one of: to-md, to-docx, or auto (default)." >&2
     exit 1
     ;;
 esac

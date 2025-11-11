@@ -39,6 +39,10 @@ export default defineConfig(({ command }) => {
               outDir: 'dist-electron/main',
               rollupOptions: {
                 external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+                output: {
+                  format: 'cjs',
+                  entryFileNames: 'index.cjs',
+                },
               },
             },
           },

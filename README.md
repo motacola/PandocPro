@@ -67,6 +67,17 @@ That’s enough to edit Word docs in VS Code without touching advanced commands.
 - 🤖 **Optional AI assist** – Wire in Claude Desktop or any local LLM in a couple of minutes.
 - 🧠 **Local model picker** – Detect and remember whichever AI model you prefer.
 
+## 🆚 Comparison at a Glance
+
+| Scenario | Manual Word-only flow | PandocPro workflow |
+| --- | --- | --- |
+| **Get a Markdown copy** | Type long Pandoc commands, remember paths | Option 1 clones the doc, logs it, and keeps backups |
+| **Keep files aligned** | Manually guess which file is newer | Option 3 auto-detects freshness and syncs safely |
+| **Export polished Word** | Re-enter Pandoc flags each time | Option 2 rebuilds the .docx with one shortcut |
+| **See live progress** | No built-in watcher | Watch mode streams saves and now shows spinner progress |
+| **Recover from mistakes** | Hope you saved a copy somewhere | Undo pulls from automatic backups in `backups/` |
+| **Bring in AI helpers** | Hand-roll integrations | `configure-llm.sh` plus MCP tools wire models in minutes |
+
 ---
 
 ## 🎨 See the New Welcome Experience
@@ -256,6 +267,16 @@ cd /path/to/PandocPro && npm install
 - **README.md** - This file
 - VS Code tasks - Press `⇧⌘P` → "Tasks: Run Task"
 - Prefer a browser? Run `./scripts/build-docs.sh` once, then open `site/index.html` for a polished docs hub.
+
+## ❔ FAQ
+
+Need a fast answer? Check [FAQ.md](FAQ.md) or run the interactive helper:
+
+```bash
+./scripts/faq.sh      # browse Q&A, search, and launch AI follow-ups
+```
+
+You can also press **F** inside the `dsync` menu to open the same browser, or use the FAQ panel in the GUI for clickable answers.
 
 ---
 

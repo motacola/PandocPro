@@ -97,6 +97,15 @@ contextBridge.exposeInMainWorld('pandocPro', {
   updateSettings(payload: any) {
     return ipcRenderer.invoke('settings:update', payload)
   },
+  getFaq() {
+    return ipcRenderer.invoke('faq:get')
+  },
+  getLlmStatus() {
+    return ipcRenderer.invoke('llm:status')
+  },
+  askFaqAi(payload: { question: string; answer: string; followUp: string }) {
+    return ipcRenderer.invoke('faq:askAi', payload)
+  },
 })
 
 // --------- Preload scripts loading ---------

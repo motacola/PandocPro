@@ -32,6 +32,91 @@ BOLD='\033[1m'
 DIM='\033[2m'
 NC='\033[0m' # No Color
 
+normalize_doc_path() {
+    local raw="$1"
+    local cleaned="${raw//\\/\/}"
+    if [[ "$cleaned" == "$PROJECT_ROOT"/* ]]; then
+        cleaned="${cleaned#"$PROJECT_ROOT"/}"
+    fi
+    echo "$cleaned"
+}
+
+find_doc_index() {
+    local search="$1"
+    local entry
+    for entry in "${DOC_INDEX_LOOKUP[@]}"; do
+        local path="${entry%%|*}"
+        local idx="${entry##*|}"
+        if [[ "$path" == "$search" ]]; then
+            echo "$idx"
+            return 0
+        fi
+    done
+    return 1
+}
+
+flush_pending_newline() {
+    # Clear buffered newline characters so the next prompt behaves predictably.
+    while IFS= read -rsn1 -t 0 discard; do
+        if [[ "$discard" == $'\n' ]]; then
+            break
+        fi
+    done
+}
+
+prompt_action_choice() {
+    local prompt="$1"
+    ACTION_SELECTION=""
+    if [[ -t 0 ]]; then
+        printf "%b" "$prompt"
+        if ! IFS= read -rsn1 key; then
+            echo ""
+            read -r ACTION_SELECTION || ACTION_SELECTION=""
+            return
+        fi
+        if [[ "$key" == $'\n' ]]; then
+            echo ""
+            read -r ACTION_SELECTION || ACTION_SELECTION=""
+            return
+        fi
+        echo ""
+        case "$key" in
+            [1-9])
+                ACTION_SELECTION="$key"
+                flush_pending_newline
+                echo -e "${DIM}Shortcut ${ACTION_SELECTION} selected${NC}"
+                return
+                ;;
+            0)
+                ACTION_SELECTION="10"
+                flush_pending_newline
+                echo -e "${DIM}Shortcut 0 jumps to option 10 (AI helper)${NC}"
+                return
+                ;;
+            f|F)
+                ACTION_SELECTION="faq"
+                flush_pending_newline
+                echo -e "${DIM}Opening interactive FAQ...${NC}"
+                return
+                ;;
+            q|Q)
+                ACTION_SELECTION="q"
+                flush_pending_newline
+                return
+                ;;
+            *)
+                printf "%s" "$key"
+                read -r remainder || remainder=""
+                ACTION_SELECTION="$key$remainder"
+                return
+                ;;
+        esac
+    else
+        printf "%b" "$prompt"
+        read -r ACTION_SELECTION || ACTION_SELECTION=""
+    fi
+}
+
 clear
 echo ""
 echo -e "${BLUE}╔══════════════════════════════════════════════════════╗${NC}"
@@ -60,16 +145,80 @@ if [[ ${#DOCX_FILES[@]} -eq 0 ]]; then
     exit 1
 fi
 
+total_docs=${#DOCX_FILES[@]}
+
 # Show available documents
 echo -e "${GREEN}${BOLD}📄 Available Documents:${NC}"
 echo ""
+DOC_INDEX_LOOKUP=()
 select_idx=1
 for file in "${DOCX_FILES[@]}"; do
     display_path="${file#docs/}"
     echo -e "  ${CYAN}$select_idx${NC}) ${display_path}"
+    DOC_INDEX_LOOKUP+=("$file|$select_idx")
     ((select_idx++))
 done
 echo ""
+
+RECENT_QUICK=()
+if [[ -f "$HISTORY_FILE" && ${#DOCX_FILES[@]} -gt 0 ]]; then
+    if command -v tac >/dev/null 2>&1; then
+        HISTORY_READER=(tac "$HISTORY_FILE")
+    else
+        HISTORY_READER=(perl -e 'print reverse <>' "$HISTORY_FILE")
+    fi
+    RECENT_SEEN=()
+    while IFS='|' read -r ts mode source target status duration warnings backup note; do
+        [[ -z "$ts" ]] && continue
+        doc_candidate=""
+        if [[ "$mode" == *"to-docx"* ]]; then
+            doc_candidate="$target"
+        elif [[ "$mode" == *"to-md"* ]]; then
+            doc_candidate="$source"
+        fi
+        if [[ -z "$doc_candidate" ]]; then
+            if [[ "$target" =~ \.[dD][oO][cC][xX]$ ]]; then
+                doc_candidate="$target"
+            elif [[ "$source" =~ \.[dD][oO][cC][xX]$ ]]; then
+                doc_candidate="$source"
+            fi
+        fi
+        [[ -z "$doc_candidate" ]] && continue
+        doc_candidate="$(normalize_doc_path "$doc_candidate")"
+        duplicate=0
+        for seen in "${RECENT_SEEN[@]}"; do
+            if [[ "$seen" == "$doc_candidate" ]]; then
+                duplicate=1
+                break
+            fi
+        done
+        (( duplicate == 1 )) && continue
+        doc_index="$(find_doc_index "$doc_candidate")"
+        if [[ -z "$doc_index" ]]; then
+            continue
+        fi
+        RECENT_SEEN+=("$doc_candidate")
+        RECENT_QUICK+=("$doc_candidate|$doc_index|$ts")
+        if [[ ${#RECENT_QUICK[@]} -ge 3 ]]; then
+            break
+        fi
+    done < <("${HISTORY_READER[@]}")
+    unset RECENT_SEEN
+fi
+
+if [[ ${#RECENT_QUICK[@]} -gt 0 ]]; then
+    echo -e "${GREEN}${BOLD}⭐ Quick picks:${NC}"
+    for entry in "${RECENT_QUICK[@]}"; do
+        IFS='|' read -r doc_path doc_index doc_ts <<< "$entry"
+        display_name="${doc_path#docs/}"
+        display_name="${display_name#./}"
+        if [[ -z "$display_name" ]]; then
+            display_name="$doc_path"
+        fi
+        echo -e "  ${CYAN}$doc_index${NC}) ${display_name} ${DIM}(last run ${doc_ts})${NC}"
+    done
+    echo ""
+fi
 
 # Get user selection
 read -p "$(echo -e ${CYAN}Select document number${NC} ${DIM}\(or 'q' to quit\)${NC}: )" doc_choice
@@ -80,6 +229,7 @@ fi
 case "$doc_choice" in
     ''|*[!0-9]*)
         echo -e "${RED}❌ Invalid selection${NC}"
+        echo -e "${YELLOW}💡 Tip:${NC} Enter a number between 1 and ${CYAN}$total_docs${NC}, or press ${CYAN}q${NC} to exit."
         exit 1
         ;;
 esac
@@ -87,6 +237,7 @@ esac
 doc_index=$((doc_choice - 1))
 if (( doc_index < 0 || doc_index >= ${#DOCX_FILES[@]} )); then
     echo -e "${RED}❌ Invalid selection${NC}"
+    echo -e "${YELLOW}💡 Tip:${NC} Pick a number you see in the list above, or press ${CYAN}q${NC} to cancel."
     exit 1
 fi
 
@@ -134,7 +285,18 @@ echo ""
 echo -e " ${CYAN}10${NC}) 🤖 ${BOLD}Pick which AI helper${NC} to use"
 echo -e "     ${DIM}└─ Configure local LLM (Ollama/LM Studio)${NC}"
 echo ""
-read -p "$(echo -e ${CYAN}Choose action \(1-10\)${NC}: )" action
+echo -e "  ${CYAN}F${NC}) ❔ ${BOLD}Browse the FAQ${NC}"
+echo -e "     ${DIM}└─ Search answers or ask AI follow-ups${NC}"
+echo ""
+echo -e "  ${DIM}Tip:${NC} Tap keys ${CYAN}1-9${NC} for instant shortcuts or press ${CYAN}0${NC} to jump to the AI helper."
+echo -e "  ${DIM}     ${NC}Press ${CYAN}F${NC} any time to launch the interactive FAQ browser."
+echo ""
+prompt_action_choice "${CYAN}Choose action (1-10 or F)${NC}: "
+action="$ACTION_SELECTION"
+
+if [[ "$action" == "q" ]]; then
+    exit 0
+fi
 
 case $action in
     1)
@@ -175,6 +337,7 @@ case $action in
             echo -e "${BLUE}📦 Downloading a few helper packages (one-time step)...${NC}"
             if ! npm install; then
                 echo -e "${RED}❌ npm install failed. Please check your internet connection and try again.${NC}"
+                echo -e "${YELLOW}💡 Tip:${NC} Run ${CYAN}npm install${NC} manually later, or delete ${CYAN}node_modules${NC} if it's only partially created before retrying."
                 exit 1
             fi
         fi
@@ -296,9 +459,14 @@ case $action in
         echo -e "${BLUE}🤖 Scanning for local LLM runtimes...${NC}"
         ./scripts/configure-llm.sh
         ;;
+    faq)
+        echo ""
+        ./scripts/faq.sh
+        ;;
     *)
         echo ""
         echo -e "${RED}❌ Invalid action${NC}"
+        echo -e "${YELLOW}💡 Tip:${NC} Tap keys ${CYAN}1-9${NC}, press ${CYAN}0${NC} for the AI helper, hit ${CYAN}F${NC} for the FAQ, or type the full option number then hit Enter."
         exit 1
         ;;
 esac

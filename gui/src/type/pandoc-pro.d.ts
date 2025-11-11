@@ -62,6 +62,13 @@ export interface SettingsData {
   notificationsEnabled: boolean
 }
 
+export interface LlmStatus {
+  configured: boolean
+  provider?: string
+  displayName?: string
+  model?: string
+}
+
 declare global {
   interface Window {
     pandocPro: {
@@ -83,6 +90,9 @@ declare global {
       updateDocsPath(path: string): Promise<SettingsData>
       chooseDocsPath(): Promise<SettingsData | null>
       updateSettings(payload: Partial<SettingsData>): Promise<SettingsData>
+      getFaq(): Promise<string>
+      getLlmStatus(): Promise<LlmStatus>
+      askFaqAi(payload: { question: string; answer: string; followUp: string }): Promise<string>
     }
   }
 }

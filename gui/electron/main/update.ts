@@ -4,11 +4,26 @@ import type {
   ProgressInfo,
   UpdateDownloadedEvent,
   UpdateInfo,
+  AppUpdater,
 } from 'electron-updater'
 
-const { autoUpdater } = createRequire(import.meta.url)('electron-updater');
+const requireModule = createRequire(import.meta.url)
+let cachedUpdater: AppUpdater | null = null
+
+function getAutoUpdater(): AppUpdater {
+  if (!cachedUpdater) {
+    const { autoUpdater } = requireModule('electron-updater') as { autoUpdater: AppUpdater }
+    cachedUpdater = autoUpdater
+  }
+  return cachedUpdater
+}
 
 export function update(win: Electron.BrowserWindow) {
+  if (process.env.PANDOCPRO_SKIP_UPDATER === '1') {
+    return
+  }
+
+  const autoUpdater = getAutoUpdater()
 
   // When set to false, the update download will be triggered through the API
   autoUpdater.autoDownload = false
@@ -42,7 +57,7 @@ export function update(win: Electron.BrowserWindow) {
 
   // Start downloading and feedback on progress
   ipcMain.handle('start-download', (event: Electron.IpcMainInvokeEvent) => {
-    startDownload(
+    startDownload(autoUpdater,
       (error, progressInfo) => {
         if (error) {
           // feedback download error message
@@ -66,6 +81,7 @@ export function update(win: Electron.BrowserWindow) {
 }
 
 function startDownload(
+  autoUpdater: AppUpdater,
   callback: (error: Error | null, info: ProgressInfo | null) => void,
   complete: (event: UpdateDownloadedEvent) => void,
 ) {

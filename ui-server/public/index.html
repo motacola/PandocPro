@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drag & Drop Converter · PandocPro</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="panel">
+        <header>
+          <p class="eyebrow">PandocPro</p>
+          <h1>Convert without Terminal</h1>
+          <p class="lede">
+            Drop a Word, Markdown, or HTML file below and pick the outputs you need.
+            Everything runs locally using the same <code>docx-sync.sh</code> pipeline.
+          </p>
+        </header>
+
+        <div id="dropZone" class="drop-zone" tabindex="0">
+          <div class="drop-copy">
+            <p class="drop-title">Drag & Drop</p>
+            <p class="drop-subtitle">or click to choose a file</p>
+            <p class="drop-types">Accepts .docx • .md • .markdown • .html</p>
+          </div>
+          <input id="fileInput" type="file" accept=".docx,.md,.markdown,.html,.htm" />
+        </div>
+
+        <div id="fileMeta" class="file-meta hidden">
+          <p class="meta-name"></p>
+          <p class="meta-size"></p>
+        </div>
+
+        <div class="formats">
+          <p class="formats-label">Outputs</p>
+          <label>
+            <input type="checkbox" value="md" checked />
+            Markdown (.md)
+          </label>
+          <label>
+            <input type="checkbox" value="docx" checked />
+            Word (.docx)
+          </label>
+          <label>
+            <input type="checkbox" value="pdf" />
+            PDF (.pdf)
+          </label>
+          <label>
+            <input type="checkbox" value="html" />
+            HTML Preview (.html)
+          </label>
+        </div>
+
+        <button id="convertBtn" class="convert" disabled>
+          Convert selected file
+        </button>
+        <p id="status" class="status"></p>
+      </section>
+
+      <aside class="results" id="results">
+        <div class="empty-state">
+          <h2>No jobs yet</h2>
+          <p>The latest conversions and download links will show up here.</p>
+        </div>
+      </aside>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

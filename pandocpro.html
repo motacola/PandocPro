@@ -114,7 +114,72 @@
         }
         .checkmark { color: #4ade80; }
         .cross { color: #f87171; }
-        
+        .quickstart-grid {
+            margin: 50px 0 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .quickstart-card {
+            background: rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 20px 24px;
+            backdrop-filter: blur(6px);
+        }
+        .quickstart-card h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+        .quickstart-card ol {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.7;
+        }
+        .code-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            margin: 6px 0 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.15);
+            font-family: 'Menlo', 'Courier New', monospace;
+        }
+        .callout {
+            margin: 30px 0;
+            padding: 24px;
+            border-radius: 18px;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            border-radius: 999px;
+            background: #fbbf24;
+            color: #000;
+            margin-bottom: 10px;
+        }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 25px;
+        }
+        .preview-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 18px 20px;
+        }
+        .preview-card pre {
+            background: rgba(30,30,30,0.8);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            overflow-x: auto;
+        }
+
         @media (max-width: 768px) {
             .comparison {
                 grid-template-columns: 1fr;
@@ -341,6 +406,46 @@ Press Enter to continue..._
                     <div style="background: #d946ef; color: #000; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 5px;"><strong>MAGENTA</strong></div>
                     <p style="font-size: 0.9em; margin: 5px 0;">Brand (PRO)</p>
                 </div>
+            </div>
+        </div>
+
+        <div class="quickstart-grid">
+            <div class="quickstart-card">
+                <h3>Terminal Quickstart</h3>
+                <div class="code-pill">./scripts/setup.sh</div>
+                <ol>
+                    <li>Drop your .docx files into <strong>docs/</strong>.</li>
+                    <li>Run <strong>dsync</strong> and pick an action from the menu.</li>
+                    <li>Use watch mode or VS Code tasks for live round-trips.</li>
+                </ol>
+            </div>
+            <div class="quickstart-card">
+                <h3>Browser Drag &amp; Drop</h3>
+                <div class="code-pill">npm run ui</div>
+                <ol>
+                    <li>Open <strong>http://localhost:4174</strong>.</li>
+                    <li>Drop Word, Markdown, or HTML files into the dashboard.</li>
+                    <li>Select outputs (DOCX, PDF, HTML, Markdown) and download the results.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="callout">
+            <span class="badge">New</span>
+            <h2 style="margin-top: 0;">Local REST / MCP Bridge</h2>
+            <p>Anything that can perform an HTTP request can now drive PandocPro. Start the UI server, then invoke conversions directly:</p>
+<pre><code>curl -X POST http://localhost:4174/api/convert \<br>  -H "Content-Type: application/json" \<br>  -d '{<br>    "fileName": "notes.md",<br>    "fileData": "data:text/markdown;base64,....",<br>    "formats": ["docx", "pdf"]<br>  }'</code></pre>
+            <p>The server shells into <code>scripts/docx-sync.sh</code>, logs history, and exposes download URLs per job — perfect for MCP tools, CI bots, or Electron shells.</p>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>🚀 Drag-and-Drop UX</h3>
+                <p>Modern Tailwind-inspired layout mirrors doc-converter’s usability but stays 100% offline. Progress messages stream in real time and results show download buttons for each artifact.</p>
+            </div>
+            <div class="preview-card">
+                <h3>🛡️ Pre-flight Linting</h3>
+                <p>Conversions now run safety checks: oversized files, binary blobs, and missing HTML assets trigger warnings before Pandoc starts — the same safeguards power the new UI and CLI.</p>
             </div>
         </div>
     </div>

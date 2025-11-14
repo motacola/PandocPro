@@ -6,8 +6,93 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOG_DIR="$PROJECT_ROOT/logs"
 BACKUP_DIR="$PROJECT_ROOT/backups"
 HISTORY_FILE="$LOG_DIR/history.log"
+TEMPLATE_DIR="$PROJECT_ROOT/templates"
 
-mkdir -p "$LOG_DIR" "$BACKUP_DIR"
+mkdir -p "$LOG_DIR" "$BACKUP_DIR" "$TEMPLATE_DIR"
+
+DEFAULT_PDF_CSS="$TEMPLATE_DIR/pdf.css"
+DEFAULT_HTML_CSS="$TEMPLATE_DIR/html.css"
+REFERENCE_DOC="${DOCSYNC_REFERENCE_DOC:-$TEMPLATE_DIR/reference.docx}"
+
+MAX_TEXT_BYTES="${DOCSYNC_MAX_TEXT_BYTES:-20971520}"
+MAX_BINARY_BYTES="${DOCSYNC_MAX_BINARY_BYTES:-52428800}"
+MAX_HTML_IMAGES="${DOCSYNC_MAX_HTML_IMAGES:-120}"
+PDF_ENGINE="${DOCSYNC_PDF_ENGINE:-}"
+
+create_default_styles() {
+  if [[ ! -f "$DEFAULT_PDF_CSS" ]]; then
+cat >"$DEFAULT_PDF_CSS" <<'EOF'
+body {
+  font-family: "Georgia", serif;
+  font-size: 11pt;
+  color: #222;
+  line-height: 1.6;
+  margin: 1in;
+}
+h1, h2, h3 {
+  font-family: "Helvetica", Arial, sans-serif;
+  margin-top: 24pt;
+  color: #0f172a;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16pt 0;
+}
+th, td {
+  border: 1px solid #cbd5f5;
+  padding: 8pt;
+}
+blockquote {
+  border-left: 4px solid #94a3b8;
+  padding-left: 12pt;
+  color: #475569;
+  font-style: italic;
+}
+EOF
+  fi
+
+  if [[ ! -f "$DEFAULT_HTML_CSS" ]]; then
+cat >"$DEFAULT_HTML_CSS" <<'EOF'
+body {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #0f172a;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  max-width: 800px;
+  line-height: 1.7;
+}
+pre, code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  background: #0f172a15;
+  border-radius: 4px;
+}
+code { padding: 2px 4px; }
+pre {
+  padding: 12px;
+  overflow: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 24px 0;
+}
+th, td {
+  border: 1px solid #cbd5f5;
+  padding: 8px;
+  text-align: left;
+}
+blockquote {
+  border-left: 4px solid #93c5fd;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  color: #1d4ed8;
+}
+EOF
+  fi
+}
+
+create_default_styles
 
 SPINNER_FRAMES=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
 SPINNER_PID=""
@@ -69,6 +154,141 @@ send_notification() {
   if command -v osascript >/dev/null 2>&1; then
     osascript -e "display notification \"${message}\" with title \"${title}\"" >/dev/null
   fi
+}
+
+file_size_bytes() {
+  local file="$1"
+  if stat -f%z "$file" >/dev/null 2>&1; then
+    stat -f%z "$file"
+  else
+    stat -c%s "$file"
+  fi
+}
+
+detect_text_format() {
+  local source="$1"
+  local ext="${source##*.}"
+  ext="$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')"
+  case "$ext" in
+    html|htm)
+      echo "html"
+      return 0
+      ;;
+    md|markdown|mdown|mkd|txt)
+      echo "gfm"
+      return 0
+      ;;
+  esac
+  if head -n 5 "$source" | grep -qi '<html'; then
+    echo "html"
+  else
+    echo "gfm"
+  fi
+}
+
+lint_source_file() {
+  local file="$1"
+  local kind="$2"
+  [[ "${DOCSYNC_SKIP_LINT:-0}" == "1" ]] && return 0
+
+  if [[ ! -f "$file" ]]; then
+    echo "❌ Lint failed: source file not found -> $file" >&2
+    exit 1
+  fi
+
+  local size
+  size=$(file_size_bytes "$file")
+  local fatal=0
+  local messages=()
+
+  if [[ "$kind" == "docx" ]]; then
+    if (( size > MAX_BINARY_BYTES )); then
+      fatal=1
+      messages+=("DOCX file is $((size / 1024 / 1024))MB (limit: $((MAX_BINARY_BYTES / 1024 / 1024))MB)")
+    fi
+  else
+    if (( size > MAX_TEXT_BYTES )); then
+      fatal=1
+      messages+=("Text source is $((size / 1024 / 1024))MB (limit: $((MAX_TEXT_BYTES / 1024 / 1024))MB)")
+    fi
+    if perl -ne 'exit 0 if /\0/; END { exit 1 }' "$file"; then
+      fatal=1
+      messages+=("Binary data detected in text file (null bytes present)")
+    fi
+  fi
+
+  if [[ "$kind" == "html" ]]; then
+    local img_count
+    img_count=$(grep -o -i '<img' "$file" | wc -l | tr -d ' ')
+    if (( img_count > MAX_HTML_IMAGES )); then
+      messages+=("HTML includes $img_count images (soft limit $MAX_HTML_IMAGES). Consider splitting the file.")
+    fi
+
+    local missing_refs=()
+    local dir
+    dir="$(dirname "$file")"
+    while IFS= read -r ref; do
+      [[ -z "$ref" ]] && continue
+      if [[ "$ref" =~ ^(https?|data:|file:) ]]; then
+        continue
+      fi
+      local abs="$dir/$ref"
+      if [[ ! -e "$abs" ]]; then
+        missing_refs+=("$ref")
+      fi
+    done < <(grep -o -i '<img[^>]*src="[^"]+"' "$file" | sed -E 's/.*src="([^"]+)".*/\1/' | sort -u | head -n 20)
+    if (( ${#missing_refs[@]} )); then
+      messages+=("Missing image references: ${missing_refs[*]}")
+    fi
+  fi
+
+  if (( fatal )); then
+    echo "❌ Pre-flight checks failed:" >&2
+    printf '  - %s\n' "${messages[@]}" >&2
+    echo "Set DOCSYNC_SKIP_LINT=1 to override (not recommended)." >&2
+    exit 1
+  fi
+
+  if (( ${#messages[@]} )); then
+    echo "⚠️  Pre-flight warnings:" >&2
+    printf '  - %s\n' "${messages[@]}" >&2
+  fi
+}
+
+resolve_pdf_engine() {
+  if [[ -n "$PDF_ENGINE" ]]; then
+    if command -v "$PDF_ENGINE" >/dev/null 2>&1; then
+      return 0
+    fi
+    echo "⚠️  Requested PDF engine '$PDF_ENGINE' not found, auto-selecting." >&2
+  fi
+  for candidate in weasyprint wkhtmltopdf prince pdfroff; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+      PDF_ENGINE="$candidate"
+      return 0
+    fi
+  done
+  PDF_ENGINE=""
+  return 1
+}
+
+replace_extension() {
+  local path="$1"
+  local new_ext="$2"
+  if [[ "$path" == *.* ]]; then
+    echo "${path%.*}.$new_ext"
+  else
+    echo "$path.$new_ext"
+  fi
+}
+
+format_label() {
+  case "$1" in
+    html) echo "HTML" ;;
+    gfm) echo "Markdown" ;;
+    docx) echo "Word" ;;
+    *) echo "$1" ;;
+  esac
 }
 
 sanitize_field() {
@@ -227,16 +447,20 @@ if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
 Word ↔ Markdown Sync Script
 
 USAGE:
-  ./docx-sync.sh <docx-file> <md-file> [mode]
+  ./docx-sync.sh <docx-file> <text-file> [mode] [output]
 
 MODES:
   to-md    Convert Word → Markdown
   to-docx  Convert Markdown → Word
+  to-pdf   Convert Markdown/HTML → PDF
+  to-html  Convert Markdown → styled HTML export
   auto     Auto-detect (newest file wins) [default]
 
 EXAMPLES:
   ./docx-sync.sh docs/report.docx docs/report.md to-md
   ./docx-sync.sh docs/report.docx docs/report.md to-docx
+  ./docx-sync.sh docs/report.docx docs/report.md to-pdf docs/report.pdf
+  ./docx-sync.sh docs/report.docx docs/page.html to-docx
   ./docx-sync.sh docs/report.docx docs/report.md auto
 
 TIP: Use the interactive menu instead:
@@ -250,7 +474,8 @@ fi
 
 DOCX="${1:-docs/presentation.docx}"
 MD="${2:-docs/presentation.md}"
-MODE="${3:-auto}"   # auto | to-md | to-docx
+MODE="${3:-auto}"   # auto | to-md | to-docx | to-pdf | to-html
+OUTPUT_OVERRIDE="${4:-}"
 
 # Check for pandoc
 if ! command -v pandoc >/dev/null 2>&1; then
@@ -263,6 +488,7 @@ echo "[1/3] ✅ Pandoc detected"
 
 case "$MODE" in
   to-md)
+    lint_source_file "$DOCX" "docx"
     echo "📄 Converting Word → Markdown..."
     show_step 2 3 "Preparing Markdown folder..."
     mkdir -p "$(dirname "$MD")"
@@ -270,39 +496,88 @@ case "$MODE" in
     run_conversion "to-md" "$DOCX" "$MD" -t gfm
     ;;
   to-docx)
-    echo "📘 Converting Markdown → Word..."
+    SOURCE_FORMAT=$(detect_text_format "$MD")
+    lint_source_file "$MD" "$SOURCE_FORMAT"
+    READABLE_SOURCE=$(format_label "$SOURCE_FORMAT")
+    echo "📘 Converting ${READABLE_SOURCE} → Word..."
     show_step 2 3 "Preparing Word folder..."
     mkdir -p "$(dirname "$DOCX")"
-    show_step 3 3 "Running pandoc (Markdown → Word)..."
-    run_conversion "to-docx" "$MD" "$DOCX"
+    show_step 3 3 "Running pandoc (${READABLE_SOURCE} → Word)..."
+    DOCX_ARGS=("--from=${SOURCE_FORMAT}")
+    if [[ -f "$REFERENCE_DOC" ]]; then
+      DOCX_ARGS+=("--reference-doc=$REFERENCE_DOC")
+    fi
+    run_conversion "to-docx" "$MD" "$DOCX" "${DOCX_ARGS[@]}"
+    ;;
+  to-pdf)
+    SOURCE_FORMAT=$(detect_text_format "$MD")
+    lint_source_file "$MD" "$SOURCE_FORMAT"
+    PDF_TARGET="${OUTPUT_OVERRIDE:-$(replace_extension "$MD" pdf)}"
+    show_step 2 3 "Preparing PDF folder..."
+    mkdir -p "$(dirname "$PDF_TARGET")"
+    if ! resolve_pdf_engine; then
+      echo "❌ No PDF engine (weasyprint/wkhtmltopdf/prince) found. Install one or set DOCSYNC_PDF_ENGINE." >&2
+      exit 1
+    fi
+    echo "📄 Building PDF via pandoc ($PDF_ENGINE)..."
+    PDF_ARGS=("--from=${SOURCE_FORMAT}" "--pdf-engine=$PDF_ENGINE" "--standalone" "--css=$DEFAULT_PDF_CSS")
+    run_conversion "to-pdf" "$MD" "$PDF_TARGET" "${PDF_ARGS[@]}"
+    ;;
+  to-html)
+    SOURCE_FORMAT=$(detect_text_format "$MD")
+    lint_source_file "$MD" "$SOURCE_FORMAT"
+    HTML_TARGET="${OUTPUT_OVERRIDE:-$(replace_extension "$MD" html)}"
+    show_step 2 3 "Preparing HTML folder..."
+    mkdir -p "$(dirname "$HTML_TARGET")"
+    READABLE_SOURCE=$(format_label "$SOURCE_FORMAT")
+    echo "🌐 Exporting ${READABLE_SOURCE} → HTML..."
+    HTML_ARGS=("--from=${SOURCE_FORMAT}" "-t" "html5" "--standalone")
+    [[ -f "$DEFAULT_HTML_CSS" ]] && HTML_ARGS+=("--css=$DEFAULT_HTML_CSS")
+    run_conversion "to-html" "$MD" "$HTML_TARGET" "${HTML_ARGS[@]}"
     ;;
   auto)
     if [[ -f "$DOCX" && -f "$MD" ]]; then
       if [[ "$DOCX" -nt "$MD" ]]; then
+        lint_source_file "$DOCX" "docx"
         echo "🔍 Word file is newer, converting to Markdown..."
         show_step 2 3 "Preparing Markdown folder..."
         mkdir -p "$(dirname "$MD")"
         show_step 3 3 "Running pandoc (Word → Markdown)..."
         run_conversion "auto-to-md" "$DOCX" "$MD" -t gfm
       else
-        echo "🔍 Markdown file is newer, converting to Word..."
+        SOURCE_FORMAT=$(detect_text_format "$MD")
+        lint_source_file "$MD" "$SOURCE_FORMAT"
+        READABLE_SOURCE=$(format_label "$SOURCE_FORMAT")
+        echo "🔍 ${READABLE_SOURCE} file is newer, converting to Word..."
         show_step 2 3 "Preparing Word folder..."
         mkdir -p "$(dirname "$DOCX")"
         show_step 3 3 "Running pandoc (Markdown → Word)..."
-        run_conversion "auto-to-docx" "$MD" "$DOCX"
+        DOCX_ARGS=("--from=${SOURCE_FORMAT}")
+        if [[ -f "$REFERENCE_DOC" ]]; then
+          DOCX_ARGS+=("--reference-doc=$REFERENCE_DOC")
+        fi
+        run_conversion "auto-to-docx" "$MD" "$DOCX" "${DOCX_ARGS[@]}"
       fi
     elif [[ -f "$DOCX" ]]; then
+      lint_source_file "$DOCX" "docx"
       echo "📄 Found Word file, converting to Markdown..."
       show_step 2 3 "Preparing Markdown folder..."
       mkdir -p "$(dirname "$MD")"
       show_step 3 3 "Running pandoc (Word → Markdown)..."
       run_conversion "auto-to-md" "$DOCX" "$MD" -t gfm
     elif [[ -f "$MD" ]]; then
-      echo "📘 Found Markdown file, converting to Word..."
+      SOURCE_FORMAT=$(detect_text_format "$MD")
+      lint_source_file "$MD" "$SOURCE_FORMAT"
+      READABLE_SOURCE=$(format_label "$SOURCE_FORMAT")
+      echo "📘 Found ${READABLE_SOURCE} file, converting to Word..."
       show_step 2 3 "Preparing Word folder..."
       mkdir -p "$(dirname "$DOCX")"
       show_step 3 3 "Running pandoc (Markdown → Word)..."
-      run_conversion "auto-to-docx" "$MD" "$DOCX"
+      DOCX_ARGS=("--from=${SOURCE_FORMAT}")
+      if [[ -f "$REFERENCE_DOC" ]]; then
+        DOCX_ARGS+=("--reference-doc=$REFERENCE_DOC")
+      fi
+      run_conversion "auto-to-docx" "$MD" "$DOCX" "${DOCX_ARGS[@]}"
     else
       echo "❌ Error: Neither $DOCX nor $MD exists" >&2
       echo "💡 Tip: Run 'dsync' option 1 to create the Markdown twin automatically." >&2

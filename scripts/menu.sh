@@ -21,6 +21,42 @@ sanitize_log_field() {
     echo "$value"
 }
 
+show_history_preview() {
+    local limit="${1:-5}"
+    if [[ ! -f "$HISTORY_FILE" ]]; then
+        echo -e "${DIM}No conversions logged yet.${NC}"
+        return
+    fi
+    if command -v tac >/dev/null 2>&1; then
+        local reader=(tac "$HISTORY_FILE")
+    else
+        local reader=(perl -e 'print reverse <>' "$HISTORY_FILE")
+    fi
+    local shown=0
+    echo -e "${MAGENTA}${BOLD}Recent conversions:${NC}"
+    while IFS='|' read -r ts mode source target status duration warnings backup note; do
+        [[ -z "$ts" ]] && continue
+        local status_icon="${RED}✗${NC}"
+        [[ "$status" == "success" ]] && status_icon="${GREEN}✓${NC}"
+        local base_src="$(basename "$source")"
+        local base_target="$(basename "$target")"
+        local summary="  ${DIM}${ts}${NC} • ${CYAN}${mode}${NC} • ${status_icon}"
+        if [[ -n "$duration" ]]; then
+            summary+=" • ${duration}s"
+        fi
+        summary+=" • ${base_src} → ${base_target}"
+        if [[ "$warnings" != "none" && -n "$warnings" ]]; then
+            summary+=" • ${YELLOW}⚠${NC} ${warnings}"
+        fi
+        echo -e "$summary"
+        ((shown++))
+        (( shown >= limit )) && break
+    done < <("${reader[@]}")
+    if (( shown == 0 )); then
+        echo -e "${DIM}No conversions logged yet.${NC}"
+    fi
+}
+
 # Colors for pretty output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -45,8 +81,7 @@ find_doc_index() {
     local search="$1"
     local entry
     for entry in "${DOC_INDEX_LOOKUP[@]}"; do
-        local path="${entry%%|*}"
-        local idx="${entry##*|}"
+        IFS='|' read -r path type idx <<< "$entry"
         if [[ "$path" == "$search" ]]; then
             echo "$idx"
             return 0
@@ -93,6 +128,18 @@ prompt_action_choice() {
                 echo -e "${DIM}Shortcut 0 jumps to option 10 (AI helper)${NC}"
                 return
                 ;;
+            p|P)
+                ACTION_SELECTION="pdf"
+                flush_pending_newline
+                echo -e "${DIM}Shortcut P → Export PDF${NC}"
+                return
+                ;;
+            h|H)
+                ACTION_SELECTION="html"
+                flush_pending_newline
+                echo -e "${DIM}Shortcut H → Export HTML preview${NC}"
+                return
+                ;;
             f|F)
                 ACTION_SELECTION="faq"
                 flush_pending_newline
@@ -132,36 +179,51 @@ echo -e "${BLUE}╚════════════════════�
 echo ""
 
 # List all .docx files in docs/ (including subfolders)
-DOCX_FILES=()
+DOC_ENTRIES=()
 while IFS= read -r file; do
-    DOCX_FILES+=("$file")
-done < <(find docs -type f -iname '*.docx' -print 2>/dev/null | sort)
+    lower_ext="${file##*.}"
+    lower_ext="$(printf '%s' "$lower_ext" | tr '[:upper:]' '[:lower:]')"
+    case "$lower_ext" in
+        docx)
+            DOC_ENTRIES+=("$file|docx")
+            ;;
+        html|htm)
+            DOC_ENTRIES+=("$file|html")
+            ;;
+    esac
+done < <(find docs -type f \( -iname '*.docx' -o -iname '*.html' -o -iname '*.htm' \) -print 2>/dev/null | sort)
 
-if [[ ${#DOCX_FILES[@]} -eq 0 ]]; then
-    echo -e "${YELLOW}📂 No .docx files found in docs/ folder${NC}"
+if [[ ${#DOC_ENTRIES[@]} -eq 0 ]]; then
+    echo -e "${YELLOW}📂 No .docx or .html files found in docs/ folder${NC}"
     echo ""
     echo -e "${DIM}Place your Word documents in the ${CYAN}docs/${DIM} folder and try again.${NC}"
     echo -e "${DIM}Tip: You can organize them in subfolders too!${NC}"
     exit 1
 fi
 
-total_docs=${#DOCX_FILES[@]}
+total_docs=${#DOC_ENTRIES[@]}
 
 # Show available documents
 echo -e "${GREEN}${BOLD}📄 Available Documents:${NC}"
 echo ""
 DOC_INDEX_LOOKUP=()
 select_idx=1
-for file in "${DOCX_FILES[@]}"; do
-    display_path="${file#docs/}"
-    echo -e "  ${CYAN}$select_idx${NC}) ${display_path}"
-    DOC_INDEX_LOOKUP+=("$file|$select_idx")
+for entry in "${DOC_ENTRIES[@]}"; do
+    path="${entry%%|*}"
+    type="${entry##*|}"
+    display_path="${path#docs/}"
+    icon="📄"
+    if [[ "$type" == "html" ]]; then
+        icon="🌐"
+    fi
+    echo -e "  ${CYAN}$select_idx${NC}) ${icon} ${display_path}"
+    DOC_INDEX_LOOKUP+=("$path|$type|$select_idx")
     ((select_idx++))
 done
 echo ""
 
 RECENT_QUICK=()
-if [[ -f "$HISTORY_FILE" && ${#DOCX_FILES[@]} -gt 0 ]]; then
+if [[ -f "$HISTORY_FILE" && ${#DOC_ENTRIES[@]} -gt 0 ]]; then
     if command -v tac >/dev/null 2>&1; then
         HISTORY_READER=(tac "$HISTORY_FILE")
     else
@@ -235,13 +297,31 @@ case "$doc_choice" in
 esac
 
 doc_index=$((doc_choice - 1))
-if (( doc_index < 0 || doc_index >= ${#DOCX_FILES[@]} )); then
+if (( doc_index < 0 || doc_index >= ${#DOC_ENTRIES[@]} )); then
     echo -e "${RED}❌ Invalid selection${NC}"
     echo -e "${YELLOW}💡 Tip:${NC} Pick a number you see in the list above, or press ${CYAN}q${NC} to cancel."
     exit 1
 fi
 
-SELECTED_DOCX="${DOCX_FILES[$doc_index]}"
+SELECTED_ENTRY="${DOC_ENTRIES[$doc_index]}"
+IFS='|' read -r SELECTED_PATH SELECTED_KIND <<< "$SELECTED_ENTRY"
+SELECTED_DISPLAY="$(basename "$SELECTED_PATH")"
+SELECTED_DOCX="$SELECTED_PATH"
+if [[ "$SELECTED_KIND" == "html" ]]; then
+    SELECTED_HTML="$SELECTED_PATH"
+    if [[ "$SELECTED_HTML" =~ \.[Hh][Tt][Mm][Ll]$ ]]; then
+        SELECTED_DOCX="${SELECTED_HTML%.[Hh][Tt][Mm][Ll]}.docx"
+    else
+        SELECTED_DOCX="${SELECTED_HTML}.docx"
+    fi
+    SELECTED_MD="${SELECTED_DOCX%.[dD][oO][cC][xX]]}.md"
+else
+    if [[ "$SELECTED_DOCX" =~ \.[dD][oO][cC][xX]$ ]]; then
+        SELECTED_MD="${SELECTED_DOCX%.[dD][oO][cC][xX]}.md"
+    else
+        SELECTED_MD="${SELECTED_DOCX}.md"
+    fi
+fi
 if [[ "$SELECTED_DOCX" =~ \.[dD][oO][cC][xX]$ ]]; then
     SELECTED_MD="${SELECTED_DOCX%.[dD][oO][cC][xX]}.md"
 else
@@ -249,7 +329,49 @@ else
 fi
 
 echo ""
-echo -e "${GREEN}${BOLD}✓ Selected:${NC} $(basename "$SELECTED_DOCX")"
+echo -e "${GREEN}${BOLD}✓ Selected:${NC} $SELECTED_DISPLAY"
+echo ""
+show_history_preview 4
+if [[ "$SELECTED_KIND" == "html" ]]; then
+    HTML_PDF_TARGET="${SELECTED_HTML%.*}.pdf"
+    echo -e "${YELLOW}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}${BOLD}  HTML actions${NC}"
+    echo -e "${YELLOW}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${CYAN}1${NC}) 📘 Build a Word copy (HTML → DOCX)"
+    echo -e "  ${CYAN}2${NC}) 🖨️  Export a PDF"
+    echo -e "  ${CYAN}3${NC}) 🌐 Open in browser"
+    echo -e "  ${CYAN}4${NC}) ↩️  Back to list"
+    echo ""
+    read -p "${CYAN}Choose action (1-4)${NC}: " html_action
+    case "$html_action" in
+        1)
+            echo ""
+            echo -e "${BLUE}📘 Converting HTML → Word...${NC}"
+            ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_HTML" to-docx
+            echo -e "${GREEN}${BOLD}✓ Created${NC} ${CYAN}$SELECTED_DOCX${NC}"
+            ;;
+        2)
+            echo ""
+            echo -e "${BLUE}🖨️  Rendering PDF from HTML...${NC}"
+            ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_HTML" to-pdf "$HTML_PDF_TARGET"
+            echo -e "${GREEN}${BOLD}✓ Exported${NC} ${CYAN}$HTML_PDF_TARGET${NC}"
+            ;;
+        3)
+            echo ""
+            echo -e "${BLUE}🌐 Opening in default browser...${NC}"
+            open "$SELECTED_HTML"
+            ;;
+        4)
+            exec "$0"
+            ;;
+        *)
+            echo -e "${RED}❌ Invalid choice${NC}"
+            ;;
+    esac
+    exit 0
+fi
+
 echo ""
 echo -e "${YELLOW}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${YELLOW}${BOLD}  What would you like to do?${NC}"
@@ -285,13 +407,19 @@ echo ""
 echo -e " ${CYAN}10${NC}) 🤖 ${BOLD}Pick which AI helper${NC} to use"
 echo -e "     ${DIM}└─ Configure local LLM (Ollama/LM Studio)${NC}"
 echo ""
+echo -e "  ${CYAN}P${NC}) 🖨️  ${BOLD}Export a PDF${NC} (Markdown/HTML → PDF)"
+echo -e "     ${DIM}└─ Styled PDF with page numbers${NC}"
+echo ""
+echo -e "  ${CYAN}H${NC}) 🌐 ${BOLD}Generate HTML preview${NC}"
+echo -e "     ${DIM}└─ Standalone web-ready page${NC}"
+echo ""
 echo -e "  ${CYAN}F${NC}) ❔ ${BOLD}Browse the FAQ${NC}"
 echo -e "     ${DIM}└─ Search answers or ask AI follow-ups${NC}"
 echo ""
-echo -e "  ${DIM}Tip:${NC} Tap keys ${CYAN}1-9${NC} for instant shortcuts or press ${CYAN}0${NC} to jump to the AI helper."
+echo -e "  ${DIM}Tip:${NC} Tap keys ${CYAN}1-9${NC} for instant shortcuts, ${CYAN}0${NC} for AI helper, ${CYAN}P${NC} for PDF, ${CYAN}H${NC} for HTML."
 echo -e "  ${DIM}     ${NC}Press ${CYAN}F${NC} any time to launch the interactive FAQ browser."
 echo ""
-prompt_action_choice "${CYAN}Choose action (1-10 or F)${NC}: "
+prompt_action_choice "${CYAN}Choose action (1-10, P, H or F)${NC}: "
 action="$ACTION_SELECTION"
 
 if [[ "$action" == "q" ]]; then
@@ -363,6 +491,30 @@ case $action in
         echo ""
         echo -e "${BLUE}📂 Opening Word document...${NC}"
         open "$SELECTED_DOCX"
+        ;;
+    pdf)
+        if [[ ! -f "$SELECTED_MD" ]]; then
+            echo ""
+            echo -e "${YELLOW}⚠️  Markdown file missing. Creating one first...${NC}"
+            ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
+        fi
+        PDF_TARGET="${SELECTED_MD%.*}.pdf"
+        echo ""
+        echo -e "${BLUE}🖨️  Exporting a styled PDF...${NC}"
+        ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-pdf "$PDF_TARGET"
+        echo -e "${GREEN}${BOLD}✓ PDF ready:${NC} ${CYAN}$PDF_TARGET${NC}"
+        ;;
+    html)
+        if [[ ! -f "$SELECTED_MD" ]]; then
+            echo ""
+            echo -e "${YELLOW}⚠️  Markdown file missing. Creating one first...${NC}"
+            ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
+        fi
+        HTML_TARGET="${SELECTED_MD%.*}.html"
+        echo ""
+        echo -e "${BLUE}🌐 Generating a standalone HTML preview...${NC}"
+        ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-html "$HTML_TARGET"
+        echo -e "${GREEN}${BOLD}✓ Preview saved:${NC} ${CYAN}$HTML_TARGET${NC}"
         ;;
     7)
         if [[ ! -f "$HISTORY_FILE" ]]; then

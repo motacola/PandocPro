@@ -9,6 +9,16 @@ PandocPro lets anyone work on Word documents without living inside Word. Drop a 
 - **Node.js 18+** – powers the “live update” feature: `brew install node`
 - **Microsoft Word** – for final polish and sharing
 - **Visual Studio Code** – comfortable place to edit: `brew install --cask visual-studio-code`
+- *(Optional but recommended)* **WeasyPrint** – enables the new PDF export modes:
+  ```bash
+  # Pick ONE install path; Homebrew brings the system libs along for macOS.
+  brew install weasyprint
+  # or, if you prefer pip:
+  python3 -m pip install --user weasyprint
+
+  # Tell PandocPro which engine to invoke (add to ~/.zshrc for permanence)
+  export DOCSYNC_PDF_ENGINE=weasyprint
+  ```
 - *(Optional)* **Claude Desktop (Desktop Commander)** – lets AI run the workflow for you
 - *(Optional)* **docSync MCP config** – see [MCP-INTEGRATION.md](MCP-INTEGRATION.md) for a copy‑paste YAML snippet
 
@@ -62,10 +72,12 @@ That’s enough to edit Word docs in VS Code without touching advanced commands.
 - 📁 **Simple file flow** – Copy Word files into Markdown for editing and back again.
 - 💬 **Plain-English prompts** – The menu says what will happen in everyday language.
 - 🔄 **One button sync** – Let the tool decide which version is newer and keep both aligned.
+- 🖨️ **Multiple exports** – One shortcut spins Markdown/HTML into DOCX, PDF, or web previews.
 - 👀 **Live updates** – Turn on watch mode so saving your Markdown instantly refreshes Word.
 - 🧰 **VS Code ready** – Tasks and workspace settings are already tuned for Markdown.
 - 🤖 **Optional AI assist** – Wire in Claude Desktop or any local LLM in a couple of minutes.
 - 🧠 **Local model picker** – Detect and remember whichever AI model you prefer.
+- 🖱️ **Drag-and-drop UI** – Prefer browsers to terminals? Launch the new dashboard locally.
 
 ## 🆚 Comparison at a Glance
 
@@ -120,6 +132,24 @@ dsync
 
 Now every time you press ⌘S in VS Code, the matching Word document refreshes automatically. ✨
 
+### New Output Targets
+
+You can now jump straight to PDF or standalone HTML exports without leaving the CLI:
+
+```bash
+# Markdown → PDF (uses DOCSYNC_PDF_ENGINE if set, auto-detects otherwise)
+./scripts/docx-sync.sh docs/report.docx docs/report.md to-pdf
+
+# Markdown → HTML preview (drops docs/report.html next to your source)
+./scripts/docx-sync.sh docs/report.docx docs/report.md to-html
+
+# HTML input → DOCX/PDF
+./scripts/docx-sync.sh docs/page.docx docs/page.html to-docx
+./scripts/docx-sync.sh docs/page.docx docs/page.html to-pdf docs/page.pdf
+```
+
+Inside the interactive menu, tap **P** for PDF or **H** for HTML preview when a Markdown file is selected. If you highlight an `.html` file, you’ll see a purpose-built HTML action sheet (DOCX + PDF + “open in browser”).
+
 ---
 
 ## 🎯 Typical Workflow
@@ -131,6 +161,22 @@ Now every time you press ⌘S in VS Code, the matching Word document refreshes a
 5. Optional: ask the AI helper to tidy things up
 6. Choose “Create a Word file from my Markdown” (option 2)
 7. Open the refreshed `.docx` in Word for final formatting
+
+## 🌐 Drag-and-Drop Dashboard (Optional)
+
+Prefer a browser-first experience or need a quick REST/MCP hook? Start the bundled Express server:
+
+```bash
+npm run ui
+# → visit http://localhost:4174
+```
+
+Features:
+- Drop DOCX, Markdown, or HTML files and tick DOCX/PDF/HTML outputs.
+- The server shells into `scripts/docx-sync.sh`, so backups/history/logging all still apply.
+- Every job shows download buttons plus a JSON API (`/api/jobs/<id>`) you can call from MCP tools or other apps.
+
+> Tip: use `DOCSYNC_PDF_ENGINE=weasyprint npm run ui` to guarantee the REST bridge uses WeasyPrint for every PDF request.
 
 ---
 

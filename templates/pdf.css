@@ -1,0 +1,27 @@
+body {
+  font-family: "Georgia", serif;
+  font-size: 11pt;
+  color: #222;
+  line-height: 1.6;
+  margin: 1in;
+}
+h1, h2, h3 {
+  font-family: "Helvetica", Arial, sans-serif;
+  margin-top: 24pt;
+  color: #0f172a;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16pt 0;
+}
+th, td {
+  border: 1px solid #cbd5f5;
+  padding: 8pt;
+}
+blockquote {
+  border-left: 4px solid #94a3b8;
+  padding-left: 12pt;
+  color: #475569;
+  font-style: italic;
+}

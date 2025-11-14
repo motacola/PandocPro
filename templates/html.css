@@ -1,0 +1,36 @@
+body {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #0f172a;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  max-width: 800px;
+  line-height: 1.7;
+}
+pre, code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  background: #0f172a15;
+  border-radius: 4px;
+}
+code {
+  padding: 2px 4px;
+}
+pre {
+  padding: 12px;
+  overflow: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 24px 0;
+}
+th, td {
+  border: 1px solid #cbd5f5;
+  padding: 8px;
+  text-align: left;
+}
+blockquote {
+  border-left: 4px solid #93c5fd;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  color: #1d4ed8;
+}

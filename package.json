@@ -8,6 +8,7 @@
     "export": "node watch-md.js --once",
     "menu": "./scripts/menu.sh",
     "setup": "./scripts/setup-alias.sh",
+    "ui": "node ui-server/server.js",
     "gui:dev": "npm run dev --prefix gui",
     "gui:build": "npm run build --prefix gui",
     "gui:package": "npm run build --prefix gui && open gui/release"

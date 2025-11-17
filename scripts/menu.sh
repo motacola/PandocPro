@@ -57,16 +57,20 @@ show_history_preview() {
     fi
 }
 
-# Colors for pretty output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-MAGENTA='\033[0;35m'
-BOLD='\033[1m'
-DIM='\033[2m'
-NC='\033[0m' # No Color
+# Colors for pretty output (fall back to plain text when not a TTY)
+if [[ -t 1 && -n "${TERM:-}" ]]; then
+    GREEN='\033[0;32m'
+    BLUE='\033[0;34m'
+    CYAN='\033[0;36m'
+    YELLOW='\033[1;33m'
+    RED='\033[0;31m'
+    MAGENTA='\033[0;35m'
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    NC='\033[0m' # No Color
+else
+    GREEN=''; BLUE=''; CYAN=''; YELLOW=''; RED=''; MAGENTA=''; BOLD=''; DIM=''; NC=''
+fi
 
 normalize_doc_path() {
     local raw="$1"
@@ -75,6 +79,15 @@ normalize_doc_path() {
         cleaned="${cleaned#"$PROJECT_ROOT"/}"
     fi
     echo "$cleaned"
+}
+
+derive_md_path() {
+    local doc_path="$1"
+    if [[ "$doc_path" =~ \.[dD][oO][cC][xX]$ ]]; then
+        echo "${doc_path%.[dD][oO][cC][xX]}.md"
+    else
+        echo "${doc_path}.md"
+    fi
 }
 
 find_doc_index() {
@@ -164,7 +177,9 @@ prompt_action_choice() {
     fi
 }
 
-clear
+if [[ -t 1 && -n "${TERM:-}" ]]; then
+    clear
+fi
 echo ""
 echo -e "${BLUE}╔══════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║${NC}                                                      ${BLUE}║${NC}"
@@ -248,12 +263,14 @@ if [[ -f "$HISTORY_FILE" && ${#DOC_ENTRIES[@]} -gt 0 ]]; then
         [[ -z "$doc_candidate" ]] && continue
         doc_candidate="$(normalize_doc_path "$doc_candidate")"
         duplicate=0
-        for seen in "${RECENT_SEEN[@]}"; do
-            if [[ "$seen" == "$doc_candidate" ]]; then
-                duplicate=1
-                break
-            fi
-        done
+        if (( ${#RECENT_SEEN[@]} )); then
+            for seen in "${RECENT_SEEN[@]}"; do
+                if [[ "$seen" == "$doc_candidate" ]]; then
+                    duplicate=1
+                    break
+                fi
+            done
+        fi
         (( duplicate == 1 )) && continue
         doc_index="$(find_doc_index "$doc_candidate")"
         if [[ -z "$doc_index" ]]; then
@@ -314,19 +331,8 @@ if [[ "$SELECTED_KIND" == "html" ]]; then
     else
         SELECTED_DOCX="${SELECTED_HTML}.docx"
     fi
-    SELECTED_MD="${SELECTED_DOCX%.[dD][oO][cC][xX]]}.md"
-else
-    if [[ "$SELECTED_DOCX" =~ \.[dD][oO][cC][xX]$ ]]; then
-        SELECTED_MD="${SELECTED_DOCX%.[dD][oO][cC][xX]}.md"
-    else
-        SELECTED_MD="${SELECTED_DOCX}.md"
-    fi
 fi
-if [[ "$SELECTED_DOCX" =~ \.[dD][oO][cC][xX]$ ]]; then
-    SELECTED_MD="${SELECTED_DOCX%.[dD][oO][cC][xX]}.md"
-else
-    SELECTED_MD="${SELECTED_DOCX}.md"
-fi
+SELECTED_MD="$(derive_md_path "$SELECTED_DOCX")"
 
 echo ""
 echo -e "${GREEN}${BOLD}✓ Selected:${NC} $SELECTED_DISPLAY"

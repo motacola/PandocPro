@@ -9,6 +9,8 @@ const PROJECT_ROOT = path.resolve(__dirname, '..');
 const SCRIPT_PATH = path.join(PROJECT_ROOT, 'scripts', 'docx-sync.sh');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const JOB_ROOT = path.join(PROJECT_ROOT, 'tmp', 'ui-jobs');
+const JOB_TTL_MS = Number(process.env.DSYNC_UI_JOB_TTL_MS || 24 * 60 * 60 * 1000);
+const JOB_MAX_KEEP = Number(process.env.DSYNC_UI_MAX_JOBS || 200);
 const PORT = Number(process.env.DSYNC_UI_PORT || 4174);
 const MAX_BODY_BYTES = Number(process.env.DSYNC_UI_MAX_BYTES || 25 * 1024 * 1024);
 const FORMAT_SUPPORT = {
@@ -19,6 +21,54 @@ const FORMAT_SUPPORT = {
 
 async function ensureDirectories() {
   await fsp.mkdir(JOB_ROOT, { recursive: true });
+}
+
+async function removeJobDir(dirPath) {
+  try {
+    await fsp.rm(dirPath, { recursive: true, force: true });
+  } catch (error) {
+    console.warn('Failed to remove job dir', dirPath, error);
+  }
+}
+
+async function cleanupOldJobs() {
+  try {
+    const entries = await fsp.readdir(JOB_ROOT, { withFileTypes: true });
+    const now = Date.now();
+    const keepers = [];
+    const expired = [];
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const dirPath = path.join(JOB_ROOT, entry.name);
+      let stat;
+      try {
+        stat = await fsp.stat(dirPath);
+      } catch (error) {
+        continue;
+      }
+      const age = now - stat.mtimeMs;
+      const jobInfo = { dirPath, mtime: stat.mtimeMs, age };
+      if (age > JOB_TTL_MS) {
+        expired.push(jobInfo);
+      } else {
+        keepers.push(jobInfo);
+      }
+    }
+    await Promise.all(expired.map((job) => removeJobDir(job.dirPath)));
+    keepers.sort((a, b) => a.mtime - b.mtime);
+    while (keepers.length > JOB_MAX_KEEP) {
+      const job = keepers.shift();
+      if (job) {
+        // Delete oldest jobs beyond the configured cap
+        // eslint-disable-next-line no-await-in-loop
+        await removeJobDir(job.dirPath);
+      }
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      console.warn('Job cleanup skipped', error);
+    }
+  }
 }
 
 function sanitizeFilename(name) {
@@ -230,6 +280,9 @@ async function handleConvert(req, res) {
     };
     await fsp.writeFile(metaPath, JSON.stringify(meta, null, 2));
     sendJson(res, 200, meta);
+    cleanupOldJobs().catch((error) => {
+      console.warn('Background job cleanup failed', error);
+    });
   } catch (error) {
     console.error('Convert error', error);
     sendJson(res, 500, { error: error.message || 'Conversion failed' });
@@ -358,7 +411,8 @@ async function requestListener(req, res) {
   serveStatic(req, res, pathname);
 }
 
-ensureDirectories().then(() => {
+ensureDirectories().then(async () => {
+  await cleanupOldJobs();
   const server = http.createServer(requestListener);
   server.listen(PORT, () => {
     console.log(`📎 Drag-and-drop UI running at http://localhost:${PORT}`);

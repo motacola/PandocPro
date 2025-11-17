@@ -11,17 +11,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOCS_DIR="$PROJECT_ROOT/docs"
 
-# Color palette
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-MAGENTA='\033[0;35m'
-BOLD='\033[1m'
-DIM='\033[2m'
-NC='\033[0m'
+# Color palette (only when stdout is a TTY with TERM)
+if [[ -t 1 && -n "${TERM:-}" ]]; then
+    GREEN='\033[0;32m'
+    BLUE='\033[0;34m'
+    CYAN='\033[0;36m'
+    YELLOW='\033[1;33m'
+    MAGENTA='\033[0;35m'
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    NC='\033[0m'
+else
+    GREEN=''; BLUE=''; CYAN=''; YELLOW=''; MAGENTA=''; BOLD=''; DIM=''; NC=''
+fi
 
-clear
+if [[ -t 1 && -n "${TERM:-}" ]]; then
+    clear
+fi
 echo ""
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║${NC}                                                                ${BLUE}║${NC}"

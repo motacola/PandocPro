@@ -1,7 +1,7 @@
 {
   "name": "electron-vite-react",
   "version": "2.2.0",
-  "main": "dist-electron/main/index.cjs",
+  "main": "dist-electron/main/index.mjs",
   "description": "Electron Vite React boilerplate.",
   "author": "草鞋没号 <308487730@qq.com>",
   "license": "MIT",
@@ -13,7 +13,8 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev-runner.js",
+    "dev:renderer": "vite",
     "build": "tsc && vite build && electron-builder",
     "preview": "vite preview",
     "pretest": "vite build --mode=test && node scripts/postbuild-electron.cjs",

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, shell, dialog } from 'electron'
 import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
 import path from 'node:path'
@@ -41,5 +41,46 @@ export function registerFileHandlers() {
     const resolved = assertWithinDocs(filePath)
     await fsPromises.writeFile(resolved, contents, 'utf8')
     return true
+  })
+
+  ipcMain.handle('file:openInFolder', async (_event, filePath: string) => {
+    const resolved = assertWithinDocs(filePath)
+    const exists = fs.existsSync(resolved)
+    if (!exists) {
+      throw new Error('File not found')
+    }
+    await shell.showItemInFolder(resolved)
+    return true
+  })
+
+  ipcMain.handle('file:open', async (_event, filePath: string) => {
+    const resolved = assertWithinDocs(filePath)
+    const exists = fs.existsSync(resolved)
+    if (!exists) {
+      throw new Error('File not found')
+    }
+    const result = await shell.openPath(resolved)
+    if (result) {
+      throw new Error(result)
+    }
+    return true
+  })
+
+  ipcMain.handle('file:pickDoc', async () => {
+    const docsDir = getDocsDir()
+    const result = await dialog.showOpenDialog({
+      title: 'Select a document',
+      defaultPath: docsDir,
+      properties: ['openFile'],
+      filters: [
+        { name: 'Documents', extensions: ['docx', 'md'] },
+      ],
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      return null
+    }
+    const picked = result.filePaths[0]
+    const resolved = assertWithinDocs(picked)
+    return resolved
   })
 }

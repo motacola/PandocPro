@@ -2,14 +2,17 @@ import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process'
 import path from 'node:path'
 import { BrowserWindow, ipcMain } from 'electron'
 import fs from 'node:fs'
+import { notifySuccess, notifyError, notifyInfo } from './notifications'
+import { telemetryIncrement } from './telemetry'
 
-type ConvertMode = 'to-md' | 'to-docx' | 'auto'
+type ConvertMode = 'to-md' | 'to-docx' | 'auto' | 'to-pptx'
 
 interface ConversionRequest {
   docxPath: string
   mdPath: string
   mode: ConvertMode
   requestId: string
+  textOnly?: boolean
 }
 
 interface DocsListEntry {
@@ -18,6 +21,8 @@ interface DocsListEntry {
   mdExists: boolean
   docxMtime: number
   mdMtime: number | null
+  docxSize: number
+  mdSize: number | null
 }
 
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
@@ -48,7 +53,7 @@ function validateRequest(payload: ConversionRequest) {
   if (!payload?.docxPath || !payload?.mdPath || !payload?.mode || !payload?.requestId) {
     throw new Error('Missing conversion parameters')
   }
-  if (!['to-md', 'to-docx', 'auto'].includes(payload.mode)) {
+  if (!['to-md', 'to-docx', 'auto', 'to-pptx'].includes(payload.mode)) {
     throw new Error(`Unsupported mode: ${payload.mode}`)
   }
 }
@@ -73,12 +78,15 @@ function discoverDocs(): DocsListEntry[] {
         const mdPath = fullPath.replace(/\.docx$/i, '.md')
         const docxStats = fs.statSync(fullPath)
         let mdMtime: number | null = null
+        let mdSize: number | null = null
         const mdExists = fs.existsSync(mdPath)
         if (mdExists) {
           try {
             mdMtime = fs.statSync(mdPath).mtimeMs
+            mdSize = fs.statSync(mdPath).size
           } catch {
             mdMtime = null
+            mdSize = null
           }
         }
         entries.push({
@@ -87,6 +95,8 @@ function discoverDocs(): DocsListEntry[] {
           mdExists,
           docxMtime: docxStats.mtimeMs,
           mdMtime,
+          docxSize: docxStats.size,
+          mdSize,
         })
       }
     }
@@ -113,7 +123,11 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
       return
     }
 
-    const child = spawn(DOCX_SCRIPT, [payload.docxPath, payload.mdPath, payload.mode], {
+    const args = [payload.docxPath, payload.mdPath, payload.mode]
+    if (payload.textOnly) {
+      args.push('--text-only')
+    }
+    const child = spawn(DOCX_SCRIPT, args, {
       cwd: PROJECT_ROOT,
       env: {
         ...process.env,
@@ -139,20 +153,34 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
 
     child.on('close', (code) => {
       processes.delete(payload.requestId)
-      getWindow()
-        ?.webContents.send('conversion:exit', {
-          requestId: payload.requestId,
-          code,
-        })
+      const win = getWindow()
+
+      if (code === 0) {
+        const filename = path.basename(payload.docxPath)
+        notifySuccess('Conversion Complete', `${filename} processed successfully`, win ?? undefined)
+        telemetryIncrement('conversion_success')
+      } else {
+        const filename = path.basename(payload.docxPath)
+        notifyError('Conversion Failed', `${filename} failed with exit code ${code}`, win ?? undefined)
+        telemetryIncrement('conversion_error')
+      }
+
+      win?.webContents.send('conversion:exit', {
+        requestId: payload.requestId,
+        code,
+      })
     })
 
     child.on('error', (error) => {
       processes.delete(payload.requestId)
-      getWindow()
-        ?.webContents.send('conversion:error', {
-          requestId: payload.requestId,
-          message: error.message,
-        })
+      const win = getWindow()
+      notifyError('Conversion Error', error.message, win ?? undefined)
+      telemetryIncrement('conversion_error')
+
+      win?.webContents.send('conversion:error', {
+        requestId: payload.requestId,
+        message: error.message,
+      })
     })
   })
 

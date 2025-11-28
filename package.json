@@ -4,16 +4,26 @@
   "description": "User-friendly Word ↔ Markdown sync tool",
   "private": true,
   "scripts": {
+    "lint": "bash scripts/lint.sh",
+    "test": "bash scripts/smoke.sh",
+    "ci": "npm run lint && npm test",
+    "dev:all": "bash scripts/dev-all.sh",
     "watch": "node watch-md.js",
     "export": "node watch-md.js --once",
     "menu": "./scripts/menu.sh",
     "setup": "./scripts/setup-alias.sh",
     "ui": "node ui-server/server.js",
+    "ui:dev": "node ui-server/dev-server.js",
     "gui:dev": "npm run dev --prefix gui",
     "gui:build": "npm run build --prefix gui",
     "gui:package": "npm run build --prefix gui && open gui/release"
   },
-  "keywords": ["word", "markdown", "pandoc", "sync"],
+  "keywords": [
+    "word",
+    "markdown",
+    "pandoc",
+    "sync"
+  ],
   "dependencies": {
     "chokidar": "^3.6.0"
   }

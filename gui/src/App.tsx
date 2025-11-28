@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
 import './App.css'
+import { OnboardingChecklist } from './components/OnboardingChecklist'
 
 import type { DocsListEntry, HistoryEntry, WatchStatus, SettingsData, SystemInfo } from './type/pandoc-pro'
 
@@ -12,13 +13,14 @@ type LogEntry =
   | { type: 'stdout'; text: string }
   | { type: 'stderr'; text: string }
   | { type: 'status'; text: string }
+  | { type: 'notify'; text: string }
 
 interface LogRun {
   requestId: string
   messages: LogEntry[]
 }
 
-type ConversionMode = 'to-md' | 'to-docx' | 'auto'
+type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
 type BannerState = { type: 'info' | 'success' | 'error'; message: string } | null
 
 interface FaqEntry {
@@ -27,7 +29,47 @@ interface FaqEntry {
   section: string
 }
 
+// Validation helpers
+const SUPPORTED_FORMATS = new Set(['.docx', '.md', '.pdf', '.html', '.pptx', '.txt', '.odt'])
+const MAX_MARKDOWN_BYTES = 10 * 1024 * 1024 // 10MB limit
+
+function validateFilePath(filePath: string): { valid: boolean; error?: string } {
+  if (!filePath || typeof filePath !== 'string') {
+    return { valid: false, error: 'Invalid file path' }
+  }
+  const normalizedPath = filePath.replace(/\\/g, '/')
+  if (normalizedPath.includes('..')) {
+    return { valid: false, error: 'Path traversal detected' }
+  }
+  if (normalizedPath.includes('\0')) {
+    return { valid: false, error: 'Null byte in path' }
+  }
+  return { valid: true }
+}
+
+function validateMarkdownContent(markdown: string): { valid: boolean; error?: string } {
+  if (typeof markdown !== 'string') {
+    return { valid: false, error: 'Content must be text' }
+  }
+  const bytes = new TextEncoder().encode(markdown)
+  if (bytes.length > MAX_MARKDOWN_BYTES) {
+    return { valid: false, error: `Content exceeds ${MAX_MARKDOWN_BYTES / 1024 / 1024}MB limit` }
+  }
+  return { valid: true }
+}
+
+function sanitizeInput(input: string): string {
+  return input.trim().slice(0, 500) // Limit to 500 chars and trim whitespace
+}
+
 const renderMarkdown = (markdown: string) => marked.parse(markdown ?? '') as string
+
+function formatSize(bytes?: number | null) {
+  if (bytes === undefined || bytes === null) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
 
 function App() {
   const [docs, setDocs] = useState<DocsListEntry[]>([])
@@ -52,12 +94,16 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [settings, setSettings] = useState<SettingsData | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false)
   const [faqEntries, setFaqEntries] = useState<FaqEntry[]>([])
   const [selectedFaq, setSelectedFaq] = useState<FaqEntry | null>(null)
   const [faqFilter, setFaqFilter] = useState<string>('')
   const [faqAiStatus, setFaqAiStatus] = useState<{ configured: boolean; displayName?: string }>({ configured: false })
   const [faqAiLoading, setFaqAiLoading] = useState<boolean>(false)
   const [faqAiResponse, setFaqAiResponse] = useState<string>('')
+  const LARGE_DOC_THRESHOLD = 50 * 1024 * 1024 // 50MB
+  const [dropActive, setDropActive] = useState<boolean>(false)
+  const [telemetry, setTelemetry] = useState<any[]>([])
 
   const turndown = useMemo(() => new TurndownService(), [])
 
@@ -79,6 +125,7 @@ function App() {
   })
 
   const normalizedDocsRoot = useMemo(() => settings?.docsPath?.replace(/\\/g, '/') ?? '', [settings])
+  const isLargeDoc = selectedDoc?.docxSize ? selectedDoc.docxSize > LARGE_DOC_THRESHOLD : false
 
   const filteredFaqEntries = useMemo(() => {
     if (!faqEntries.length) return []
@@ -171,6 +218,42 @@ function App() {
       .finally(() => setIsLoadingDocs(false))
   }
 
+  const handleFileDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setDropActive(false)
+    const file = event.dataTransfer.files?.[0]
+    if (!file?.path) {
+      setBanner({ type: 'error', message: 'No file detected.' })
+      return
+    }
+    const normalizedPath = file.path.replace(/\\/g, '/')
+    const docsRoot = normalizedDocsRoot || '/docs/'
+    if (!normalizedPath.startsWith(docsRoot)) {
+      setBanner({ type: 'error', message: 'Please drop files from your docs folder.' })
+      return
+    }
+    try {
+      const refreshed = await window.pandocPro.listDocuments()
+      setDocs(refreshed)
+      const found =
+        refreshed.find((d) => d.docx.replace(/\\/g, '/') === normalizedPath) ||
+        refreshed.find((d) => d.md.replace(/\\/g, '/') === normalizedPath)
+      if (found) {
+        setSelectedDoc(found)
+        setBanner({ type: 'success', message: 'File selected. Running conversion…' })
+        const mode: ConversionMode =
+          found.docx.toLowerCase().endsWith('.docx') && (!found.mdExists || found.docxMtime > (found.mdMtime ?? 0))
+            ? 'to-md'
+            : 'to-docx'
+        triggerConversion(mode)
+      } else {
+        setBanner({ type: 'error', message: 'File is not a supported docx/md in docs/.' })
+      }
+    } catch (err) {
+      setBanner({ type: 'error', message: err instanceof Error ? err.message : 'Failed to process dropped file.' })
+    }
+  }
+
   const fetchHistory = () => {
     setIsLoadingHistory(true)
     window.pandocPro
@@ -182,11 +265,85 @@ function App() {
       .finally(() => setIsLoadingHistory(false))
   }
 
+  function triggerConversion(modeOverride?: ConversionMode, forceTextOnly?: boolean) {
+    if (!selectedDoc) return
+
+    const docxValidation = validateFilePath(selectedDoc.docx)
+    const mdValidation = validateFilePath(selectedDoc.md)
+
+    if (!docxValidation.valid) {
+      setBanner({ type: 'error', message: `Invalid .docx path: ${docxValidation.error}` })
+      return
+    }
+    if (!mdValidation.valid) {
+      setBanner({ type: 'error', message: `Invalid .md path: ${mdValidation.error}` })
+      return
+    }
+
+    const mode = modeOverride ?? selectedMode
+    const requestId = crypto.randomUUID()
+    setActiveRequest(requestId)
+    setBanner({ type: 'info', message: `Running ${mode}…` })
+    setLogs((prev) => [
+      ...prev,
+      { requestId, messages: [{ type: 'status', text: `▶️ Starting conversion (${mode})...` }] },
+    ])
+    window.pandocPro.startConversion({
+      docxPath: selectedDoc.docx,
+      mdPath: selectedDoc.md,
+      mode,
+      requestId,
+      textOnly: forceTextOnly || (selectedDoc.docxSize ?? 0) > LARGE_DOC_THRESHOLD,
+    })
+  }
+
+  async function handleSaveMarkdown(modeAfterSave?: ConversionMode, forceTextOnly?: boolean) {
+    if (!selectedDoc || !editor) return
+    setIsSavingMarkdown(true)
+    try {
+      const html = editor.getHTML()
+      const markdown = turndown.turndown(html)
+
+      const contentValidation = validateMarkdownContent(markdown)
+      if (!contentValidation.valid) {
+        setBanner({ type: 'error', message: contentValidation.error || 'Content validation failed' })
+        return
+      }
+
+      const pathValidation = validateFilePath(selectedDoc.md)
+      if (!pathValidation.valid) {
+        setBanner({ type: 'error', message: `Cannot save: ${pathValidation.error}` })
+        return
+      }
+
+      await window.pandocPro.writeFile(selectedDoc.md, markdown)
+      setDirty(false)
+      setLiveMarkdown(markdown)
+      setPreviewHtml(renderMarkdown(markdown))
+      setBanner({ type: 'success', message: 'Markdown saved.' })
+      if (modeAfterSave) {
+        triggerConversion(modeAfterSave, forceTextOnly)
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save Markdown file.'
+      setBanner({ type: 'error', message })
+    } finally {
+      setIsSavingMarkdown(false)
+    }
+  }
+
   useEffect(() => {
     fetchDocs()
     fetchHistory()
-    window.pandocPro.getSystemInfo().then(setSystemInfo)
-    window.pandocPro.getSettings().then(setSettings)
+    window.pandocPro.getSystemInfo().then((info) => {
+      setSystemInfo(info)
+      if (!info.pandocVersion) setShowOnboarding(true)
+    })
+    window.pandocPro.getSettings().then((s) => {
+      setSettings(s)
+      if (!s.docsPath) setShowOnboarding(true)
+    })
+    window.pandocPro.getTelemetry().then((stats) => setTelemetry(stats))
     window.pandocPro.getFaq().then((content) => {
       const parsed = parseFaq(content)
       setFaqEntries(parsed)
@@ -211,6 +368,11 @@ function App() {
             ? { type: 'success', message: 'Conversion finished successfully.' }
             : { type: 'error', message: `Conversion exited with code ${code}.` },
         )
+        if (code === 0) {
+          appendLogEntry(requestId, { type: 'notify', text: 'Conversion complete.' })
+        } else {
+          appendLogEntry(requestId, { type: 'notify', text: 'Conversion failed.' })
+        }
       }),
       window.pandocPro.onError(({ message, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
@@ -257,45 +419,48 @@ function App() {
       .finally(() => setIsEditorLoading(false))
   }, [selectedDoc, editor])
 
-  const triggerConversion = (modeOverride?: ConversionMode) => {
-    if (!selectedDoc) return
-    const mode = modeOverride ?? selectedMode
-    const requestId = crypto.randomUUID()
-    setActiveRequest(requestId)
-    setBanner({ type: 'info', message: `Running ${mode}…` })
-    setLogs((prev) => [
-      ...prev,
-      { requestId, messages: [{ type: 'status', text: `▶️ Starting conversion (${mode})...` }] },
-    ])
-    window.pandocPro.startConversion({
-      docxPath: selectedDoc.docx,
-      mdPath: selectedDoc.md,
-      mode,
-      requestId,
-    })
-  }
-
-  const handleSaveMarkdown = async (modeAfterSave?: ConversionMode) => {
-    if (!selectedDoc || !editor) return
-    setIsSavingMarkdown(true)
-    try {
-      const html = editor.getHTML()
-      const markdown = turndown.turndown(html)
-      await window.pandocPro.writeFile(selectedDoc.md, markdown)
-      setDirty(false)
-      setLiveMarkdown(markdown)
-      setPreviewHtml(renderMarkdown(markdown))
-      setBanner({ type: 'success', message: 'Markdown saved.' })
-      if (modeAfterSave) {
-        triggerConversion(modeAfterSave)
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      const isMod = event.metaKey || event.ctrlKey
+      const key = event.key.toLowerCase()
+      if (isMod && key === 's') {
+        event.preventDefault()
+        if (event.shiftKey) {
+          handleSaveMarkdown('to-docx')
+        } else {
+          handleSaveMarkdown()
+        }
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save Markdown file.'
-      setBanner({ type: 'error', message })
-    } finally {
-      setIsSavingMarkdown(false)
+      if (isMod && key === 'e') {
+        event.preventDefault()
+        triggerConversion()
+      }
+      if (isMod && key === '1') {
+        setSelectedMode('to-md')
+      }
+      if (isMod && key === '2') {
+        setSelectedMode('to-docx')
+      }
+      if (isMod && key === '3') {
+        setSelectedMode('to-pptx')
+      }
+      if (isMod && key === '4') {
+        setSelectedMode('auto')
+      }
+      if (isMod && key === 'f') {
+        const search = document.querySelector<HTMLInputElement>('input.doc-search')
+        search?.focus()
+      }
+      if (isMod && key === 'p') {
+        event.preventDefault()
+        setIsPreviewVisible((prev) => !prev)
+      }
     }
-  }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [handleSaveMarkdown, triggerConversion])
+
+  // (moved earlier)
 
   const toggleWatch = async () => {
     if (!selectedDoc) return
@@ -344,6 +509,13 @@ function App() {
         <h1>PandocPro (Preview)</h1>
         <p>Pick a document and run a conversion without touching the terminal.</p>
       </header>
+      {showOnboarding && (
+        <OnboardingChecklist
+          systemInfo={systemInfo}
+          settings={settings}
+          onClose={() => setShowOnboarding(false)}
+        />
+      )}
 
       <section className='panel'>
         <h2>Documents</h2>
@@ -362,7 +534,7 @@ function App() {
                 className='doc-search'
                 placeholder='Search documents'
                 value={docFilter}
-                onChange={(event) => setDocFilter(event.target.value)}
+                onChange={(event) => setDocFilter(sanitizeInput(event.target.value))}
               />
               <label className='doc-sort'>
                 Sort
@@ -371,6 +543,40 @@ function App() {
                   <option value='recent'>Recently updated</option>
                 </select>
               </label>
+            </div>
+            <div
+              className={`drop-zone ${dropActive ? 'active' : ''}`}
+              onDragOver={(event) => {
+                event.preventDefault()
+                setDropActive(true)
+              }}
+              onDragLeave={() => setDropActive(false)}
+              onDrop={handleFileDrop}
+              onClick={async () => {
+                try {
+                  const picked = await window.pandocPro.pickDocument()
+                  if (!picked) return
+                  const normalized = picked.replace(/\\/g, '/')
+                  const refreshed = await window.pandocPro.listDocuments()
+                  setDocs(refreshed)
+                  const found =
+                    refreshed.find((d) => d.docx.replace(/\\/g, '/') === normalized) ||
+                    refreshed.find((d) => d.md.replace(/\\/g, '/') === normalized)
+                  if (found) {
+                    setSelectedDoc(found)
+                    setBanner({ type: 'success', message: 'File selected.' })
+                  } else {
+                    setBanner({ type: 'error', message: 'Selected file is not in docs/ or not a docx/md.' })
+                  }
+                } catch (err) {
+                  setBanner({
+                    type: 'error',
+                    message: err instanceof Error ? err.message : 'Failed to pick document.',
+                  })
+                }
+              }}
+            >
+              Drop a .docx or .md from your docs folder to select it quickly
             </div>
             {filteredDocs.length === 0 ? (
               <p className='muted'>No documents match “{docFilter}”. Try a different search.</p>
@@ -395,6 +601,12 @@ function App() {
                       <span className='muted'>Word source</span>
                       <code>{selectedDoc.docx}</code>
                       <span className='muted'>Updated {new Date(selectedDoc.docxMtime).toLocaleString()}</span>
+                      {selectedDoc.docxSize ? (
+                        <span className='muted'>Size {formatSize(selectedDoc.docxSize)}</span>
+                      ) : null}
+      {(selectedDoc?.docxSize ?? 0) > LARGE_DOC_THRESHOLD && (
+        <span className='badge badge-warning'>Large file (&gt;50MB)</span>
+      )}
                     </div>
                     <div>
                       <span className='muted'>Markdown twin</span>
@@ -405,6 +617,9 @@ function App() {
                       {selectedDoc.mdExists && selectedDoc.mdMtime && (
                         <span className='muted'>Updated {new Date(selectedDoc.mdMtime).toLocaleString()}</span>
                       )}
+                      {selectedDoc.mdExists && selectedDoc.mdSize ? (
+                        <span className='muted'>Size {formatSize(selectedDoc.mdSize)}</span>
+                      ) : null}
                     </div>
                   </div>
                 )}
@@ -496,7 +711,7 @@ function App() {
                 type='search'
                 placeholder='Search FAQ'
                 value={faqFilter}
-                onChange={(event) => setFaqFilter(event.target.value)}
+                onChange={(event) => setFaqFilter(sanitizeInput(event.target.value))}
               />
               <ul>
                 {filteredFaqEntries.length === 0 && <li className='muted'>No questions match that search.</li>}
@@ -559,6 +774,13 @@ function App() {
             Export to Word
           </button>
           <button
+            className={selectedMode === 'to-pptx' ? 'selected' : ''}
+            onClick={() => setSelectedMode('to-pptx')}
+            title='Export Markdown → PowerPoint deck.'
+          >
+            Export to PPTX
+          </button>
+          <button
             className={selectedMode === 'auto' ? 'selected' : ''}
             onClick={() => setSelectedMode('auto')}
             title='Let PandocPro pick the newer file and sync the older one.'
@@ -566,6 +788,11 @@ function App() {
             Auto Sync
           </button>
         </div>
+        {isLargeDoc && (
+          <p className='muted'>
+            Large document detected (&gt;50MB). Conversions may take longer; consider splitting or exporting sections.
+          </p>
+        )}
         <div className='actions'>
           <button disabled={disableActions} onClick={() => triggerConversion()}>
             {activeRequest ? 'Running…' : 'Run Selected Action'}
@@ -584,6 +811,34 @@ function App() {
           )}
         </div>
         {banner && <div className={`banner banner-${banner.type}`}>{banner.message}</div>}
+      </section>
+
+      <section className='panel'>
+        <h2>Telemetry</h2>
+        {telemetry.length === 0 ? (
+          <p className='muted'>No telemetry recorded yet.</p>
+        ) : (
+          <table className='telemetry'>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Conversions</th>
+                <th>Errors</th>
+                <th>Watch errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              {telemetry.slice(-7).map((row) => (
+                <tr key={row.date}>
+                  <td>{row.date}</td>
+                  <td>{row.events?.conversion_success ?? 0}</td>
+                  <td>{row.events?.conversion_error ?? 0}</td>
+                  <td>{row.events?.watch_error ?? 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
 
       <section className='panel'>
@@ -625,7 +880,9 @@ function App() {
             <button
               className='secondary'
               disabled={isSavingMarkdown}
-              onClick={() => handleSaveMarkdown('to-docx')}
+              onClick={() =>
+                handleSaveMarkdown('to-docx', (selectedDoc?.docxSize ?? 0) > LARGE_DOC_THRESHOLD)
+              }
             >
               {isSavingMarkdown ? 'Saving…' : 'Save & Export'}
             </button>
@@ -700,8 +957,40 @@ function App() {
                 </div>
                 <div className='history-files'>
                   <code>{entry.source}</code>
+                  <div className='history-actions'>
+                    <button
+                      className='link-btn'
+                      onClick={() => window.pandocPro.openFile(entry.source)}
+                      title='Open source file'
+                    >
+                      Open
+                    </button>
+                    <button
+                      className='link-btn'
+                      onClick={() => window.pandocPro.openInFolder(entry.source)}
+                      title='Reveal source in Finder/Explorer'
+                    >
+                      Reveal
+                    </button>
+                  </div>
                   <span>→</span>
                   <code>{entry.target}</code>
+                  <div className='history-actions'>
+                    <button
+                      className='link-btn'
+                      onClick={() => window.pandocPro.openFile(entry.target)}
+                      title='Open target file'
+                    >
+                      Open
+                    </button>
+                    <button
+                      className='link-btn'
+                      onClick={() => window.pandocPro.openInFolder(entry.target)}
+                      title='Reveal target in Finder/Explorer'
+                    >
+                      Reveal
+                    </button>
+                  </div>
                 </div>
                 {entry.note && entry.note !== 'completed' && <p className='muted'>{entry.note}</p>}
               </li>

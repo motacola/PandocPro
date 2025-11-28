@@ -1,6 +1,8 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process'
 import path from 'node:path'
+import { notifyInfo, notifyError } from './notifications'
+import { telemetryIncrement } from './telemetry'
 
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
 const WATCH_SCRIPT = path.join(PROJECT_ROOT, 'watch-md.js')
@@ -59,12 +61,17 @@ export function registerWatchHandlers(getWindow: () => BrowserWindow | null) {
           running: true,
           lastSync: new Date().toISOString(),
         }
+        notifyInfo('Watch export complete', path.basename(payload.mdPath), getWindow() ?? undefined)
+        telemetryIncrement('conversion_success')
       }
       notify(text)
     })
 
     child.stderr.on('data', (chunk) => {
-      notify(chunk.toString())
+      const text = chunk.toString()
+      notify(text)
+      notifyError('Watch error', text, getWindow() ?? undefined)
+      telemetryIncrement('watch_error')
     })
 
     child.on('close', () => {

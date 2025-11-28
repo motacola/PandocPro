@@ -12,12 +12,32 @@ export default defineConfig(({ command }) => {
   const isServe = command === 'serve'
   const isBuild = command === 'build'
   const sourcemap = isServe || !!process.env.VSCODE_DEBUG
+  const devPort = Number(process.env.VITE_PORT || 5173)
 
   return {
     resolve: {
       alias: {
         '@': path.join(__dirname, 'src')
       },
+    },
+    build: {
+      // Code splitting for better caching and lazy loading
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Separate vendor chunks
+            'vendor-tiptap': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-placeholder', '@tiptap/extension-code-block-lowlight'],
+            'vendor-markdown': ['marked', 'turndown'],
+            'vendor-editor': ['lowlight'],
+          },
+        },
+      },
+      // Enable minification for production
+      minify: isBuild ? 'esbuild' : false,
+      // Enable source maps for debugging
+      sourcemap: sourcemap,
+      // Optimize chunk sizes
+      chunkSizeWarningLimit: 600, // 600KB warning limit
     },
     plugins: [
       react(),
@@ -37,11 +57,15 @@ export default defineConfig(({ command }) => {
               sourcemap,
               minify: isBuild,
               outDir: 'dist-electron/main',
+              lib: {
+                entry: 'electron/main/index.ts',
+                formats: ['esm'],
+              },
               rollupOptions: {
                 external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
                 output: {
-                  format: 'cjs',
-                  entryFileNames: 'index.cjs',
+                  format: 'esm',
+                  entryFileNames: 'index.mjs',
                 },
               },
             },
@@ -68,13 +92,19 @@ export default defineConfig(({ command }) => {
         renderer: {},
       }),
     ],
-    server: process.env.VSCODE_DEBUG && (() => {
-      const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL)
-      return {
-        host: url.hostname,
-        port: +url.port,
-      }
-    })(),
+    server:
+      (process.env.VSCODE_DEBUG &&
+        (() => {
+          const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL)
+          return {
+            host: url.hostname,
+            port: +url.port,
+            strictPort: true,
+          }
+        })()) || {
+        port: devPort,
+        strictPort: true,
+      },
     clearScreen: false,
   }
 })

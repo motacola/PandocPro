@@ -11,13 +11,12 @@ cd "$PROJECT_ROOT"
 "$SCRIPT_DIR/welcome.sh"
 
 HISTORY_FILE="$PROJECT_ROOT/logs/history.log"
-BACKUP_DIR="$PROJECT_ROOT/backups"
 
 sanitize_log_field() {
     local value="${1//$'\r'/ }"
     value="${value//$'\n'/ }"
     value="${value//|/\/}"
-    value="$(echo "$value" | sed 's/[[:space:]]\{2,\}/ /g')"
+    value="$(printf '%s\n' "$value" | tr -s '[:space:]' ' ')"
     echo "$value"
 }
 
@@ -38,8 +37,10 @@ show_history_preview() {
         [[ -z "$ts" ]] && continue
         local status_icon="${RED}✗${NC}"
         [[ "$status" == "success" ]] && status_icon="${GREEN}✓${NC}"
-        local base_src="$(basename "$source")"
-        local base_target="$(basename "$target")"
+        local base_src
+        base_src="$(basename "$source")"
+        local base_target
+        base_target="$(basename "$target")"
         local summary="  ${DIM}${ts}${NC} • ${CYAN}${mode}${NC} • ${status_icon}"
         if [[ -n "$duration" ]]; then
             summary+=" • ${duration}s"
@@ -139,6 +140,18 @@ prompt_action_choice() {
                 ACTION_SELECTION="10"
                 flush_pending_newline
                 echo -e "${DIM}Shortcut 0 jumps to option 10 (AI helper)${NC}"
+                return
+                ;;
+            x|X)
+                ACTION_SELECTION="pptx"
+                flush_pending_newline
+                echo -e "${DIM}Shortcut X → Export PPTX${NC}"
+                return
+                ;;
+            k|K)
+                ACTION_SELECTION="keynote"
+                flush_pending_newline
+                echo -e "${DIM}Shortcut K → Export and open in Keynote${NC}"
                 return
                 ;;
             p|P)
@@ -300,7 +313,7 @@ if [[ ${#RECENT_QUICK[@]} -gt 0 ]]; then
 fi
 
 # Get user selection
-read -p "$(echo -e ${CYAN}Select document number${NC} ${DIM}\(or 'q' to quit\)${NC}: )" doc_choice
+read -r -p "$(echo -e "${CYAN}Select document number${NC} ${DIM}(or 'q' to quit)${NC}: ")" doc_choice
 if [[ "$doc_choice" == "q" ]]; then
     exit 0
 fi
@@ -349,7 +362,7 @@ if [[ "$SELECTED_KIND" == "html" ]]; then
     echo -e "  ${CYAN}3${NC}) 🌐 Open in browser"
     echo -e "  ${CYAN}4${NC}) ↩️  Back to list"
     echo ""
-    read -p "${CYAN}Choose action (1-4)${NC}: " html_action
+    read -r -p "${CYAN}Choose action (1-4)${NC}: " html_action
     case "$html_action" in
         1)
             echo ""
@@ -419,13 +432,19 @@ echo ""
 echo -e "  ${CYAN}H${NC}) 🌐 ${BOLD}Generate HTML preview${NC}"
 echo -e "     ${DIM}└─ Standalone web-ready page${NC}"
 echo ""
+echo -e "  ${CYAN}X${NC}) 📽️  ${BOLD}Export a PowerPoint deck${NC} (PPTX)"
+echo -e "     ${DIM}└─ Markdown/HTML → PPTX slide deck${NC}"
+echo ""
+echo -e "  ${CYAN}K${NC}) 🎞️  ${BOLD}Open in Keynote${NC} (build PPTX first)"
+echo -e "     ${DIM}└─ Export PPTX then launch Keynote for editing${NC}"
+echo ""
 echo -e "  ${CYAN}F${NC}) ❔ ${BOLD}Browse the FAQ${NC}"
 echo -e "     ${DIM}└─ Search answers or ask AI follow-ups${NC}"
 echo ""
-echo -e "  ${DIM}Tip:${NC} Tap keys ${CYAN}1-9${NC} for instant shortcuts, ${CYAN}0${NC} for AI helper, ${CYAN}P${NC} for PDF, ${CYAN}H${NC} for HTML."
+echo -e "  ${DIM}Tip:${NC} Tap keys ${CYAN}1-9${NC} for instant shortcuts, ${CYAN}0${NC} for AI helper, ${CYAN}P${NC} for PDF, ${CYAN}H${NC} for HTML, ${CYAN}X${NC} for PPTX, ${CYAN}K${NC} for Keynote, ${CYAN}F${NC} for FAQ."
 echo -e "  ${DIM}     ${NC}Press ${CYAN}F${NC} any time to launch the interactive FAQ browser."
 echo ""
-prompt_action_choice "${CYAN}Choose action (1-10, P, H or F)${NC}: "
+prompt_action_choice "${CYAN}Choose action (1-10, P, H, X, K or F)${NC}: "
 action="$ACTION_SELECTION"
 
 if [[ "$action" == "q" ]]; then
@@ -521,6 +540,40 @@ case $action in
         echo -e "${BLUE}🌐 Generating a standalone HTML preview...${NC}"
         ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-html "$HTML_TARGET"
         echo -e "${GREEN}${BOLD}✓ Preview saved:${NC} ${CYAN}$HTML_TARGET${NC}"
+        ;;
+    pptx)
+        if [[ ! -f "$SELECTED_MD" ]]; then
+            echo ""
+            echo -e "${YELLOW}⚠️  Markdown file missing. Creating one first...${NC}"
+            ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
+        fi
+        PPTX_TARGET="${SELECTED_MD%.*}.pptx"
+        echo ""
+        echo -e "${BLUE}📽️  Exporting a PowerPoint deck...${NC}"
+        ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-pptx "$PPTX_TARGET"
+        echo -e "${GREEN}${BOLD}✓ PPTX ready:${NC} ${CYAN}$PPTX_TARGET${NC}"
+        ;;
+    keynote)
+        if [[ ! -f "$SELECTED_MD" ]]; then
+            echo ""
+            echo -e "${YELLOW}⚠️  Markdown file missing. Creating one first...${NC}"
+            ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-md
+        fi
+        PPTX_TARGET="${SELECTED_MD%.*}.pptx"
+        echo ""
+        echo -e "${BLUE}🎞️  Exporting PPTX and launching Keynote...${NC}"
+        ./scripts/docx-sync.sh "$SELECTED_DOCX" "$SELECTED_MD" to-pptx "$PPTX_TARGET"
+        if ! open -Ra "Keynote" >/dev/null 2>&1; then
+            echo -e "${RED}❌ Keynote is not installed.${NC}"
+            echo -e "${YELLOW}💡 Tip:${NC} Install Keynote from the Mac App Store, then rerun this option to open ${CYAN}$PPTX_TARGET${NC}."
+            exit 1
+        fi
+        if ! open -a "Keynote" "$PPTX_TARGET"; then
+            echo -e "${RED}❌ Failed to launch Keynote via CLI.${NC}"
+            echo -e "${YELLOW}💡 Tip:${NC} Double-click ${CYAN}$PPTX_TARGET${NC} in Finder after installing Keynote, or retry once Keynote finishes updating."
+            exit 1
+        fi
+        echo -e "${GREEN}${BOLD}✓ Opened in Keynote:${NC} ${CYAN}$PPTX_TARGET${NC}"
         ;;
     7)
         if [[ ! -f "$HISTORY_FILE" ]]; then
@@ -624,7 +677,7 @@ case $action in
     *)
         echo ""
         echo -e "${RED}❌ Invalid action${NC}"
-        echo -e "${YELLOW}💡 Tip:${NC} Tap keys ${CYAN}1-9${NC}, press ${CYAN}0${NC} for the AI helper, hit ${CYAN}F${NC} for the FAQ, or type the full option number then hit Enter."
+        echo -e "${YELLOW}💡 Tip:${NC} Tap keys ${CYAN}1-9${NC}, press ${CYAN}0${NC} for the AI helper, ${CYAN}P${NC}/${CYAN}H${NC}/${CYAN}X${NC}/${CYAN}K${NC} for exports, hit ${CYAN}F${NC} for the FAQ, or type the full option number then hit Enter."
         exit 1
         ;;
 esac

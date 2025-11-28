@@ -34,21 +34,25 @@
 
         <div class="formats">
           <p class="formats-label">Outputs</p>
-          <label>
+          <label title="Keeps the Markdown source handy for editing or reuse">
             <input type="checkbox" value="md" checked />
             Markdown (.md)
           </label>
-          <label>
+          <label title="Generate a polished Word file">
             <input type="checkbox" value="docx" checked />
             Word (.docx)
           </label>
-          <label>
+          <label title="Print-ready PDF (uses pdf.css and your PDF engine)">
             <input type="checkbox" value="pdf" />
             PDF (.pdf)
           </label>
-          <label>
+          <label title="Standalone HTML preview with styling from html.css">
             <input type="checkbox" value="html" />
             HTML Preview (.html)
+          </label>
+          <label title="Slide deck export; uses templates/reference.pptx if present">
+            <input type="checkbox" value="pptx" />
+            PowerPoint (.pptx)
           </label>
         </div>
 

@@ -24,6 +24,10 @@
 # Direct conversion
 ./scripts/docx-sync.sh docs/file.docx docs/file.md to-md
 
+# Export slide deck (PPTX) and open in Keynote if you want
+./scripts/docx-sync.sh docs/slides.docx docs/slides.md to-pptx docs/slides.pptx
+# Menu shortcuts: X = PPTX export, K = export then open in Keynote
+
 # Watch specific file
 MD_FILE="docs/file.md" DOCX_FILE="docs/file.docx" npm run watch
 

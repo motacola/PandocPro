@@ -1,9 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.motacola.pandocpro",
+  "productName": "PandocPro",
   "asar": true,
+  "buildDependenciesFromSource": false,
   "directories": {
-    "output": "release/${version}"
+    "output": "release/${version}",
+    "buildResources": "build"
   },
   "files": [
     "dist-electron",
@@ -19,7 +22,13 @@
     "gatekeeperAssess": false,
     "entitlements": "build/entitlements.mac.plist",
     "entitlementsInherit": "build/entitlements.mac.plist",
-    "identity": null
+    "identity": null,
+    "certificateFile": null,
+    "certificatePassword": null,
+    "signingIdentity": null,
+    "notarize": {
+      "teamId": null
+    }
   },
   "win": {
     "target": [
@@ -39,8 +48,10 @@
     "deleteAppDataOnUninstall": false
   },
   "publish": {
-    "provider": "generic",
-    "channel": "latest",
-    "url": "https://github.com/motacola/PandocPro/releases/latest/download/"
+    "provider": "github",
+    "owner": "motacola",
+    "repo": "PandocPro",
+    "releaseType": "release",
+    "channel": "latest"
   }
 }

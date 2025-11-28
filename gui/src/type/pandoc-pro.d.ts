@@ -1,10 +1,11 @@
-export type ConversionMode = 'to-md' | 'to-docx' | 'auto'
+export type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
 
 export interface ConversionStartPayload {
   docxPath: string
   mdPath: string
   mode: ConversionMode
   requestId: string
+  textOnly?: boolean
 }
 
 export interface ConversionChunkPayload {
@@ -28,6 +29,8 @@ export interface DocsListEntry {
   mdExists: boolean
   docxMtime: number
   mdMtime: number | null
+  docxSize: number
+  mdSize: number | null
 }
 
 export interface HistoryEntry {
@@ -93,6 +96,10 @@ declare global {
       getFaq(): Promise<string>
       getLlmStatus(): Promise<LlmStatus>
       askFaqAi(payload: { question: string; answer: string; followUp: string }): Promise<string>
+      openInFolder(filePath: string): Promise<boolean>
+      openFile(filePath: string): Promise<boolean>
+      getTelemetry(): Promise<any>
+      pickDocument(): Promise<string | null>
     }
   }
 }

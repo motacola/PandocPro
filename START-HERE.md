@@ -42,6 +42,7 @@
 - 🎨 VS Code keyboard shortcuts
 - 🤖 AI-powered improvements with Claude
 - 📦 Batch convert multiple files
+- 📽️ Export slide decks (PPTX) or open in Keynote via menu shortcuts **X**/**K**
 
 ---
 

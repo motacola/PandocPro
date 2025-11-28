@@ -129,7 +129,8 @@ header .lede {
   border: 1px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  background: #f8fafc;
 }
 
 .formats label input {
@@ -139,6 +140,7 @@ header .lede {
 .formats label:hover {
   border-color: var(--brand);
   color: var(--brand);
+  background: #eef2ff;
 }
 
 .formats-label {

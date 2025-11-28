@@ -70,6 +70,9 @@ contextBridge.exposeInMainWorld('pandocPro', {
   writeFile(filePath: string, contents: string) {
     return ipcRenderer.invoke('file:write', filePath, contents)
   },
+  pickDocument() {
+    return ipcRenderer.invoke('file:pickDoc')
+  },
   startWatch(payload: { docxPath: string; mdPath: string }) {
     return ipcRenderer.invoke('watch:start', payload)
   },
@@ -105,6 +108,15 @@ contextBridge.exposeInMainWorld('pandocPro', {
   },
   askFaqAi(payload: { question: string; answer: string; followUp: string }) {
     return ipcRenderer.invoke('faq:askAi', payload)
+  },
+  openInFolder(filePath: string) {
+    return ipcRenderer.invoke('file:openInFolder', filePath)
+  },
+  openFile(filePath: string) {
+    return ipcRenderer.invoke('file:open', filePath)
+  },
+  getTelemetry() {
+    return ipcRenderer.invoke('telemetry:stats')
   },
 })
 

@@ -134,7 +134,7 @@ Now every time you press ⌘S in VS Code, the matching Word document refreshes a
 
 ### New Output Targets
 
-You can now jump straight to PDF or standalone HTML exports without leaving the CLI:
+You can now jump straight to PDF, HTML, or PPTX exports without leaving the CLI:
 
 ```bash
 # Markdown → PDF (uses DOCSYNC_PDF_ENGINE if set, auto-detects otherwise)
@@ -146,9 +146,12 @@ You can now jump straight to PDF or standalone HTML exports without leaving the 
 # HTML input → DOCX/PDF
 ./scripts/docx-sync.sh docs/page.docx docs/page.html to-docx
 ./scripts/docx-sync.sh docs/page.docx docs/page.html to-pdf docs/page.pdf
+
+# Markdown/HTML → PowerPoint (uses DOCSYNC_REFERENCE_PPTX if set)
+./scripts/docx-sync.sh docs/slides.docx docs/slides.md to-pptx docs/slides.pptx
 ```
 
-Inside the interactive menu, tap **P** for PDF or **H** for HTML preview when a Markdown file is selected. If you highlight an `.html` file, you’ll see a purpose-built HTML action sheet (DOCX + PDF + “open in browser”).
+Inside the interactive menu, tap **P** for PDF, **H** for HTML preview, or **X** for PPTX when a Markdown file is selected. Tap **K** to export and open the deck in Keynote (requires Keynote to be installed). If you highlight an `.html` file, you’ll see a purpose-built HTML action sheet (DOCX + PDF + “open in browser”).
 
 ---
 

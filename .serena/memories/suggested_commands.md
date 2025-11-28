@@ -1,0 +1,11 @@
+## Suggested commands
+- `npm install` – install chokidar dependency for the Node watcher/UI helpers (run once after cloning).
+- `./scripts/setup.sh` – guided setup that checks Homebrew/Pandoc/Node, installs npm deps, configures the `dsync` alias/launcher.
+- `./scripts/menu.sh` (aliased as `dsync`) – primary interactive workflow for converting/syncing Word ↔ Markdown, launching watch mode, FAQ, AI helpers, etc.
+- `./scripts/docx-sync.sh <docx> <md> <mode>` – low-level Pandoc wrapper supporting `to-md`, `to-docx`, `auto`, `to-pdf`, `to-html`, etc.
+- `npm run watch` – start `watch-md.js` to rebuild DOCX whenever the paired Markdown file changes (set `DOCX_FILE`/`MD_FILE` env vars to override defaults).
+- `npm run export` – single-run DOCX export (same script with `--once`).
+- `npm run ui` – start the local HTTP status/dashboard server in `ui-server/`.
+- `npm run gui:dev` / `npm run gui:build` – run or build the experimental GUI app under `gui/` (Electron/Vite-style npm project).
+- `./scripts/configure-llm.sh` – wire local/remote LLM endpoints for MCP usage.
+- `./scripts/create-launcher.sh` – drop a macOS `.command` launcher on the Desktop for double-click workflows.

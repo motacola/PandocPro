@@ -43,14 +43,17 @@ function setDefaultFormats(file) {
     defaults.clear();
     defaults.add('md');
     defaults.add('pdf');
+    defaults.add('pptx');
   } else if (ext === 'html' || ext === 'htm') {
     defaults.clear();
     defaults.add('docx');
     defaults.add('pdf');
+    defaults.add('pptx');
   } else if (ext === 'md' || ext === 'markdown') {
     defaults.clear();
     defaults.add('docx');
     defaults.add('pdf');
+    defaults.add('pptx');
   }
   formatCheckboxes.forEach((box) => {
     box.checked = defaults.has(box.value);
@@ -121,7 +124,8 @@ convertBtn.addEventListener('click', async () => {
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || 'Conversion failed');
+      const detail = errorData.stderr ? `: ${errorData.stderr.substring(0, 200)}` : '';
+      throw new Error((errorData.error || 'Conversion failed') + detail);
     }
     const result = await response.json();
     statusEl.textContent = `Done! Job ${result.jobId}`;
@@ -134,6 +138,12 @@ convertBtn.addEventListener('click', async () => {
   }
 });
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function prependJobCard(meta) {
   const card = document.createElement('article');
   card.className = 'job-card';
@@ -141,24 +151,24 @@ function prependJobCard(meta) {
   card.innerHTML = `
     <div class="job-header">
       <div>
-        <p class="job-id">Job ${meta.jobId}</p>
-        <p>${meta.originalName}</p>
+        <p class="job-id">Job ${escapeHtml(meta.jobId)}</p>
+        <p>${escapeHtml(meta.originalName)}</p>
       </div>
-      <span>${date}</span>
+      <span>${escapeHtml(date)}</span>
     </div>
     <div class="output-list">
       ${meta.outputs
-        .map(
-          (output) => `
+      .map(
+        (output) => `
           <div class="output-item">
             <div>
-              <p><strong>${output.format.toUpperCase()}</strong> — ${output.fileName}</p>
-              <p class="meta-size">${formatSize(output.size)}</p>
+              <p><strong>${escapeHtml(output.format.toUpperCase())}</strong> — ${escapeHtml(output.fileName)}</p>
+              <p class="meta-size">${escapeHtml(formatSize(output.size))}</p>
             </div>
-            <button data-url="${output.url}">Download</button>
+            <button data-url="${escapeHtml(output.url)}">Download</button>
           </div>`
-        )
-        .join('')}
+      )
+      .join('')}
     </div>
   `;
   card.querySelectorAll('button[data-url]').forEach((btn) => {

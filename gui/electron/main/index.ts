@@ -10,6 +10,7 @@ import { registerFileHandlers } from './files'
 import { registerWatchHandlers } from './watch'
 import { registerSettingsHandlers } from './settings'
 import { registerFaqHandlers } from './faq'
+import { registerTelemetryHandlers } from './telemetry'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -40,9 +41,16 @@ if (os.release().startsWith('6.1')) app.disableHardwareAcceleration()
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
-if (!app.requestSingleInstanceLock()) {
-  app.quit()
-  process.exit(0)
+// Use custom userData path when provided to avoid singleton lock conflicts in dev
+if (process.env.ELECTRON_USER_DATA_DIR) {
+  app.setPath('userData', process.env.ELECTRON_USER_DATA_DIR)
+}
+
+if (process.env.ELECTRON_DEV_SKIP_LOCK !== '1') {
+  if (!app.requestSingleInstanceLock()) {
+    app.quit()
+    process.exit(0)
+  }
 }
 
 let win: BrowserWindow | null = null
@@ -64,10 +72,14 @@ async function createWindow() {
     },
   })
 
+  const shouldOpenDevTools = process.env.ELECTRON_OPEN_DEVTOOLS === '1'
+
   if (VITE_DEV_SERVER_URL) { // #298
     win.loadURL(VITE_DEV_SERVER_URL)
-    // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    // Open devTool in dev mode only when explicitly requested
+    if (shouldOpenDevTools) {
+      win.webContents.openDevTools()
+    }
   } else {
     win.loadFile(indexHtml)
   }
@@ -94,6 +106,7 @@ app.whenReady().then(registerFileHandlers)
 app.whenReady().then(() => registerWatchHandlers(() => win))
 app.whenReady().then(registerSettingsHandlers)
 app.whenReady().then(registerFaqHandlers)
+app.whenReady().then(registerTelemetryHandlers)
 
 app.on('window-all-closed', () => {
   win = null
@@ -122,8 +135,8 @@ ipcMain.handle('open-win', (_, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
       preload,
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   })
 

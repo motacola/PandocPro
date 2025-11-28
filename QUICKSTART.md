@@ -49,6 +49,9 @@ cd /path/to/PandocPro
 
 # Let the script decide which version is newer
 ./scripts/docx-sync.sh docs/yourfile.docx docs/yourfile.md auto
+
+# Build a slide deck (PPTX) from Markdown/HTML
+./scripts/docx-sync.sh docs/slides.docx docs/slides.md to-pptx docs/slides.pptx
 ```
 
 ---
@@ -74,6 +77,11 @@ dsync
 # Pick “Live update while I edit” (option 4)
 ```
 Every time you press ⌘S in VS Code, the Word document refreshes automatically.
+
+Want live PPTX exports instead of Word? Run:
+```bash
+DOCX_FILE=docs/slides.docx MD_FILE=docs/slides.md node watch-md.js --mode=to-pptx
+```
 
 ### 🎨 Helpful VS Code extensions
 - **Markdown All in One** – handy shortcuts

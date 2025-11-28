@@ -13,6 +13,7 @@ mkdir -p "$LOG_DIR" "$BACKUP_DIR" "$TEMPLATE_DIR"
 DEFAULT_PDF_CSS="$TEMPLATE_DIR/pdf.css"
 DEFAULT_HTML_CSS="$TEMPLATE_DIR/html.css"
 REFERENCE_DOC="${DOCSYNC_REFERENCE_DOC:-$TEMPLATE_DIR/reference.docx}"
+REFERENCE_PPTX="${DOCSYNC_REFERENCE_PPTX:-$TEMPLATE_DIR/reference.pptx}"
 
 MAX_TEXT_BYTES="${DOCSYNC_MAX_TEXT_BYTES:-20971520}"
 MAX_BINARY_BYTES="${DOCSYNC_MAX_BINARY_BYTES:-52428800}"
@@ -295,7 +296,7 @@ sanitize_field() {
   local value="${1//$'\r'/ }"
   value="${value//$'\n'/ }"
   value="${value//|/\/}"
-  value="$(echo "$value" | sed 's/[[:space:]]\{2,\}/ /g')"
+  value="$(printf '%s\n' "$value" | tr -s '[:space:]' ' ')"
   echo "$value"
 }
 
@@ -387,7 +388,8 @@ run_conversion() {
 
   "${pandoc_cmd[@]}" 2>"$tmp_err" &
   local pandoc_pid=$!
-  local spinner_msg="Converting $(basename "$source")…"
+  local spinner_msg
+  spinner_msg="Converting $(basename "$source")…"
   start_spinner "$pandoc_pid" "$spinner_msg"
 
   if wait "$pandoc_pid"; then
@@ -410,11 +412,23 @@ run_conversion() {
     log_history "success" "$mode" "$source" "$target" "$duration" \
       "${warnings:-none}" "$backup_path" "completed"
     local notify_title notify_message
-    if [[ "$mode" == "to-docx" || "$mode" == "auto-to-docx" ]]; then
-      notify_title="Markdown → Word complete"
-    else
-      notify_title="Word → Markdown complete"
-    fi
+    case "$mode" in
+      to-docx|auto-to-docx)
+        notify_title="Markdown → Word complete"
+        ;;
+      to-pptx)
+        notify_title="Markdown → PowerPoint complete"
+        ;;
+      to-pdf)
+        notify_title="Markdown/HTML → PDF complete"
+        ;;
+      to-html)
+        notify_title="Markdown → HTML complete"
+        ;;
+      *)
+        notify_title="Conversion complete"
+        ;;
+    esac
     notify_message="$(basename "$source") → $(basename "$target")"
     send_notification "$notify_title" "$notify_message"
     rm -f "$tmp_err"
@@ -430,6 +444,9 @@ run_conversion() {
       error_detail="pandoc failed"
     fi
     echo "❌ Conversion failed. Leaving existing file untouched." >&2
+    if [[ "$mode" == "to-pptx" ]] && [[ "$error_detail" =~ Unknown\ writer|pptx ]]; then
+      echo "💡 Pandoc PPTX writer missing. Upgrade pandoc (brew upgrade pandoc) or reinstall with PPTX support." >&2
+    fi
     echo "💡 Tip: Check the Pandoc error above, confirm the source path exists, and try running with an explicit mode (to-md/to-docx)." >&2
     echo "🔁 If the issue persists, run 'brew upgrade pandoc' or open the document in Word once to ensure it's not locked." >&2
     restore_backup_if_needed "$backup_path" "$target"
@@ -452,6 +469,7 @@ USAGE:
 MODES:
   to-md    Convert Word → Markdown
   to-docx  Convert Markdown → Word
+  to-pptx  Convert Markdown/HTML → PowerPoint
   to-pdf   Convert Markdown/HTML → PDF
   to-html  Convert Markdown → styled HTML export
   auto     Auto-detect (newest file wins) [default]
@@ -459,6 +477,7 @@ MODES:
 EXAMPLES:
   ./docx-sync.sh docs/report.docx docs/report.md to-md
   ./docx-sync.sh docs/report.docx docs/report.md to-docx
+   ./docx-sync.sh docs/slides.docx docs/slides.md to-pptx
   ./docx-sync.sh docs/report.docx docs/report.md to-pdf docs/report.pdf
   ./docx-sync.sh docs/report.docx docs/page.html to-docx
   ./docx-sync.sh docs/report.docx docs/report.md auto
@@ -474,7 +493,7 @@ fi
 
 DOCX="${1:-docs/presentation.docx}"
 MD="${2:-docs/presentation.md}"
-MODE="${3:-auto}"   # auto | to-md | to-docx | to-pdf | to-html
+MODE="${3:-auto}"   # auto | to-md | to-docx | to-pptx | to-pdf | to-html
 OUTPUT_OVERRIDE="${4:-}"
 
 # Check for pandoc
@@ -508,6 +527,21 @@ case "$MODE" in
       DOCX_ARGS+=("--reference-doc=$REFERENCE_DOC")
     fi
     run_conversion "to-docx" "$MD" "$DOCX" "${DOCX_ARGS[@]}"
+    ;;
+  to-pptx)
+    SOURCE_FORMAT=$(detect_text_format "$MD")
+    lint_source_file "$MD" "$SOURCE_FORMAT"
+    READABLE_SOURCE=$(format_label "$SOURCE_FORMAT")
+    PPTX_TARGET="${OUTPUT_OVERRIDE:-$(replace_extension "$MD" pptx)}"
+    echo "📽️  Converting ${READABLE_SOURCE} → PowerPoint..."
+    show_step 2 3 "Preparing slide deck folder..."
+    mkdir -p "$(dirname "$PPTX_TARGET")"
+    show_step 3 3 "Running pandoc (${READABLE_SOURCE} → PPTX)..."
+    PPTX_ARGS=("--from=${SOURCE_FORMAT}" "--to=pptx")
+    if [[ -f "$REFERENCE_PPTX" ]]; then
+      PPTX_ARGS+=("--reference-doc=$REFERENCE_PPTX")
+    fi
+    run_conversion "to-pptx" "$MD" "$PPTX_TARGET" "${PPTX_ARGS[@]}"
     ;;
   to-pdf)
     SOURCE_FORMAT=$(detect_text_format "$MD")

@@ -4,9 +4,11 @@ const fs = require('node:fs')
 const esbuild = require('esbuild')
 
 const root = path.resolve(__dirname, '..')
-const input = path.join(root, 'dist-electron', 'main', 'index.cjs')
-if (!fs.existsSync(input)) {
-  console.error('[postbuild-electron] Missing main bundle:', input)
+const inputCjs = path.join(root, 'dist-electron', 'main', 'index.cjs')
+const inputMjs = path.join(root, 'dist-electron', 'main', 'index.mjs')
+const input = fs.existsSync(inputCjs) ? inputCjs : inputMjs
+if (!input) {
+  console.error('[postbuild-electron] Missing main bundle (index.cjs or index.mjs)')
   process.exit(1)
 }
 

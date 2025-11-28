@@ -1,0 +1,43 @@
+{
+  "name": "pandocpro-helper",
+  "displayName": "PandocPro Helper",
+  "description": "Launch PandocPro GUI from the VS Code Activity Bar.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "main": "extension.js",
+  "activationEvents": [
+    "onCommand:pandocpro.openGui",
+    "onView:pandocpro.actions"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "pandocpro.openGui",
+        "title": "PandocPro: Open GUI"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pandocpro",
+          "title": "PandocPro",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "pandocpro": [
+        {
+          "id": "pandocpro.actions",
+          "name": "Actions"
+        }
+      ]
+    }
+  },
+  "categories": [
+    "Other"
+  ]
+}

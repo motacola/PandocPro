@@ -59,13 +59,13 @@ export default defineConfig(({ command }) => {
               outDir: 'dist-electron/main',
               lib: {
                 entry: 'electron/main/index.ts',
-                formats: ['esm'],
+                formats: ['cjs'],
               },
               rollupOptions: {
                 external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
                 output: {
-                  format: 'esm',
-                  entryFileNames: 'index.mjs',
+                  format: 'cjs',
+                  entryFileNames: 'index.cjs',
                 },
               },
             },

@@ -46,12 +46,14 @@ if (process.env.ELECTRON_USER_DATA_DIR) {
   app.setPath('userData', process.env.ELECTRON_USER_DATA_DIR)
 }
 
-if (process.env.ELECTRON_DEV_SKIP_LOCK !== '1') {
-  if (!app.requestSingleInstanceLock()) {
-    app.quit()
-    process.exit(0)
+app.on('ready', () => {
+  if (!process.env.ELECTRON_DEV_SKIP_LOCK) {
+    if (!app.requestSingleInstanceLock()) {
+      app.quit()
+      process.exit(0)
+    }
   }
-}
+})
 
 let win: BrowserWindow | null = null
 const preload = path.join(__dirname, '../preload/index.mjs')

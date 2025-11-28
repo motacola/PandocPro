@@ -124,13 +124,11 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
     }
 
     const args = [payload.docxPath, payload.mdPath, payload.mode]
-    if (payload.textOnly) {
-      args.push('--text-only')
-    }
     const child = spawn(DOCX_SCRIPT, args, {
       cwd: PROJECT_ROOT,
       env: {
         ...process.env,
+        DOCSYNC_TEXT_ONLY: payload.textOnly ? '1' : '0',
       },
     })
     processes.set(payload.requestId, child)

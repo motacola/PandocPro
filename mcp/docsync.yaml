@@ -1,0 +1,111 @@
+schema: "mcp://1.0"
+name: "docsync"
+version: "1.0.0"
+description: "PandocPro document sync helpers for VS Code MCP clients"
+
+tools:
+  - name: listDocuments
+    description: "List DOCX/MD/HTML files under docs/"
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - "cd \"${PROJECT_ROOT:-.}\" && find docs -type f \\( -iname '*.docx' -o -iname '*.md' -o -iname '*.html' \\) | sort"
+
+  - name: convertDocxToMd
+    description: "Convert Word → Markdown using scripts/docx-sync.sh"
+    input_schema:
+      type: object
+      properties:
+        docx:
+          type: string
+          description: "Path to .docx (e.g., docs/report.docx)"
+        md:
+          type: string
+          description: "Path to output .md (e.g., docs/report.md)"
+      required: ["docx", "md"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{docx}}\" \"{{md}}\" to-md"
+
+  - name: exportMdToDocx
+    description: "Convert Markdown/HTML → Word"
+    input_schema:
+      type: object
+      properties:
+        docx:
+          type: string
+          description: "Path to .docx (e.g., docs/report.docx)"
+        md:
+          type: string
+          description: "Path to source .md/.html (e.g., docs/report.md)"
+      required: ["docx", "md"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{docx}}\" \"{{md}}\" to-docx"
+
+  - name: autoSync
+    description: "Auto-sync newer file to the other side"
+    input_schema:
+      type: object
+      properties:
+        docx:
+          type: string
+        md:
+          type: string
+      required: ["docx", "md"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{docx}}\" \"{{md}}\" auto"
+
+  - name: toPptx
+    description: "Export Markdown/HTML → PowerPoint (PPTX)"
+    input_schema:
+      type: object
+      properties:
+        source:
+          type: string
+          description: "Path to .md/.html source"
+        target:
+          type: string
+          description: "Path to .pptx output"
+      required: ["source", "target"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{target}}\" \"{{source}}\" to-pptx \"{{target}}\""
+
+  - name: toPdf
+    description: "Export Markdown/HTML → PDF"
+    input_schema:
+      type: object
+      properties:
+        source:
+          type: string
+        target:
+          type: string
+      required: ["source", "target"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{target}}\" \"{{source}}\" to-pdf \"{{target}}\""
+
+environment:
+  PROJECT_ROOT:
+    description: "Path to the PandocPro repo (defaults to current working directory)"
+    default: "."
+
+commentary:
+  usage: |
+    Copy this file to your MCP client config (e.g., VS Code MCP extension or Claude Desktop):
+      - Create ~/mcp/tools/docsync.yaml (or point your client to this file)
+      - Set PROJECT_ROOT to your PandocPro clone path if not running from repo root
+    Then restart the MCP client and use the tools above by name.

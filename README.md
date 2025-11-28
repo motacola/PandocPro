@@ -211,6 +211,10 @@ After that you can ask Claude things like “Convert report.docx to markdown”,
 
 ## 🧠 Configure Your Local LLM (Optional)
 
+### VS Code Activity Bar launcher
+
+Open the repo in VS Code and use the **PandocPro** icon on the Activity Bar (left rail). It includes an “Open PandocPro GUI” command that runs the Electron/Vite dev task. See `.vscode/pandocpro-extension` (local helper extension) and `.vscode/tasks.json` for the runnable task.
+
 Prefer running your own models? Use the helper to discover what's on your Mac:
 
 ```bash

@@ -495,6 +495,7 @@ DOCX="${1:-docs/presentation.docx}"
 MD="${2:-docs/presentation.md}"
 MODE="${3:-auto}"   # auto | to-md | to-docx | to-pptx | to-pdf | to-html
 OUTPUT_OVERRIDE="${4:-}"
+TEXT_ONLY="${DOCSYNC_TEXT_ONLY:-0}"
 
 # Check for pandoc
 if ! command -v pandoc >/dev/null 2>&1; then
@@ -526,6 +527,10 @@ case "$MODE" in
     if [[ -f "$REFERENCE_DOC" ]]; then
       DOCX_ARGS+=("--reference-doc=$REFERENCE_DOC")
     fi
+    if [[ "$TEXT_ONLY" == "1" ]]; then
+      DOCX_ARGS+=("--wrap=none")
+      echo "🧰 Text-only mode enabled (large file fallback)."
+    fi
     run_conversion "to-docx" "$MD" "$DOCX" "${DOCX_ARGS[@]}"
     ;;
   to-pptx)
@@ -540,6 +545,10 @@ case "$MODE" in
     PPTX_ARGS=("--from=${SOURCE_FORMAT}" "--to=pptx")
     if [[ -f "$REFERENCE_PPTX" ]]; then
       PPTX_ARGS+=("--reference-doc=$REFERENCE_PPTX")
+    fi
+    if [[ "$TEXT_ONLY" == "1" ]]; then
+      PPTX_ARGS+=("--wrap=none")
+      echo "🧰 Text-only mode enabled (large file fallback)."
     fi
     run_conversion "to-pptx" "$MD" "$PPTX_TARGET" "${PPTX_ARGS[@]}"
     ;;

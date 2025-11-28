@@ -18,6 +18,18 @@
       "type": "shell",
       "command": "./scripts/docx-sync.sh docs/presentation.docx docs/presentation.md auto",
       "problemMatcher": []
+    },
+    {
+      "label": "GUI dev (Electron + Vite)",
+      "type": "shell",
+      "options": {
+        "cwd": "${workspaceFolder}/gui",
+        "env": {
+          "ELECTRON_DEV_SKIP_LOCK": "1"
+        }
+      },
+      "command": "npm run dev",
+      "problemMatcher": []
     }
   ]
 }

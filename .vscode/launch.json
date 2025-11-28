@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PandocPro GUI (Electron dev)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/gui",
+      "env": {
+        "ELECTRON_DEV_SKIP_LOCK": "1"
+      },
+      "console": "integratedTerminal",
+      "outputCapture": "std"
+    }
+  ]
+}

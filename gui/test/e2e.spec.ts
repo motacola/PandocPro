@@ -15,14 +15,13 @@ if (process.platform === 'linux') {
 } else {
   beforeAll(async () => {
     const remotePort = await getAvailablePort()
-    const env = {
-      ...process.env,
-      NODE_ENV: 'development',
-      ELECTRON_EXTRA_LAUNCH_ARGS: `--remote-debugging-port=${remotePort}`,
-      PANDOCPRO_SKIP_UPDATER: '1',
-    }
+    const env = { ...process.env }
+    delete env.ELECTRON_RUN_AS_NODE
+    env.NODE_ENV = 'development'
+    env.ELECTRON_OPEN_DEVTOOLS = '1'
+    env.PANDOCPRO_SKIP_UPDATER = '1'
     const electronBinary = path.join(root, 'node_modules', '.bin', 'electron')
-    electronProcess = spawn(electronBinary, ['.', '--no-sandbox'], {
+    electronProcess = spawn(electronBinary, [`--remote-debugging-port=${remotePort}`, '.', '--no-sandbox'], {
       cwd: root,
       env,
       stdio: ['ignore', 'pipe', 'pipe'],

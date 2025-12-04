@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
+import { detectProviders, getGeminiApiKey } from './ai-detector'
 
 const require = createRequire(import.meta.url)
 
@@ -47,5 +48,37 @@ export function registerFaqHandlers() {
       throw new Error('LLM helper not available. Configure an AI provider first.')
     }
     return loaded.askFaqAi(PROJECT_ROOT, payload)
+  })
+
+  ipcMain.handle('llm:detect', async () => {
+    return detectProviders()
+  })
+
+  ipcMain.handle('llm:configure', async (_event, config: { provider: string; model?: string; endpoint?: string }) => {
+    const CONFIG_DIR = path.join(PROJECT_ROOT, 'config')
+    const CONFIG_PATH = path.join(CONFIG_DIR, 'llm-selection.json')
+    
+    await fs.mkdir(CONFIG_DIR, { recursive: true })
+    
+    const fullConfig: any = {
+      provider: config.provider,
+      displayName: config.provider.charAt(0).toUpperCase() + config.provider.slice(1),
+    }
+    
+    if (config.model) {
+      fullConfig.model = config.model
+    }
+    
+    if (config.endpoint) {
+      fullConfig.endpoint = config.endpoint
+    }
+    
+    // Add Gemini API key if configuring Gemini
+    if (config.provider === 'gemini' || config.provider === 'google') {
+      fullConfig.apiKey = getGeminiApiKey()
+    }
+    
+    await fs.writeFile(CONFIG_PATH, JSON.stringify(fullConfig, null, 2), 'utf8')
+    return fullConfig
   })
 }

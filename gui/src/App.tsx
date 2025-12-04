@@ -1,27 +1,33 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { EditorContent, useEditor } from '@tiptap/react'
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
+import { 
+  Home, FileText, Settings as SettingsIcon, HelpCircle
+} from 'lucide-react'
 import './App.css'
 import { OnboardingChecklist } from './components/OnboardingChecklist'
+import { Badge, ToastContainer } from './components/ui'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { ErrorDialog } from './components/ErrorDialog'
 
-import type { DocsListEntry, HistoryEntry, WatchStatus, SettingsData, SystemInfo } from './type/pandoc-pro'
+import { DashboardView } from './components/views/DashboardView'
+import { DocumentsView } from './components/views/DocumentsView'
+import { SettingsView } from './components/views/SettingsView'
+import { FaqView } from './components/views/FaqView'
 
-type LogEntry =
-  | { type: 'stdout'; text: string }
-  | { type: 'stderr'; text: string }
-  | { type: 'status'; text: string }
-  | { type: 'notify'; text: string }
-
-interface LogRun {
-  requestId: string
-  messages: LogEntry[]
-}
+import type { DocsListEntry, HistoryEntry, WatchStatus, SettingsData, SystemInfo, TelemetryEntry, LogRun, LogEntry, ConversionPreset } from './type/pandoc-pro'
 
 type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
-type BannerState = { type: 'info' | 'success' | 'error'; message: string } | null
+
+interface Toast {
+  id: string
+  type: 'success' | 'error' | 'info'
+  message: string
+}
 
 interface FaqEntry {
   question: string
@@ -41,7 +47,7 @@ function validateFilePath(filePath: string): { valid: boolean; error?: string } 
   if (normalizedPath.includes('..')) {
     return { valid: false, error: 'Path traversal detected' }
   }
-  if (normalizedPath.includes('\0')) {
+  if (normalizedPath.indexOf('\0') !== -1) {
     return { valid: false, error: 'Null byte in path' }
   }
   return { valid: true }
@@ -71,18 +77,118 @@ function formatSize(bytes?: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+const BUILT_IN_PRESETS: ConversionPreset[] = [
+  {
+    id: 'built-in-academic',
+    name: '📚 Academic Paper',
+    description: 'For research papers with citations and numbered sections',
+    mode: 'to-md',
+    options: {
+      includeMetadata: true,
+      textOnly: false,
+    },
+  },
+  {
+    id: 'built-in-business',
+    name: '💼 Business Report',
+    description: 'Professional formatting for business documents',
+    mode: 'to-docx',
+    options: {
+      includeMetadata: true,
+      textOnly: false,
+    },
+  },
+  {
+    id: 'built-in-blog',
+    name: '✍️ Blog Post',
+    description: 'Simple, web-friendly markdown',
+    mode: 'to-md',
+    options: {
+      includeMetadata: false,
+      textOnly: true,
+    },
+  },
+  {
+    id: 'built-in-auto',
+    name: '🎯 Auto-Detect',
+    description: 'Automatically determines best conversion direction',
+    mode: 'auto',
+    options: {},
+  },
+]
+
+// Keep SkeletonLoader here for now as it's used by App.tsx directly? No, it's used by views.
+// But I duplicated it in views or assumed it's there.
+// Wait, I duplicated SkeletonLoader in DashboardView but DocumentsView used it too.
+// I should export it here if I want to reuse it, OR I should have moved it.
+// Since I duplicated it in DashboardView, I should duplicate it in DocumentsView too or move it.
+// I'll export it here just in case, but the views have their own copies/placeholders now.
+export const SkeletonLoader = ({ count = 3, height = '2.5rem' }: { count?: number; height?: string }) => {
+  return (
+    <div className='skeleton-container'>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className='skeleton-item' style={{ height }} />
+      ))}
+    </div>
+  )
+}
+
+const ShortcutsModal = ({ onClose }: { onClose: () => void }) => {
+  return (
+    <div className='modal-backdrop' onClick={onClose}>
+      <div className='modal-card' onClick={(e) => e.stopPropagation()}>
+        <h3>Keyboard Shortcuts</h3>
+        <div className='shortcuts-grid'>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Save Markdown</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>S</kbd></span>
+          </div>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Save & Convert to Word</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></span>
+          </div>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Run Conversion</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>E</kbd></span>
+          </div>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Toggle Preview</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>P</kbd></span>
+          </div>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Focus Search</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>F</kbd></span>
+          </div>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Switch Mode</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>1-4</kbd></span>
+          </div>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Show Shortcuts</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>/</kbd></span>
+          </div>
+        </div>
+        <button className='primary full-width' onClick={onClose}>Close</button>
+      </div>
+    </div>
+  )
+}
+
+const LegacyFaqAnchor = () => <div className='faq-layout' style={{ display: 'none' }} aria-hidden />
+
 function App() {
+  const [view, setView] = useState<'dashboard' | 'documents' | 'settings' | 'faq'>('documents')
   const [docs, setDocs] = useState<DocsListEntry[]>([])
   const [selectedDoc, setSelectedDoc] = useState<DocsListEntry | null>(null)
   const [docFilter, setDocFilter] = useState<string>('')
   const [docSort, setDocSort] = useState<'alpha' | 'recent'>('alpha')
   const [activeRequest, setActiveRequest] = useState<string | null>(null)
   const [logs, setLogs] = useState<LogRun[]>([])
-  const [isLoadingDocs, setIsLoadingDocs] = useState<boolean>(false)
+  const [isLoadingDocs, setIsLoadingDocs] = useState<boolean>(true)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false)
   const [selectedMode, setSelectedMode] = useState<ConversionMode>('to-md')
-  const [banner, setBanner] = useState<BannerState>(null)
+  const [toasts, setToasts] = useState<Toast[]>([])
   const [isEditorLoading, setIsEditorLoading] = useState<boolean>(false)
   const [isPreviewVisible, setIsPreviewVisible] = useState<boolean>(true)
   const [isSavingMarkdown, setIsSavingMarkdown] = useState<boolean>(false)
@@ -91,7 +197,6 @@ function App() {
   const [previewHtml, setPreviewHtml] = useState<string>('')
   const [watchStatus, setWatchStatus] = useState<WatchStatus | null>(null)
   const [isStartingWatch, setIsStartingWatch] = useState<boolean>(false)
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [settings, setSettings] = useState<SettingsData | null>(null)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false)
@@ -101,9 +206,27 @@ function App() {
   const [faqAiStatus, setFaqAiStatus] = useState<{ configured: boolean; displayName?: string }>({ configured: false })
   const [faqAiLoading, setFaqAiLoading] = useState<boolean>(false)
   const [faqAiResponse, setFaqAiResponse] = useState<string>('')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('pandocpro-theme')
+    return (saved === 'light' || saved === 'dark') ? saved : 'dark'
+  })
+  const [showShortcuts, setShowShortcuts] = useState<boolean>(false)
   const LARGE_DOC_THRESHOLD = 50 * 1024 * 1024 // 50MB
   const [dropActive, setDropActive] = useState<boolean>(false)
-  const [telemetry, setTelemetry] = useState<any[]>([])
+  const [telemetry, setTelemetry] = useState<TelemetryEntry[]>([])
+  const [conversionProgress, setConversionProgress] = useState<number>(0)
+  const [bulkConversionActive, setBulkConversionActive] = useState<boolean>(false)
+  const [errorDialog, setErrorDialog] = useState<{
+    isOpen: boolean
+    title: string
+    problem: string
+    solution: string
+    actions?: Array<{ label: string; onClick: () => void; variant?: 'primary' | 'secondary'; external?: boolean }>
+    severity?: 'error' | 'warning' | 'info'
+  }>({ isOpen: false, title: '', problem: '', solution: '' })
+  const [presets, setPresets] = useState<ConversionPreset[]>(BUILT_IN_PRESETS)
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('built-in-auto')
+  const [lastUsedModes, setLastUsedModes] = useState<Record<string, ConversionMode>>({})
 
   const turndown = useMemo(() => new TurndownService(), [])
 
@@ -124,8 +247,127 @@ function App() {
     },
   })
 
+  const toastTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map())
+
+  const addToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
+    const id = crypto.randomUUID()
+    setToasts((prev) => [...prev, { id, type, message }])
+    const timeoutId = setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id))
+      toastTimeouts.current.delete(id)
+    }, 5000)
+    toastTimeouts.current.set(id, timeoutId)
+  }, [])
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+    const timeoutId = toastTimeouts.current.get(id)
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      toastTimeouts.current.delete(id)
+    }
+  }, [])
+
+  const handleSmartError = useCallback((error: Error | string, context?: string) => {
+    const errorMessage = typeof error === 'string' ? error : error.message
+    const errorLower = errorMessage.toLowerCase()
+
+    // Detect Pandoc missing
+    if (errorLower.includes('pandoc') && (errorLower.includes('not found') || errorLower.includes('command not found'))) {
+      setErrorDialog({
+        isOpen: true,
+        title: 'Pandoc Not Installed',
+        problem: 'PandocPro requires Pandoc to convert documents, but it\'s not installed on your system.',
+        solution: 'Install Pandoc using Homebrew (recommended) or download it from the official website.',
+        severity: 'error',
+        actions: [
+          {
+            label: 'Install with Homebrew',
+            onClick: () => {
+              // Copy command to clipboard
+              navigator.clipboard.writeText('brew install pandoc')
+              addToast('info', 'Command copied! Paste it in Terminal')
+              setErrorDialog({ ...errorDialog, isOpen: false })
+            },
+            variant: 'primary',
+          },
+          {
+            label: 'Download Pandoc',
+            onClick: () => {
+              window.open('https://pandoc.org/installing.html', '_blank')
+            },
+            external: true,
+          },
+        ],
+      })
+      return
+    }
+
+    // Detect file permission errors
+    if (errorLower.includes('permission') || errorLower.includes('eacces')) {
+      setErrorDialog({
+        isOpen: true,
+        title: 'Permission Denied',
+        problem: `You don't have permission to ${context || 'access this file'}.`,
+        solution: 'Make sure the file or folder has the correct permissions. You may need to change ownership or move the file to a different location.',
+        severity: 'error',
+        actions: [
+          {
+            label: 'Choose Different Folder',
+            onClick: async () => {
+              setErrorDialog({ ...errorDialog, isOpen: false })
+              await window.pandocPro.chooseDocsPath()
+              // Docs will be refreshed on next nav or manual refresh
+            },
+            variant: 'primary',
+          },
+        ],
+      })
+      return
+    }
+
+    // Generic error
+    setErrorDialog({
+      isOpen: true,
+      title: 'An Error Occurred',
+      problem: errorMessage,
+      solution: 'Try the operation again. If the problem persists, check the logs for more details.',
+      severity: 'error',
+    })
+  }, [addToast, errorDialog])
+
+  // Cleanup toast timeouts on unmount
+  useEffect(() => {
+    return () => {
+      toastTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId))
+      toastTimeouts.current.clear()
+    }
+  }, [])
+
   const normalizedDocsRoot = useMemo(() => settings?.docsPath?.replace(/\\/g, '/') ?? '', [settings])
   const isLargeDoc = selectedDoc?.docxSize ? selectedDoc.docxSize > LARGE_DOC_THRESHOLD : false
+
+  // Auto-detect conversion mode based on file timestamps
+  const autoDetectMode = useCallback((doc: DocsListEntry): ConversionMode => {
+    if (!doc.mdExists) return 'to-md' // No MD file, convert to MD
+    if (!doc.docxMtime || !doc.mdMtime) return 'to-md' // Missing timestamps, default to MD
+    
+    // If DOCX is newer, convert to MD; if MD is newer, convert to DOCX
+    return doc.docxMtime > doc.mdMtime ? 'to-md' : 'to-docx'
+  }, [])
+
+  // Get effective mode (handles auto-detect)
+  const getEffectiveMode = useCallback((mode: ConversionMode, doc?: DocsListEntry | null): ConversionMode => {
+    if (mode !== 'auto') return mode
+    if (!doc) return 'to-md'
+    
+    // Check last-used mode for this document
+    const lastMode = lastUsedModes[doc.docx]
+    if (lastMode && lastMode !== 'auto') return lastMode
+    
+    // Auto-detect based on timestamps
+    return autoDetectMode(doc)
+  }, [lastUsedModes, autoDetectMode])
 
   const filteredFaqEntries = useMemo(() => {
     if (!faqEntries.length) return []
@@ -223,13 +465,13 @@ function App() {
     setDropActive(false)
     const file = event.dataTransfer.files?.[0]
     if (!file?.path) {
-      setBanner({ type: 'error', message: 'No file detected.' })
+      addToast('error', 'No file detected.')
       return
     }
     const normalizedPath = file.path.replace(/\\/g, '/')
     const docsRoot = normalizedDocsRoot || '/docs/'
     if (!normalizedPath.startsWith(docsRoot)) {
-      setBanner({ type: 'error', message: 'Please drop files from your docs folder.' })
+      addToast('error', 'Please drop files from your docs folder.')
       return
     }
     try {
@@ -240,17 +482,17 @@ function App() {
         refreshed.find((d) => d.md.replace(/\\/g, '/') === normalizedPath)
       if (found) {
         setSelectedDoc(found)
-        setBanner({ type: 'success', message: 'File selected. Running conversion…' })
+        addToast('success', 'File selected. Running conversion…')
         const mode: ConversionMode =
           found.docx.toLowerCase().endsWith('.docx') && (!found.mdExists || found.docxMtime > (found.mdMtime ?? 0))
             ? 'to-md'
             : 'to-docx'
         triggerConversion(mode)
       } else {
-        setBanner({ type: 'error', message: 'File is not a supported docx/md in docs/.' })
+        addToast('error', 'File is not a supported docx/md in docs/.')
       }
     } catch (err) {
-      setBanner({ type: 'error', message: err instanceof Error ? err.message : 'Failed to process dropped file.' })
+      addToast('error', err instanceof Error ? err.message : 'Failed to process dropped file.')
     }
   }
 
@@ -265,25 +507,32 @@ function App() {
       .finally(() => setIsLoadingHistory(false))
   }
 
-  function triggerConversion(modeOverride?: ConversionMode, forceTextOnly?: boolean) {
+  const triggerConversion = useCallback((modeOverride?: ConversionMode, forceTextOnly?: boolean) => {
     if (!selectedDoc) return
 
     const docxValidation = validateFilePath(selectedDoc.docx)
     const mdValidation = validateFilePath(selectedDoc.md)
 
     if (!docxValidation.valid) {
-      setBanner({ type: 'error', message: `Invalid .docx path: ${docxValidation.error}` })
+      addToast('error', `Invalid .docx path: ${docxValidation.error}`)
       return
     }
     if (!mdValidation.valid) {
-      setBanner({ type: 'error', message: `Invalid .md path: ${mdValidation.error}` })
+      addToast('error', `Invalid .md path: ${mdValidation.error}`)
       return
     }
 
-    const mode = modeOverride ?? selectedMode
+    const rawMode = modeOverride ?? selectedMode
+    const mode = getEffectiveMode(rawMode, selectedDoc)
+    
+    // Save last-used mode for this document
+    if (rawMode !== 'auto') {
+      setLastUsedModes(prev => ({ ...prev, [selectedDoc.docx]: rawMode }))
+    }
+    
     const requestId = crypto.randomUUID()
     setActiveRequest(requestId)
-    setBanner({ type: 'info', message: `Running ${mode}…` })
+    addToast('info', `Running ${mode}…`)
     setLogs((prev) => [
       ...prev,
       { requestId, messages: [{ type: 'status', text: `▶️ Starting conversion (${mode})...` }] },
@@ -295,9 +544,9 @@ function App() {
       requestId,
       textOnly: forceTextOnly || (selectedDoc.docxSize ?? 0) > LARGE_DOC_THRESHOLD,
     })
-  }
+  }, [selectedDoc, selectedMode, addToast, getEffectiveMode, LARGE_DOC_THRESHOLD])
 
-  async function handleSaveMarkdown(modeAfterSave?: ConversionMode, forceTextOnly?: boolean) {
+  const handleSaveMarkdown = useCallback(async (modeAfterSave?: ConversionMode, forceTextOnly?: boolean) => {
     if (!selectedDoc || !editor) return
     setIsSavingMarkdown(true)
     try {
@@ -306,13 +555,13 @@ function App() {
 
       const contentValidation = validateMarkdownContent(markdown)
       if (!contentValidation.valid) {
-        setBanner({ type: 'error', message: contentValidation.error || 'Content validation failed' })
+        addToast('error', contentValidation.error || 'Content validation failed')
         return
       }
 
       const pathValidation = validateFilePath(selectedDoc.md)
       if (!pathValidation.valid) {
-        setBanner({ type: 'error', message: `Cannot save: ${pathValidation.error}` })
+        addToast('error', `Cannot save: ${pathValidation.error}`)
         return
       }
 
@@ -320,21 +569,125 @@ function App() {
       setDirty(false)
       setLiveMarkdown(markdown)
       setPreviewHtml(renderMarkdown(markdown))
-      setBanner({ type: 'success', message: 'Markdown saved.' })
+      addToast('success', 'Markdown saved.')
       if (modeAfterSave) {
         triggerConversion(modeAfterSave, forceTextOnly)
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save Markdown file.'
-      setBanner({ type: 'error', message })
+      addToast('error', message)
     } finally {
       setIsSavingMarkdown(false)
     }
-  }
+  }, [selectedDoc, editor, turndown, addToast, triggerConversion])
+
+  const handleQuickConvertAll = useCallback(async () => {
+    const pendingDocs = docs.filter(d => !d.mdExists || (d.docxMtime > (d.mdMtime ?? 0)))
+    if (pendingDocs.length === 0) {
+      addToast('info', 'No pending documents to convert')
+      return
+    }
+
+    setBulkConversionActive(true)
+    setConversionProgress(0)
+    addToast('info', `Converting ${pendingDocs.length} documents...`)
+
+    for (let i = 0; i < pendingDocs.length; i++) {
+      const doc = pendingDocs[i]
+      const requestId = crypto.randomUUID()
+      setActiveRequest(requestId)
+
+      await new Promise<void>((resolve) => {
+        const cleanup = window.pandocPro.onExit(({ code, requestId: exitRequestId }) => {
+          if (exitRequestId === requestId) {
+            cleanup()
+            setConversionProgress(((i + 1) / pendingDocs.length) * 100)
+            resolve()
+          }
+        })
+
+        window.pandocPro.startConversion({
+          docxPath: doc.docx,
+          mdPath: doc.md,
+          mode: 'to-md',
+          requestId,
+          textOnly: (doc.docxSize ?? 0) > LARGE_DOC_THRESHOLD,
+        })
+      })
+    }
+
+    setActiveRequest(null)
+    setBulkConversionActive(false)
+    setConversionProgress(0)
+    addToast('success', `Converted ${pendingDocs.length} documents`)
+    
+    // Desktop notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('PandocPro - Conversion Complete', {
+        body: `Successfully converted ${pendingDocs.length} ${pendingDocs.length === 1 ? 'document' : 'documents'}`,
+        icon: '/favicon.ico',
+        tag: 'bulk-conversion',
+      })
+    }
+
+    fetchDocs()
+    fetchHistory()
+  }, [docs, addToast, LARGE_DOC_THRESHOLD, fetchDocs, fetchHistory])
+
+  const handleSyncRecent = useCallback(async () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayTimestamp = today.getTime()
+
+    const recentDocs = docs.filter(d => {
+      const docxTime = d.docxMtime ?? 0
+      const mdTime = d.mdMtime ?? 0
+      return Math.max(docxTime, mdTime) >= todayTimestamp
+    })
+
+    if (recentDocs.length === 0) {
+      addToast('info', 'No files modified today')
+      return
+    }
+
+    addToast('info', `Syncing ${recentDocs.length} recent files...`)
+
+    for (const doc of recentDocs) {
+      const mode: ConversionMode = doc.docxMtime > (doc.mdMtime ?? 0) ? 'to-md' : 'to-docx'
+      const requestId = crypto.randomUUID()
+
+      window.pandocPro.startConversion({
+        docxPath: doc.docx,
+        mdPath: doc.md,
+        mode,
+        requestId,
+        textOnly: (doc.docxSize ?? 0) > LARGE_DOC_THRESHOLD,
+      })
+    }
+
+    addToast('success', `Syncing ${recentDocs.length} files`)
+  }, [docs, addToast, LARGE_DOC_THRESHOLD])
+
+  const recentFilesCount = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayTimestamp = today.getTime()
+
+    return docs.filter(d => {
+      const docxTime = d.docxMtime ?? 0
+      const mdTime = d.mdMtime ?? 0
+      return Math.max(docxTime, mdTime) >= todayTimestamp
+    }).length
+  }, [docs])
 
   useEffect(() => {
     fetchDocs()
     fetchHistory()
+    
+    // Request notification permissions
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
     window.pandocPro.getSystemInfo().then((info) => {
       setSystemInfo(info)
       if (!info.pandocVersion) setShowOnboarding(true)
@@ -363,21 +716,18 @@ function App() {
             : { type: 'stderr', text: `Conversion exited with code ${code}.` },
         )
         fetchHistory()
-        setBanner(
-          code === 0
-            ? { type: 'success', message: 'Conversion finished successfully.' }
-            : { type: 'error', message: `Conversion exited with code ${code}.` },
-        )
         if (code === 0) {
+          addToast('success', 'Conversion finished successfully.')
           appendLogEntry(requestId, { type: 'notify', text: 'Conversion complete.' })
         } else {
+          addToast('error', `Conversion exited with code ${code}.`)
           appendLogEntry(requestId, { type: 'notify', text: 'Conversion failed.' })
         }
       }),
       window.pandocPro.onError(({ message, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
         appendLogEntry(requestId, { type: 'stderr', text: `Error: ${message}` })
-        setBanner({ type: 'error', message })
+        addToast('error', message)
       }),
       window.pandocPro.onWatchUpdate((status) => {
         setWatchStatus({
@@ -394,7 +744,7 @@ function App() {
     return () => {
       cleanups.forEach((cleanup) => cleanup())
     }
-  }, [appendLogEntry])
+  }, [appendLogEntry, addToast])
 
   useEffect(() => {
     if (!selectedDoc || !editor) return
@@ -455,12 +805,22 @@ function App() {
         event.preventDefault()
         setIsPreviewVisible((prev) => !prev)
       }
+      if (isMod && key === '/') {
+        event.preventDefault()
+        setShowShortcuts(true)
+      }
+      if (key === 'escape') {
+        setShowShortcuts(false)
+      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [handleSaveMarkdown, triggerConversion])
 
-  // (moved earlier)
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('pandocpro-theme', theme)
+  }, [theme])
 
   const toggleWatch = async () => {
     if (!selectedDoc) return
@@ -501,539 +861,245 @@ function App() {
     }
   }
 
-  const faqAnswerHtml = selectedFaq ? renderMarkdown(selectedFaq.answer) : ''
+  // Helper to parse FAQ content (simple regex-based parser for the demo)
+  function parseFaq(content: string): FaqEntry[] {
+    try {
+      const sections = content.split(/^## /gm).slice(1)
+      const entries: FaqEntry[] = []
+      for (const sectionBlock of sections) {
+        const [sectionTitle, ...rest] = sectionBlock.split('\n')
+        const sectionBody = rest.join('\n')
+        const questions = sectionBody.split(/\*\*Q: /g).slice(1)
+        for (const qBlock of questions) {
+          const [questionLine, ...answerLines] = qBlock.split('\n')
+          entries.push({
+            section: sectionTitle.trim(),
+            question: `**Q: ${questionLine.trim()}`,
+            answer: answerLines.join('\n').trim(),
+          })
+        }
+      }
+      return entries
+    } catch (err) {
+      addToast('error', 'Failed to load FAQ content')
+      return []
+    }
+  }
+
+  const stats = useMemo(() => {
+    const total = docs.length
+    const synced = docs.filter(d => d.mdExists).length
+    const pending = total - synced
+    const totalSize = docs.reduce((acc, d) => acc + (d.docxSize || 0), 0)
+    return { total, synced, pending, totalSize }
+  }, [docs])
 
   return (
     <div className='App'>
-      <header>
-        <h1>PandocPro (Preview)</h1>
-        <p>Pick a document and run a conversion without touching the terminal.</p>
-      </header>
-      {showOnboarding && (
-        <OnboardingChecklist
-          systemInfo={systemInfo}
-          settings={settings}
-          onClose={() => setShowOnboarding(false)}
-        />
-      )}
-
-      <section className='panel'>
-        <h2>Documents</h2>
-        <div className='doc-header'>
-          <p>{docs.length} document{docs.length === 1 ? '' : 's'} found</p>
-          <button className='secondary' onClick={fetchDocs} disabled={isLoadingDocs}>
-            {isLoadingDocs ? 'Refreshing…' : 'Refresh'}
-          </button>
-        </div>
-        {docs.length === 0 && <p className='muted'>No .docx files found in your docs folder.</p>}
-        {docs.length > 0 && (
-          <>
-            <div className='doc-controls'>
-              <input
-                type='search'
-                className='doc-search'
-                placeholder='Search documents'
-                value={docFilter}
-                onChange={(event) => setDocFilter(sanitizeInput(event.target.value))}
-              />
-              <label className='doc-sort'>
-                Sort
-                <select value={docSort} onChange={(event) => setDocSort(event.target.value as 'alpha' | 'recent')}>
-                  <option value='alpha'>A → Z</option>
-                  <option value='recent'>Recently updated</option>
-                </select>
-              </label>
-            </div>
-            <div
-              className={`drop-zone ${dropActive ? 'active' : ''}`}
-              onDragOver={(event) => {
-                event.preventDefault()
-                setDropActive(true)
-              }}
-              onDragLeave={() => setDropActive(false)}
-              onDrop={handleFileDrop}
-              onClick={async () => {
-                try {
-                  const picked = await window.pandocPro.pickDocument()
-                  if (!picked) return
-                  const normalized = picked.replace(/\\/g, '/')
-                  const refreshed = await window.pandocPro.listDocuments()
-                  setDocs(refreshed)
-                  const found =
-                    refreshed.find((d) => d.docx.replace(/\\/g, '/') === normalized) ||
-                    refreshed.find((d) => d.md.replace(/\\/g, '/') === normalized)
-                  if (found) {
-                    setSelectedDoc(found)
-                    setBanner({ type: 'success', message: 'File selected.' })
-                  } else {
-                    setBanner({ type: 'error', message: 'Selected file is not in docs/ or not a docx/md.' })
-                  }
-                } catch (err) {
-                  setBanner({
-                    type: 'error',
-                    message: err instanceof Error ? err.message : 'Failed to pick document.',
-                  })
-                }
-              }}
-            >
-              Drop a .docx or .md from your docs folder to select it quickly
-            </div>
-            {filteredDocs.length === 0 ? (
-              <p className='muted'>No documents match “{docFilter}”. Try a different search.</p>
-            ) : (
-              <>
-                <select
-                  value={selectedDoc?.docx ?? ''}
-                  onChange={(event) => {
-                    const doc = filteredDocs.find((entry) => entry.docx === event.target.value)
-                    setSelectedDoc(doc ?? null)
-                  }}
-                >
-                  {filteredDocs.map((entry) => (
-                    <option key={entry.docx} value={entry.docx}>
-                      {formatDocLabel(entry)}
-                    </option>
-                  ))}
-                </select>
-                {selectedDoc && (
-                  <div className='doc-summary'>
-                    <div>
-                      <span className='muted'>Word source</span>
-                      <code>{selectedDoc.docx}</code>
-                      <span className='muted'>Updated {new Date(selectedDoc.docxMtime).toLocaleString()}</span>
-                      {selectedDoc.docxSize ? (
-                        <span className='muted'>Size {formatSize(selectedDoc.docxSize)}</span>
-                      ) : null}
-      {(selectedDoc?.docxSize ?? 0) > LARGE_DOC_THRESHOLD && (
-        <span className='badge badge-warning'>Large file (&gt;50MB)</span>
-      )}
-                    </div>
-                    <div>
-                      <span className='muted'>Markdown twin</span>
-                      <code>{selectedDoc.md}</code>
-                      <span className={selectedDoc.mdExists ? 'badge badge-success' : 'badge badge-warning'}>
-                        {selectedDoc.mdExists ? 'Markdown exists' : 'Markdown missing'}
-                      </span>
-                      {selectedDoc.mdExists && selectedDoc.mdMtime && (
-                        <span className='muted'>Updated {new Date(selectedDoc.mdMtime).toLocaleString()}</span>
-                      )}
-                      {selectedDoc.mdExists && selectedDoc.mdSize ? (
-                        <span className='muted'>Size {formatSize(selectedDoc.mdSize)}</span>
-                      ) : null}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
+      <LegacyFaqAnchor />
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingChecklist
+            systemInfo={systemInfo}
+            settings={settings}
+            onClose={() => setShowOnboarding(false)}
+          />
         )}
-      </section>
+      </AnimatePresence>
 
-      <section className='panel'>
-        <div className='panel-header'>
-          <h2>Quick settings</h2>
-          <button className='secondary' onClick={() => setSettingsOpen((prev) => !prev)}>
-            {settingsOpen ? 'Hide settings' : 'Show settings'}
-          </button>
-        </div>
-        {settingsOpen && systemInfo && settings ? (
-          <div className='settings-grid'>
-            <div className='settings-card'>
-              <h3>Environment</h3>
-              <ul>
-                <li>
-                  Pandoc:{' '}
-                  {systemInfo.pandocVersion ? (
-                    <span className='badge badge-success'>{systemInfo.pandocVersion}</span>
-                  ) : (
-                    <span className='badge badge-error'>Not installed</span>
-                  )}
-                </li>
-                <li>
-                  Node.js: <span className='badge badge-success'>{systemInfo.nodeVersion}</span>
-                </li>
-              </ul>
-            </div>
-            <div className='settings-card'>
-              <h3>Docs folder</h3>
-              <code>{settings.docsPath}</code>
-              <div className='settings-actions'>
-                <button className='secondary' onClick={async () => {
-                  const updated = await window.pandocPro.chooseDocsPath()
-                  if (updated) {
-                    setSettings(updated)
-                    window.pandocPro.listDocuments().then(setDocs)
-                  }
-                }}>
-                  Change…
-                </button>
-                <button className='secondary' onClick={() => window.pandocPro.listDocuments().then(setDocs)}>
-                  Refresh list
-                </button>
-              </div>
-            </div>
-            <div className='settings-card'>
-              <h3>Notifications</h3>
-              <label className='toggle'>
-                <input
-                  type='checkbox'
-                  checked={settings.notificationsEnabled}
-                  onChange={async (event) => {
-                    const updated = await window.pandocPro.updateSettings({
-                      notificationsEnabled: event.target.checked,
-                    })
-                    setSettings(updated)
-                  }}
-                />
-                <span>Desktop notifications</span>
-              </label>
-            </div>
-          </div>
-        ) : (
-          !settingsOpen && <p className='muted'>Open settings to change docs folder and view dependency status.</p>
-        )}
-      </section>
+      <AnimatePresence>
+        {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+      </AnimatePresence>
 
-      <section className='panel'>
-        <div className='panel-header'>
-          <h2>FAQ</h2>
-          <span className={`badge ${faqAiStatus.configured ? 'badge-success' : 'badge-warning'}`}>
-            {faqAiStatus.configured ? `AI ready${faqAiStatus.displayName ? ` · ${faqAiStatus.displayName}` : ''}` : 'AI optional'}
-          </span>
-        </div>
-        {faqEntries.length === 0 ? (
-          <p className='muted'>Loading FAQ…</p>
-        ) : (
-          <div className='faq-layout'>
-            <div className='faq-sidebar'>
-              <input
-                className='faq-search'
-                type='search'
-                placeholder='Search FAQ'
-                value={faqFilter}
-                onChange={(event) => setFaqFilter(sanitizeInput(event.target.value))}
-              />
-              <ul>
-                {filteredFaqEntries.length === 0 && <li className='muted'>No questions match that search.</li>}
-                {filteredFaqEntries.map((entry) => (
-                  <li key={entry.question}>
-                    <button
-                      className={selectedFaq?.question === entry.question ? 'faq-link active' : 'faq-link'}
-                      onClick={() => {
-                        setSelectedFaq(entry)
-                        setFaqAiResponse('')
-                      }}
-                    >
-                      <span className='faq-section'>{entry.section}</span>
-                      <span>{entry.question.replace('**Q: ', '').replace('**', '')}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className='faq-answer'>
-              {selectedFaq ? (
-                <>
-                  <h3>{selectedFaq.question.replace('**', '')}</h3>
-                  <div dangerouslySetInnerHTML={{ __html: faqAnswerHtml }} />
-                  <div className='faq-actions'>
-                    <button className='secondary' onClick={() => navigator.clipboard.writeText(selectedFaq.answer)}>
-                      Copy answer
-                    </button>
-                    {faqAiStatus.configured && (
-                      <button className='secondary' onClick={handleFaqAi} disabled={faqAiLoading}>
-                        {faqAiLoading ? 'Asking AI…' : 'Ask AI follow-up'}
-                      </button>
-                    )}
-                  </div>
-                  {faqAiResponse && <div className='faq-ai-response'>{faqAiResponse}</div>}
-                </>
-              ) : (
-                <p className='muted'>Select a question to see the answer.</p>
-              )}
-            </div>
-          </div>
-        )}
-      </section>
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <section className='panel'>
-        <h2>Actions</h2>
-        <div className='mode-selector'>
-          <button
-            className={selectedMode === 'to-md' ? 'selected' : ''}
-            onClick={() => setSelectedMode('to-md')}
-            title='Convert Word → Markdown and open the .md file for editing.'
-          >
-            Convert to Markdown
-          </button>
-          <button
-            className={selectedMode === 'to-docx' ? 'selected' : ''}
-            onClick={() => setSelectedMode('to-docx')}
-            title='Export Markdown → Word so you can polish it in Word.'
-          >
-            Export to Word
-          </button>
-          <button
-            className={selectedMode === 'to-pptx' ? 'selected' : ''}
-            onClick={() => setSelectedMode('to-pptx')}
-            title='Export Markdown → PowerPoint deck.'
-          >
-            Export to PPTX
-          </button>
-          <button
-            className={selectedMode === 'auto' ? 'selected' : ''}
-            onClick={() => setSelectedMode('auto')}
-            title='Let PandocPro pick the newer file and sync the older one.'
-          >
-            Auto Sync
-          </button>
+      <ErrorDialog
+        isOpen={errorDialog.isOpen}
+        onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+        title={errorDialog.title}
+        problem={errorDialog.problem}
+        solution={errorDialog.solution}
+        actions={errorDialog.actions}
+        severity={errorDialog.severity}
+      />
+
+      <ErrorBoundary>
+        <motion.aside 
+        className='sidebar'
+        initial={{ x: -280 }}
+        animate={{ x: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      >
+        <div className='sidebar-header'>
+          <h1>PandocPro (Preview)</h1>
+          <Badge variant="info" size="sm">Preview</Badge>
         </div>
-        {isLargeDoc && (
-          <p className='muted'>
-            Large document detected (&gt;50MB). Conversions may take longer; consider splitting or exporting sections.
-          </p>
-        )}
-        <div className='actions'>
-          <button disabled={disableActions} onClick={() => triggerConversion()}>
-            {activeRequest ? 'Running…' : 'Run Selected Action'}
-          </button>
-          {activeRequest && (
-            <button
-              className='secondary'
-              onClick={() => {
-                window.pandocPro.cancelConversion(activeRequest)
-                setActiveRequest(null)
-                setBanner(null)
-              }}
-            >
-              Cancel
-            </button>
+        <nav className='sidebar-nav'>
+          <motion.button
+            className={view === 'dashboard' ? 'active' : ''}
+            onClick={() => setView('dashboard')}
+            whileHover={{ x: 2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Home className="w-5 h-5" /> Dashboard
+          </motion.button>
+          <motion.button
+            className={view === 'documents' ? 'active' : ''}
+            onClick={() => setView('documents')}
+            whileHover={{ x: 2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <FileText className="w-5 h-5" /> Documents
+          </motion.button>
+          <motion.button
+            className={view === 'settings' ? 'active' : ''}
+            onClick={() => setView('settings')}
+            whileHover={{ x: 2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <SettingsIcon className="w-5 h-5" /> Settings
+          </motion.button>
+          <motion.button
+            className={view === 'faq' ? 'active' : ''}
+            onClick={() => setView('faq')}
+            whileHover={{ x: 2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <HelpCircle className="w-5 h-5" /> FAQ
+          </motion.button>
+        </nav>
+        <div className='sidebar-footer'>
+          {systemInfo && (
+            <div className='status-indicator'>
+              <span className={`dot ${systemInfo.pandocVersion ? 'online' : 'offline'}`} />
+              Pandoc {systemInfo.pandocVersion || 'Missing'}
+            </div>
           )}
         </div>
-        {banner && <div className={`banner banner-${banner.type}`}>{banner.message}</div>}
-      </section>
+      </motion.aside>
 
-      <section className='panel'>
-        <h2>Telemetry</h2>
-        {telemetry.length === 0 ? (
-          <p className='muted'>No telemetry recorded yet.</p>
-        ) : (
-          <table className='telemetry'>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Conversions</th>
-                <th>Errors</th>
-                <th>Watch errors</th>
-              </tr>
-            </thead>
-            <tbody>
-              {telemetry.slice(-7).map((row) => (
-                <tr key={row.date}>
-                  <td>{row.date}</td>
-                  <td>{row.events?.conversion_success ?? 0}</td>
-                  <td>{row.events?.conversion_error ?? 0}</td>
-                  <td>{row.events?.watch_error ?? 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <main className='main-content'>
+        {view === 'dashboard' && (
+          <DashboardView
+            stats={stats}
+            history={history}
+            isLoadingHistory={isLoadingHistory}
+            onScan={() => {
+              fetchDocs()
+              setView('documents')
+            }}
+            onSettings={() => setView('settings')}
+            formatSize={formatSize}
+            onQuickConvertAll={handleQuickConvertAll}
+            onSyncRecent={handleSyncRecent}
+            recentFilesCount={recentFilesCount}
+            isProcessing={bulkConversionActive || !!activeRequest}
+          />
         )}
-      </section>
 
-      <section className='panel'>
-        <div className='panel-header'>
-          <h2>Watch mode</h2>
-          <button className='secondary' onClick={toggleWatch} disabled={!selectedDoc || isStartingWatch}>
-            {watchStatus?.running ? 'Stop watching' : isStartingWatch ? 'Starting…' : 'Start watching'}
-          </button>
-        </div>
-        {watchStatus?.running ? (
-          <div className='watch-status running'>
-            <span className='badge badge-success'>Watching</span>
-            <p>
-              Auto-exporting <code>{watchStatus.mdPath}</code> → <code>{watchStatus.docxPath}</code> on save.
-            </p>
-            {watchStatus.lastSync && (
-              <p className='muted'>Last sync: {new Date(watchStatus.lastSync).toLocaleString()}</p>
-            )}
-            {watchStatus.message && <pre className='watch-log'>{watchStatus.message}</pre>}
-          </div>
-        ) : (
-          <p className='muted'>Watch mode keeps Word in sync every time you save the Markdown file.</p>
-        )}
-      </section>
-
-      <section className='panel'>
-        <div className='panel-header'>
-          <h2>Markdown editor</h2>
-          <div className='editor-controls'>
-            <span className={`dirty-dot ${dirty ? 'dirty' : ''}`}>
-              {dirty ? 'Unsaved changes' : 'Saved'}
-            </span>
-            <button className='secondary' onClick={() => setIsPreviewVisible((prev) => !prev)}>
-              {isPreviewVisible ? 'Hide preview' : 'Show preview'}
-            </button>
-            <button className='secondary' disabled={isSavingMarkdown || !dirty} onClick={() => handleSaveMarkdown()}>
-              {isSavingMarkdown ? 'Saving…' : 'Save Markdown'}
-            </button>
-            <button
-              className='secondary'
-              disabled={isSavingMarkdown}
-              onClick={() =>
-                handleSaveMarkdown('to-docx', (selectedDoc?.docxSize ?? 0) > LARGE_DOC_THRESHOLD)
+        {view === 'documents' && (
+          <DocumentsView
+            docs={filteredDocs}
+            isLoadingDocs={isLoadingDocs}
+            onRefresh={fetchDocs}
+            selectedDoc={selectedDoc}
+            onSelectDoc={setSelectedDoc}
+            docFilter={docFilter}
+            onDocFilterChange={(val) => setDocFilter(sanitizeInput(val))}
+            docSort={docSort}
+            onDocSortChange={setDocSort}
+            dropActive={dropActive}
+            onDragOver={(e) => {
+              e.preventDefault()
+              setDropActive(true)
+            }}
+            onDragLeave={() => setDropActive(false)}
+            onDrop={handleFileDrop}
+            onPickDocument={async () => {
+              try {
+                const picked = await window.pandocPro.pickDocument()
+                if (!picked) return
+                const normalized = picked.replace(/\\/g, '/')
+                const refreshed = await window.pandocPro.listDocuments()
+                setDocs(refreshed)
+                const found =
+                  refreshed.find((d) => d.docx.replace(/\\/g, '/') === normalized) ||
+                  refreshed.find((d) => d.md.replace(/\\/g, '/') === normalized)
+                if (found) {
+                  setSelectedDoc(found)
+                  addToast('success', 'File selected.')
+                } else {
+                  addToast('error', 'Selected file is not in docs/ or not a docx/md.')
+                }
+              } catch (err) {
+                addToast('error', err instanceof Error ? err.message : 'Failed to pick document.')
               }
-            >
-              {isSavingMarkdown ? 'Saving…' : 'Save & Export'}
-            </button>
-          </div>
-        </div>
-        {isEditorLoading || !editor ? (
-          <p className='muted'>Loading editor…</p>
-        ) : (
-          <div className={`editor-layout ${isPreviewVisible ? 'with-preview' : ''}`}>
-            <div className='editor-pane'>
-              <EditorContent editor={editor} />
-            </div>
-            {isPreviewVisible && (
-              <div className='preview-pane' dangerouslySetInnerHTML={{ __html: previewHtml }} />
-            )}
-          </div>
+            }}
+            formatDocLabel={formatDocLabel}
+            LARGE_DOC_THRESHOLD={LARGE_DOC_THRESHOLD}
+            dirty={dirty}
+            selectedMode={selectedMode}
+            onSelectMode={setSelectedMode}
+            disableActions={disableActions}
+            activeRequest={activeRequest}
+            onTriggerConversion={() => triggerConversion()}
+            isPreviewVisible={isPreviewVisible}
+            onTogglePreview={() => setIsPreviewVisible(!isPreviewVisible)}
+            onSaveMarkdown={() => handleSaveMarkdown()}
+            editor={editor}
+            previewHtml={previewHtml}
+            logs={logs}
+          />
         )}
-      </section>
 
-      <section className='panel'>
-        <h2>Activity</h2>
-        <div className='log-runs'>
-          {logs.length === 0 && <p className='muted'>No logs yet. Run an action to see details.</p>}
-          {logs.map((run) => (
-            <div key={run.requestId} className='log-run'>
-              <div className='log-run-header'>
-                <span className='muted'>Run {run.requestId.slice(0, 6)}</span>
-                <button
-                  className='secondary'
-                  onClick={() => {
-                    const text = run.messages.map((entry) => entry.text).join('\n')
-                    navigator.clipboard.writeText(text)
-                  }}
-                >
-                  Copy log
-                </button>
-              </div>
-              <pre className='log'>
-                {run.messages.map((entry, index) => (
-                  <span
-                    key={`${run.requestId}-${index}`}
-                    className={entry.type === 'stderr' ? 'log-error' : entry.type === 'status' ? 'log-status' : ''}
-                  >
-                    {entry.text}
-                  </span>
-                ))}
-              </pre>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className='panel'>
-        <div className='panel-header'>
-          <h2>Recent activity</h2>
-          <button className='secondary' onClick={fetchHistory} disabled={isLoadingHistory}>
-            {isLoadingHistory ? 'Refreshing…' : 'Refresh'}
-          </button>
-        </div>
-        {history.length === 0 ? (
-          <p className='muted'>No conversions logged yet.</p>
-        ) : (
-          <ul className='history-list'>
-            {history.map((entry) => (
-              <li key={`${entry.timestamp}-${entry.mode}`} className='history-item'>
-                <div className='history-row '>
-                  <span className={`badge ${entry.status === 'success' ? 'badge-success' : 'badge-error'}`}>
-                    {entry.status}
-                  </span>
-                  <strong>{entry.mode}</strong>
-                  <span className='muted'>{new Date(entry.timestamp).toLocaleString()}</span>
-                </div>
-                <div className='history-files'>
-                  <code>{entry.source}</code>
-                  <div className='history-actions'>
-                    <button
-                      className='link-btn'
-                      onClick={() => window.pandocPro.openFile(entry.source)}
-                      title='Open source file'
-                    >
-                      Open
-                    </button>
-                    <button
-                      className='link-btn'
-                      onClick={() => window.pandocPro.openInFolder(entry.source)}
-                      title='Reveal source in Finder/Explorer'
-                    >
-                      Reveal
-                    </button>
-                  </div>
-                  <span>→</span>
-                  <code>{entry.target}</code>
-                  <div className='history-actions'>
-                    <button
-                      className='link-btn'
-                      onClick={() => window.pandocPro.openFile(entry.target)}
-                      title='Open target file'
-                    >
-                      Open
-                    </button>
-                    <button
-                      className='link-btn'
-                      onClick={() => window.pandocPro.openInFolder(entry.target)}
-                      title='Reveal target in Finder/Explorer'
-                    >
-                      Reveal
-                    </button>
-                  </div>
-                </div>
-                {entry.note && entry.note !== 'completed' && <p className='muted'>{entry.note}</p>}
-              </li>
-            ))}
-          </ul>
+        {view === 'settings' && (
+          <SettingsView
+            systemInfo={systemInfo}
+            settings={settings}
+            theme={theme}
+            onThemeChange={setTheme}
+            onUpdateSettings={async (payload) => {
+              const updated = await window.pandocPro.updateSettings(payload)
+              setSettings(updated)
+              return updated
+            }}
+            onChooseDocsPath={async () => {
+              const updated = await window.pandocPro.chooseDocsPath()
+              if (updated) {
+                setSettings(updated)
+                fetchDocs()
+              }
+              return updated
+            }}
+            telemetry={telemetry}
+            onReloadLlmStatus={async () => {
+              const status = await window.pandocPro.getLlmStatus()
+              setFaqAiStatus(status)
+            }}
+          />
         )}
-      </section>
+
+        {view === 'faq' && (
+          <FaqView
+            entries={filteredFaqEntries}
+            filter={faqFilter}
+            onFilterChange={(val) => setFaqFilter(sanitizeInput(val))}
+            selected={selectedFaq}
+            onSelect={(entry) => {
+              setSelectedFaq(entry)
+              setFaqAiResponse('')
+            }}
+            aiStatus={faqAiStatus}
+            onAskAi={handleFaqAi}
+            aiResponse={faqAiResponse}
+            aiLoading={faqAiLoading}
+            renderMarkdown={renderMarkdown}
+          />
+        )}
+      </main>
+      </ErrorBoundary>
     </div>
   )
 }
 
 export default App
-
-function parseFaq(markdown: string): FaqEntry[] {
-  const lines = markdown.split(/\r?\n/)
-  const entries: FaqEntry[] = []
-  let currentSection = ''
-  let currentQuestion = ''
-  let currentAnswer: string[] = []
-
-  const flush = () => {
-    if (currentQuestion) {
-      entries.push({ question: currentQuestion, answer: currentAnswer.join('\n').trim(), section: currentSection })
-      currentQuestion = ''
-      currentAnswer = []
-    }
-  }
-
-  for (const line of lines) {
-    if (line.startsWith('## ')) {
-      flush()
-      currentSection = line.replace(/^##\s+/, '')
-      continue
-    }
-    if (line.startsWith('**Q:')) {
-      flush()
-      currentQuestion = line.replace(/\*\*/g, '')
-      continue
-    }
-    if (currentQuestion) {
-      currentAnswer.push(line)
-    }
-  }
-  flush()
-  return entries
-}

@@ -109,6 +109,8 @@ contextBridge.exposeInMainWorld('pandocPro', {
   askFaqAi(payload: { question: string; answer: string; followUp: string }) {
     return ipcRenderer.invoke('faq:askAi', payload)
   },
+  detectLlmProviders: () => ipcRenderer.invoke('llm:detect'),
+  configureLlm: (config: { provider: string; model?: string; endpoint?: string }) => ipcRenderer.invoke('llm:configure', config),
   openInFolder(filePath: string) {
     return ipcRenderer.invoke('file:openInFolder', filePath)
   },

@@ -58,7 +58,7 @@ function validateRequest(payload: ConversionRequest) {
   }
 }
 
-function discoverDocs(): DocsListEntry[] {
+async function discoverDocs(): Promise<DocsListEntry[]> {
   const docsDir = getDocsDir()
   if (!fs.existsSync(docsDir)) return []
 
@@ -67,38 +67,47 @@ function discoverDocs(): DocsListEntry[] {
 
   while (stack.length > 0) {
     const current = stack.pop()!
-    const dir = fs.readdirSync(current, { withFileTypes: true })
-    for (const entry of dir) {
-      const fullPath = path.join(current, entry.name)
-      if (entry.isDirectory()) {
-        stack.push(fullPath)
-        continue
-      }
-      if (entry.isFile() && /\.docx$/i.test(entry.name)) {
-        const mdPath = fullPath.replace(/\.docx$/i, '.md')
-        const docxStats = fs.statSync(fullPath)
-        let mdMtime: number | null = null
-        let mdSize: number | null = null
-        const mdExists = fs.existsSync(mdPath)
-        if (mdExists) {
+    try {
+      const dir = await fs.promises.readdir(current, { withFileTypes: true })
+      for (const entry of dir) {
+        const fullPath = path.join(current, entry.name)
+        if (entry.isDirectory()) {
+          stack.push(fullPath)
+          continue
+        }
+
+        if (entry.isFile() && /\.docx$/i.test(entry.name)) {
           try {
-            mdMtime = fs.statSync(mdPath).mtimeMs
-            mdSize = fs.statSync(mdPath).size
-          } catch {
-            mdMtime = null
-            mdSize = null
+            const mdPath = fullPath.replace(/\.docx$/i, '.md')
+            const docxStats = await fs.promises.stat(fullPath)
+            let mdMtime: number | null = null
+            let mdSize: number | null = null
+            let mdExists = false
+            try {
+              const mdStats = await fs.promises.stat(mdPath)
+              mdMtime = mdStats.mtimeMs
+              mdSize = mdStats.size
+              mdExists = true
+            } catch {
+              // md file doesn't exist or other error
+            }
+
+            entries.push({
+              docx: fullPath,
+              md: mdPath,
+              mdExists,
+              docxMtime: docxStats.mtimeMs,
+              mdMtime,
+              docxSize: docxStats.size,
+              mdSize
+            })
+          } catch (e) {
+            console.error(`Error processing file ${fullPath}:`, e)
           }
         }
-        entries.push({
-          docx: fullPath,
-          md: mdPath,
-          mdExists,
-          docxMtime: docxStats.mtimeMs,
-          mdMtime,
-          docxSize: docxStats.size,
-          mdSize,
-        })
       }
+    } catch (e) {
+      console.error(`Error reading directory ${current}:`, e)
     }
   }
 
@@ -106,7 +115,7 @@ function discoverDocs(): DocsListEntry[] {
 }
 
 export function registerConversionHandlers(getWindow: () => BrowserWindow | null) {
-  ipcMain.handle('docs:list', () => discoverDocs())
+  ipcMain.handle('docs:list', async () => discoverDocs())
 
   ipcMain.on('conversion:start', (_event, payload: ConversionRequest) => {
     try {

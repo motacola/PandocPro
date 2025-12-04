@@ -1,5 +1,19 @@
 export type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
 
+export type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
+
+export interface ConversionPreset {
+  id: string
+  name: string
+  description: string
+  mode: ConversionMode
+  options?: {
+    textOnly?: boolean
+    includeMetadata?: boolean
+    [key: string]: any
+  }
+}
+
 export interface ConversionStartPayload {
   docxPath: string
   mdPath: string
@@ -21,6 +35,17 @@ export interface ConversionExitPayload {
 export interface ConversionErrorPayload {
   requestId: string
   message: string
+}
+
+export type LogEntry =
+  | { type: 'stdout'; text: string }
+  | { type: 'stderr'; text: string }
+  | { type: 'status'; text: string }
+  | { type: 'notify'; text: string }
+
+export interface LogRun {
+  requestId: string
+  messages: LogEntry[]
 }
 
 export interface DocsListEntry {
@@ -63,6 +88,8 @@ export interface SystemInfo {
 export interface SettingsData {
   docsPath: string
   notificationsEnabled: boolean
+  presets?: ConversionPreset[]
+  lastUsedModes?: Record<string, ConversionMode>
 }
 
 export interface LlmStatus {
@@ -70,6 +97,22 @@ export interface LlmStatus {
   provider?: string
   displayName?: string
   model?: string
+}
+
+export interface DetectedProvider {
+  id: string
+  name: string
+  available: boolean
+  endpoint?: string
+  model?: string
+  requiresApiKey: boolean
+  priority: number
+}
+
+export interface TelemetryEntry {
+  timestamp: string
+  event: string
+  metadata?: Record<string, unknown>
 }
 
 declare global {
@@ -94,11 +137,14 @@ declare global {
       chooseDocsPath(): Promise<SettingsData | null>
       updateSettings(payload: Partial<SettingsData>): Promise<SettingsData>
       getFaq(): Promise<string>
+      getFaqEntries(): Promise<string>
       getLlmStatus(): Promise<LlmStatus>
       askFaqAi(payload: { question: string; answer: string; followUp: string }): Promise<string>
+      detectLlmProviders(): Promise<DetectedProvider[]>
+      configureLlm(config: { provider: string; model?: string; endpoint?: string }): Promise<any>
       openInFolder(filePath: string): Promise<boolean>
       openFile(filePath: string): Promise<boolean>
-      getTelemetry(): Promise<any>
+      getTelemetry(): Promise<TelemetryEntry[]>
       pickDocument(): Promise<string | null>
     }
   }

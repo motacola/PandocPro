@@ -333,37 +333,86 @@ You can also press **F** inside the `dsync` menu to open the same browser, or us
 
 ---
 
-## 🖥️ Desktop GUI (Preview)
+## 🖥️ Desktop GUI (Production Ready)
 
-Prefer windows and buttons over terminals? A new Electron-based GUI is bundled in `gui/` and already knows how to list your docs, trigger conversions, edit Markdown visually, and show live logs/history.
+The Electron-based GUI has been completely revamped with professional UX features and AI integration!
+
+### Quick Start
 
 ```bash
-npm run gui:dev    # start the Electron + Vite app in dev mode
-# In the Electron window:
-# 1. Pick a .docx from the dropdown
-# 2. Open “Quick settings” to ensure Pandoc/Node are detected and pick the docs folder if it lives elsewhere
-# 3. Use the TipTap editor to rewrite Markdown with WYSIWYG controls, save, or “Save & Export”
-# 4. Choose an action (Convert, Export, Auto Sync) and click “Run Selected Action”
-# 5. Watch stdout/stderr per-run logs, copy them if needed, and review Recent Activity pulled from logs/history.log
+npm run gui:dev    # Development mode with hot reload
+npm run gui:build  # Production build (DMG + ZIP in gui/release/)
 ```
 
-When you’re ready to distribute the desktop app, build installers with:
+### ✨ New Features
+
+**1. Enhanced Dashboard**
+- 📊 **Live Stats** - Track conversion success rate and total operations
+- ⚡ **Quick Actions** - One-click "Convert All" and "Sync Recent Files"
+- 🔔 **Desktop Notifications** - Get notified when conversions complete
+- 📈 **Progress Tracking** - Real-time progress bars for bulk operations
+
+**2. Smart Drag-and-Drop**
+- 🎯 **Full-View Drop Zone** - Drop files anywhere in the Documents view
+- 💫 **Visual Feedback** - Pulsing animations on drag hover
+- 📁 **Instant Detection** - Automatically detects and lists new files
+
+**3. Intelligent Error Handling**
+- 🎯 **Contextual Error Dialogs** - User-friendly error messages
+- 🔧 **Actionable Solutions** - Click to copy fix commands or open settings
+- 📋 **One-Click Fixes** - Resolve common issues instantly
+
+**4. Conversion Presets**
+- 🎨 **Built-in Presets** - Academic, Business, Blog configurations
+- 🤖 **Auto-Detect Mode** - Automatically determines conversion direction
+- 💾 **Memory** - Remembers your last-used mode per document
+- ⚙️ **Customizable** - Create and save your own preset configurations
+
+**5. Visual Document Status**
+- ✅ **Status Icons** - See sync status at a glance (In Sync, DOCX Newer, MD Newer)
+- 📊 **File Metadata** - Display file sizes and conversion direction
+- 🔍 **Quick Filters** - Search and sort documents easily
+
+**6. AI Auto-Detection** 🤖
+- 🔍 **Automatic Provider Scan** - Detects 10+ AI providers (Ollama, Gemini, OpenAI, Claude, DeepSeek, Qwen, Mistral, Perplexity, Grok, GLM)
+- ⚡ **One-Click Setup** - Activate any detected provider instantly
+- 🦙 **Ollama Priority** - Local-first, privacy-focused AI (default)
+- 🔷 **Gemini Pre-Configured** - Ready to use with included API key
+- 💬 **FAQ AI Integration** - Ask AI follow-up questions on any FAQ entry
+- 🔄 **Shared Configuration** - Same config works for both GUI and CLI
+
+### Using the GUI
+
+1. **Dashboard** - View stats, quick actions, and recent activity
+2. **Documents** - Browse, select, and convert documents with drag-and-drop
+3. **Settings** - Configure paths, notifications, and AI providers
+4. **FAQ** - Browse documentation with AI-powered assistance
+
+### Production Build
+
+When ready to distribute:
 
 ```bash
-npm run gui:build  # produces DMG + ZIP bundles in gui/release/
-npm run gui:package  # same as build, then reveals gui/release/ in Finder
+npm run gui:build  # Creates DMG + ZIP in gui/release/
 ```
 
-To sign/notarize builds on macOS, set these environment variables before running the commands (or configure them in CI):
+For code signing (optional):
 
 ```bash
-export CSC_IDENTITY_AUTO_DISCOVERY=false
 export CSC_NAME="Developer ID Application: YOUR NAME (TEAMID)"
 export APPLE_ID="your-apple-id@example.com"
 export APPLE_ID_PASSWORD="app-specific-password"
+npm run gui:build
 ```
 
-The GUI now ships with a TipTap-based editor, watch controls, and an environment checklist so teammates never have to touch the terminal once setup is complete. Onboarding wizards remain on the roadmap.
+### Architecture
+
+- **Frontend**: React + TypeScript + Framer Motion
+- **Backend**: Electron + IPC
+- **Editor**: TipTap (WYSIWYG Markdown)
+- **State**: React hooks with local storage persistence
+- **Build**: Vite + electron-builder
+
 
 > ℹ️ **CI reminder:** A GitHub Actions workflow (`.github/workflows/gui-build.yml`) builds these artifacts automatically. Be sure to push/sync that workflow from an account/token with `workflow` scope so GitHub accepts the update.
 

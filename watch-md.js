@@ -80,9 +80,7 @@ if (args.includes("--once")) {
 } else {
   const watcher = chokidar.watch(MD, { ignoreInitial: true });
   const debounceMs = process.env.WATCH_DEBOUNCE_MS ? Number(process.env.WATCH_DEBOUNCE_MS) : 250;
-  const maxDebounceMs = debounceMs * 4; // Max 1000ms for 250ms base
   let timer = null;
-  let debounceStart = null;
   let running = false;
   let pending = false;
 
@@ -115,7 +113,6 @@ if (args.includes("--once")) {
       console.error("ℹ️  Run './scripts/docx-sync.sh' directly for more details.");
     } finally {
       running = false;
-      debounceStart = null;
       if (pending) {
         clearTimeout(timer);
         timer = setTimeout(triggerExport, debounceMs);
@@ -125,24 +122,8 @@ if (args.includes("--once")) {
 
   watcher.on("change", (fp) => {
     if (path.normalize(fp) !== normalizedMd) return;
-
-    // Track debounce start time for max wait
-    if (!debounceStart) {
-      debounceStart = Date.now();
-    }
-
     clearTimeout(timer);
-
-    // Calculate remaining time before max debounce is reached
-    const elapsedMs = Date.now() - debounceStart;
-    const timeoutMs = Math.min(debounceMs, Math.max(0, maxDebounceMs - elapsedMs));
-
-    if (timeoutMs === 0) {
-      // Max wait time reached, trigger immediately
-      triggerExport();
-    } else {
-      timer = setTimeout(triggerExport, timeoutMs);
-    }
+    timer = setTimeout(triggerExport, debounceMs);
   });
   console.log("👀 Watching for changes... (Press Ctrl+C to stop)\n");
 }

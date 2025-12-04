@@ -121,15 +121,60 @@ async function callOpenAiStyle(cfg, prompt) {
   return String(content).trim()
 }
 
+async function callGemini(cfg, prompt) {
+  const fetch = requireFetch()
+  const apiKey = cfg.apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+  if (!apiKey) {
+    throw new Error('Gemini API key not found')
+  }
+  
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${cfg.model || 'gemini-pro'}:generateContent?key=${apiKey}`
+  
+  const body = {
+    contents: [{
+      parts: [{ text: prompt }]
+    }]
+  }
+  
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    const msg = data?.error?.message || `Gemini request failed (${res.status})`
+    throw new Error(msg)
+  }
+  
+  const data = await res.json()
+  const content = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!content) {
+    throw new Error('Gemini returned no content.')
+  }
+  return String(content).trim()
+}
+
 async function askFaqAi(projectRoot, { question, answer, followUp }) {
   const cfg = loadConfig(projectRoot)
   if (!cfg) {
     throw new Error('LLM not configured. Run ./scripts/configure-llm.sh first.')
   }
   const prompt = buildPrompt(question, answer, followUp)
-  if ((cfg.provider || '').toLowerCase() === 'ollama') {
+  
+  const provider = (cfg.provider || '').toLowerCase()
+  
+  if (provider === 'ollama') {
     return callOllama(cfg, prompt)
   }
+  
+  if (provider === 'gemini' || provider === 'google') {
+    return callGemini(cfg, prompt)
+  }
+  
+  // All other providers use OpenAI-compatible API
+  // (OpenAI, Claude, DeepSeek, Qwen, Mistral, Perplexity, Grok, GLM, LM Studio)
   return callOpenAiStyle(cfg, prompt)
 }
 

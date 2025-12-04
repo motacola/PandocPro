@@ -1,0 +1,111 @@
+.progress-bar-container {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.progress-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.progress-bar {
+  position: relative;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.progress-bar.success .progress-fill {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.progress-bar.error .progress-fill {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.progress-bar.active .progress-fill {
+  animation: shimmer 2s infinite;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  z-index: 1;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.progress-bar.active .progress-fill {
+  background: linear-gradient(
+    90deg,
+    var(--primary-color) 0%,
+    var(--primary-hover) 50%,
+    var(--primary-color) 100%
+  );
+  background-size: 200% 100%;
+}
+
+.quick-actions {
+  margin: 24px 0;
+}
+
+.quick-actions h3 {
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.quick-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.quick-action-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quick-action-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.quick-action-desc {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}

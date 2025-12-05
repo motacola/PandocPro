@@ -156,12 +156,11 @@ async function callGemini(cfg, prompt) {
   return String(content).trim()
 }
 
-async function askFaqAi(projectRoot, { question, answer, followUp }) {
+async function generateResponse(projectRoot, prompt) {
   const cfg = loadConfig(projectRoot)
   if (!cfg) {
     throw new Error('LLM not configured. Run ./scripts/configure-llm.sh first.')
   }
-  const prompt = buildPrompt(question, answer, followUp)
   
   const provider = (cfg.provider || '').toLowerCase()
   
@@ -174,12 +173,17 @@ async function askFaqAi(projectRoot, { question, answer, followUp }) {
   }
   
   // All other providers use OpenAI-compatible API
-  // (OpenAI, Claude, DeepSeek, Qwen, Mistral, Perplexity, Grok, GLM, LM Studio)
   return callOpenAiStyle(cfg, prompt)
+}
+
+async function askFaqAi(projectRoot, { question, answer, followUp }) {
+  const prompt = buildPrompt(question, answer, followUp)
+  return generateResponse(projectRoot, prompt)
 }
 
 module.exports = {
   askFaqAi,
+  generateResponse,
   getLlmStatus,
   loadConfig,
 }

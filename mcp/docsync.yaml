@@ -137,6 +137,27 @@ tools:
         - "-lc"
         - 'cd "${PROJECT_ROOT:-.}" && node scripts/lib/mcp-ops.js update --file "{{path}}" --section "{{section}}" --content "{{content}}"'
 
+  - name: applyAiEdit
+    description: "Delegate a surgical edit to the Local LLM (Ollama/etc). Takes an instruction and updates the file automatically."
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: "Path to .md file"
+        section:
+          type: string
+          description: "Header name to edit"
+        instruction:
+          type: string
+          description: "What to do (e.g., 'Fix grammar', 'Make professional')"
+      required: ["path", "section", "instruction"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/ai-edit.js \"{{path}}\" \"{{section}}\" \"{{instruction}}\""
+
 environment:
   PROJECT_ROOT:
     description: "Path to the PandocPro repo (defaults to current working directory)"

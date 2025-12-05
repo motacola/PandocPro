@@ -5,12 +5,14 @@ import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
-import { 
+import {
   Home, FileText, Settings as SettingsIcon, HelpCircle
 } from 'lucide-react'
 import './App.css'
 import { OnboardingChecklist } from './components/OnboardingChecklist'
-import { Badge, ToastContainer } from './components/ui'
+import { Button, Badge, ToastContainer, EmptyState as EmptyStateComponent } from './components/ui'
+import { CollapsibleSection } from './components/ui/CollapsibleSection'
+import { EditorToolbar } from './components/EditorToolbar'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ErrorDialog } from './components/ErrorDialog'
 import { Modal } from './components/ui/Modal'
@@ -120,13 +122,7 @@ const BUILT_IN_PRESETS: ConversionPreset[] = [
   },
 ]
 
-// Keep SkeletonLoader here for now as it's used by App.tsx directly? No, it's used by views.
-// But I duplicated it in views or assumed it's there.
-// Wait, I duplicated SkeletonLoader in DashboardView but DocumentsView used it too.
-// I should export it here if I want to reuse it, OR I should have moved it.
-// Since I duplicated it in DashboardView, I should duplicate it in DocumentsView too or move it.
-// I'll export it here just in case, but the views have their own copies/placeholders now.
-export const SkeletonLoader = ({ count = 3, height = '2.5rem' }: { count?: number; height?: string }) => {
+const Skeleton = ({ count = 1, height = '1em' }) => {
   return (
     <div className='skeleton-container'>
       {Array.from({ length: count }).map((_, i) => (
@@ -363,7 +359,7 @@ function App() {
   const autoDetectMode = useCallback((doc: DocsListEntry): ConversionMode => {
     if (!doc.mdExists) return 'to-md' // No MD file, convert to MD
     if (!doc.docxMtime || !doc.mdMtime) return 'to-md' // Missing timestamps, default to MD
-    
+
     // If DOCX is newer, convert to MD; if MD is newer, convert to DOCX
     return doc.docxMtime > doc.mdMtime ? 'to-md' : 'to-docx'
   }, [])
@@ -372,11 +368,11 @@ function App() {
   const getEffectiveMode = useCallback((mode: ConversionMode, doc?: DocsListEntry | null): ConversionMode => {
     if (mode !== 'auto') return mode
     if (!doc) return 'to-md'
-    
+
     // Check last-used mode for this document
     const lastMode = lastUsedModes[doc.docx]
     if (lastMode && lastMode !== 'auto') return lastMode
-    
+
     // Auto-detect based on timestamps
     return autoDetectMode(doc)
   }, [lastUsedModes, autoDetectMode])
@@ -536,12 +532,12 @@ function App() {
 
     const rawMode = modeOverride ?? selectedMode
     const mode = getEffectiveMode(rawMode, selectedDoc)
-    
+
     // Save last-used mode for this document
     if (rawMode !== 'auto') {
       setLastUsedModes(prev => ({ ...prev, [selectedDoc.docx]: rawMode }))
     }
-    
+
     const requestId = crypto.randomUUID()
     setActiveRequest(requestId)
     addToast('info', `Running ${mode}…`)
@@ -632,7 +628,7 @@ function App() {
     setBulkConversionActive(false)
     setConversionProgress(0)
     addToast('success', `Converted ${pendingDocs.length} documents`)
-    
+
     // Desktop notification
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('PandocPro - Conversion Complete', {
@@ -695,7 +691,7 @@ function App() {
   useEffect(() => {
     fetchDocs()
     fetchHistory()
-    
+
     // Request notification permissions
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission()

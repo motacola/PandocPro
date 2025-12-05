@@ -5,37 +5,7 @@ import { FileText } from 'lucide-react'
 import { Button } from '../ui'
 import { AiSetup } from '../AiSetup'
 
-// We need to duplicate CollapsibleSection or export it. 
-// For now, I will duplicate it to avoid circular dependencies or complex refactors. 
-// Ideally, this should be in components/ui/CollapsibleSection.tsx.
-// I'll create a local version here for now.
-
-const CollapsibleSection = ({
-  title,
-  children,
-  defaultOpen = false,
-  className = '',
-}: {
-  title: React.ReactNode
-  children: React.ReactNode
-  defaultOpen?: boolean
-  className?: string
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen)
-
-  return (
-    <div className={`collapsible-section ${isOpen ? 'open' : 'closed'} ${className}`}>
-      <button className='collapsible-header' onClick={() => setIsOpen(!isOpen)}>
-        <span className='chevron'>▶</span>
-        <span className='title'>{title}</span>
-      </button>
-      <div className='collapsible-content'>
-        <div className='collapsible-inner'>{children}</div>
-      </div>
-    </div>
-  )
-}
-
+import { CollapsibleSection } from '../ui/CollapsibleSection'
 interface SettingsViewProps {
   systemInfo: SystemInfo | null
   settings: SettingsData | null

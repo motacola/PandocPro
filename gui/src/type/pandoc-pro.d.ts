@@ -1,6 +1,6 @@
 export type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
 
-export type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
+
 
 export interface ConversionPreset {
   id: string

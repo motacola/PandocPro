@@ -28,7 +28,7 @@ tools:
       args:
         - "bash"
         - "-lc"
-        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{docx}}\" \"{{md}}\" to-md"
+        - 'cd "${PROJECT_ROOT:-.}" && ./scripts/docx-sync.sh "{{docx}}" "{{md}}" to-md'
 
   - name: exportMdToDocx
     description: "Convert Markdown/HTML → Word"
@@ -46,7 +46,7 @@ tools:
       args:
         - "bash"
         - "-lc"
-        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{docx}}\" \"{{md}}\" to-docx"
+        - 'cd "${PROJECT_ROOT:-.}" && ./scripts/docx-sync.sh "{{docx}}" "{{md}}" to-docx'
 
   - name: autoSync
     description: "Auto-sync newer file to the other side"
@@ -62,7 +62,7 @@ tools:
       args:
         - "bash"
         - "-lc"
-        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{docx}}\" \"{{md}}\" auto"
+        - 'cd "${PROJECT_ROOT:-.}" && ./scripts/docx-sync.sh "{{docx}}" "{{md}}" auto'
 
   - name: toPptx
     description: "Export Markdown/HTML → PowerPoint (PPTX)"
@@ -80,7 +80,7 @@ tools:
       args:
         - "bash"
         - "-lc"
-        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{target}}\" \"{{source}}\" to-pptx \"{{target}}\""
+        - 'cd "${PROJECT_ROOT:-.}" && ./scripts/docx-sync.sh "{{target}}" "{{source}}" to-pptx "{{target}}"'
 
   - name: toPdf
     description: "Export Markdown/HTML → PDF"
@@ -96,7 +96,46 @@ tools:
       args:
         - "bash"
         - "-lc"
-        - "cd \"${PROJECT_ROOT:-.}\" && ./scripts/docx-sync.sh \"{{target}}\" \"{{source}}\" to-pdf \"{{target}}\""
+        - 'cd "${PROJECT_ROOT:-.}" && ./scripts/docx-sync.sh "{{target}}" "{{source}}" to-pdf "{{target}}"'
+
+  - name: readMarkdown
+    description: "Read full file or specific section by header (Surgical Edit)"
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: "Path to .md file (e.g., docs/report.md)"
+        section:
+          type: string
+          description: "Optional: Header name to read (e.g. 'Introduction')"
+      required: ["path"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - 'cd "${PROJECT_ROOT:-.}" && node scripts/lib/mcp-ops.js read --file "{{path}}" --section "{{section}}"'
+
+  - name: updateMarkdown
+    description: "Replace a specific section in a Markdown file (Surgical Edit)"
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: "Path to .md file"
+        section:
+          type: string
+          description: "Header name to update (e.g. 'Introduction')"
+        content:
+          type: string
+          description: "New content for the section"
+      required: ["path", "section", "content"]
+    command:
+      args:
+        - "bash"
+        - "-lc"
+        - 'cd "${PROJECT_ROOT:-.}" && node scripts/lib/mcp-ops.js update --file "{{path}}" --section "{{section}}" --content "{{content}}"'
 
 environment:
   PROJECT_ROOT:

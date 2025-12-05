@@ -4,6 +4,8 @@ import { BrowserWindow, ipcMain } from 'electron'
 import fs from 'node:fs'
 import { notifySuccess, notifyError, notifyInfo } from './notifications'
 import { telemetryIncrement } from './telemetry'
+import { readSettings } from './settings'
+import { createSnapshot } from './snapshot'
 
 type ConvertMode = 'to-md' | 'to-docx' | 'auto' | 'to-pptx'
 
@@ -132,7 +134,30 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
       return
     }
 
+    // Create snapshot of the source file before converting
+    // auto mode? if to-md, source is docx. if to-docx, source is md.
+    const sourceFile = payload.mode === 'to-md' ? payload.docxPath : 
+                      (payload.mode === 'to-docx' ? payload.mdPath : 
+                      (payload.mode === 'to-pptx' ? payload.mdPath : 
+                      (fs.existsSync(payload.docxPath) ? payload.docxPath : payload.mdPath))) // heuristic for auto
+
+    if (sourceFile && fs.existsSync(sourceFile)) {
+        createSnapshot(sourceFile).catch(err => console.error('Auto-snapshot failed', err))
+    }
+
     const args = [payload.docxPath, payload.mdPath, payload.mode]
+    
+    // Check for reference doc setting
+    try {
+      const settings = readSettings()
+      if (settings.referenceDoc && fs.existsSync(settings.referenceDoc)) {
+        args.push('--reference-doc')
+        args.push(settings.referenceDoc)
+      }
+    } catch (e) {
+      console.warn('Failed to read settings for reference doc:', e)
+    }
+
     const child = spawn(DOCX_SCRIPT, args, {
       cwd: PROJECT_ROOT,
       env: {

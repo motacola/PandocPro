@@ -11,6 +11,9 @@ import { registerWatchHandlers } from './watch'
 import { registerSettingsHandlers } from './settings'
 import { registerFaqHandlers } from './faq'
 import { registerTelemetryHandlers } from './telemetry'
+import { registerAiEditHandlers } from './ai-edit'
+import { registerSnapshotHandlers } from './snapshot'
+import { registerPersonaHandlers } from './personas'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -109,6 +112,9 @@ app.whenReady().then(() => registerWatchHandlers(() => win))
 app.whenReady().then(registerSettingsHandlers)
 app.whenReady().then(registerFaqHandlers)
 app.whenReady().then(registerTelemetryHandlers)
+app.whenReady().then(registerAiEditHandlers)
+app.whenReady().then(registerSnapshotHandlers)
+app.whenReady().then(registerPersonaHandlers)
 
 app.on('window-all-closed', () => {
   win = null

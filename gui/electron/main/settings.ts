@@ -11,9 +11,10 @@ const DEFAULT_DOCS_DIR = path.join(process.env.HOME ?? '', 'Documents', 'PandocP
 interface SettingsData {
   docsPath: string
   notificationsEnabled: boolean
+  referenceDoc?: string
 }
 
-function readSettings(): SettingsData {
+export function readSettings(): SettingsData {
   try {
     const raw = fs.readFileSync(SETTINGS_FILE, 'utf8')
     return JSON.parse(raw)
@@ -21,6 +22,7 @@ function readSettings(): SettingsData {
     return {
       docsPath: DEFAULT_DOCS_DIR,
       notificationsEnabled: true,
+      referenceDoc: undefined,
     }
   }
 }
@@ -49,7 +51,6 @@ function setupFirstRun() {
   
   // Create sample files
   const welcomePath = path.join(docsPath, 'Welcome.md')
-  const samplePath = path.join(docsPath, 'Sample.docx')
   
   if (!fs.existsSync(welcomePath)) {
     const welcomeContent = `# Welcome to PandocPro!
@@ -80,10 +81,6 @@ Check out the FAQ section for common questions and answers!
 `
     fs.writeFileSync(welcomePath, welcomeContent, 'utf8')
   }
-  
-  // Note: For Sample.docx, we would need to create an actual DOCX file
-  // This would require using a library like docx.js or copying a pre-made sample
-  // For now, we'll skip this and just create the Markdown file
   
   markFirstRunComplete()
 }
@@ -145,6 +142,21 @@ export function registerSettingsHandlers() {
     const selected = result.filePaths[0]
     const settings = readSettings()
     const updated: SettingsData = { ...settings, docsPath: selected }
+    writeSettings(updated)
+    return updated
+  })
+  
+  ipcMain.handle('settings:chooseReferenceDoc', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [{ name: 'Word Document', extensions: ['docx'] }]
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      return null
+    }
+    const selected = result.filePaths[0]
+    const settings = readSettings()
+    const updated: SettingsData = { ...settings, referenceDoc: selected }
     writeSettings(updated)
     return updated
   })

@@ -42,27 +42,65 @@ function updateSection(file, section, content) {
 }
 
 async function main() {
-  const args = process.argv.slice(2);
-  if (args.length < 3) {
-    console.error('Usage: ./scripts/ai-edit.js <file> <section_header> <instruction>');
-    console.error('Example: ./scripts/ai-edit.js docs/report.md "Introduction" "Make it more professional"');
-    process.exit(1);
+  // args: <file> <instruction> [section]
+  // Ideally we want positionals, but CLI parsing is brittle if we change order.
+  // Original usage: <file> <section> <instruction>
+  // Let's change usage to: <file> <instruction> [section]
+  // Or better, use named args or be smart.
+  // Current main() expects 3 args. 
+  
+  // Let's support:
+  // ./ai-edit.js --file <f> --instruction <i> [--section <s>]
+  // But previously we used positionals. Refactor to use named args parsing logic similar to mcp-ops.
+  
+  const getArg = (name) => {
+    const idx = args.indexOf(name);
+    if (idx !== -1 && idx + 1 < args.length) return args[idx + 1];
+    return null;
+  };
+  
+  const file = getArg('--file') || args[0];
+  // Backwards compat mixed matching is dangerous.
+  // Let's rely on how mcp-ops calls usually go.
+  // If no flags, assume old positionals? 
+  // Old positionals: file, section, instruction
+  // But wait, the previous `ai-edit.js` implementation used `process.argv.slice(2)` and `[file, section, instruction] = args`.
+  // To allow optional section, we should probably switch to flags, OR make section token explicit like "ALL".
+  
+  // The caller (Electron) is under our control.
+  // Let's switch `ai-edit.js` to use flags for clarity.
+  // electron/main/ai-edit.ts ALREADY passes flags: ['--file', filePath, '--instruction', instruction]
+  
+  const instruction = getArg('--instruction');
+  const section = getArg('--section'); // Optional
+  
+  if (!file || !instruction) {
+      // Fallback for direct CLI usage if needed, or error
+      if (args.length === 3 && !args[0].startsWith('--')) {
+          // Old behavior
+          // file = args[0]
+          // section = args[1]
+          // instruction = args[2]
+          // Not fixing old behavior to keep it simple, expecting flags now.
+      }
+      console.error('Usage: ./scripts/ai-edit.js --file <file> --instruction "..." [--section "..."]');
+      process.exit(1);
   }
 
-  const [file, section, instruction] = args;
-  
   const absoluteFile = path.resolve(process.cwd(), file);
   if (!fs.existsSync(absoluteFile)) {
     console.error(`Error: File not found: ${file}`);
     process.exit(1);
   }
 
-  console.log(`📖 Reading section "${section}" from ${file}...`);
+  const scopeMsg = section ? `section "${section}"` : "entire file";
+  console.log(`📖 Reading ${scopeMsg} from ${file}...`);
+  
   let originalContent;
   try {
-    originalContent = readSection(absoluteFile, section);
+    originalContent = readSection(absoluteFile, section || '');
     if (!originalContent) {
-      console.error(`Error: Section "${section}" not found or empty.`);
+      console.error(`Error: Content not found or empty.`);
       process.exit(1);
     }
   } catch (err) {
@@ -90,10 +128,17 @@ Updated Content:
 
   try {
     // Generate response using the configured local LLM
-    const updatedContent = await generateResponse(PROJECT_ROOT, prompt);
+    let updatedContent = await generateResponse(PROJECT_ROOT, prompt);
     
-    console.log(`✍️  Updating file...`);
-    updateSection(absoluteFile, section, updatedContent);
+    // Clean up markdown fences if the LLM ignored instructions
+    updatedContent = updatedContent.replace(/^```markdown\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    if (!updatedContent) {
+      throw new Error('AI returned empty content');
+    }
+
+    console.log(`✍️  Updated content received (${updatedContent.length} chars). Updating file...`);
+    updateSection(absoluteFile, section || '', updatedContent);
     
     console.log('✅ Surgical edit complete.');
     

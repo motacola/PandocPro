@@ -97,6 +97,9 @@ contextBridge.exposeInMainWorld('pandocPro', {
   chooseDocsPath() {
     return ipcRenderer.invoke('settings:chooseDocsPath')
   },
+  chooseReferenceDoc() {
+    return ipcRenderer.invoke('settings:chooseReferenceDoc')
+  },
   updateSettings(payload: any) {
     return ipcRenderer.invoke('settings:update', payload)
   },
@@ -120,6 +123,24 @@ contextBridge.exposeInMainWorld('pandocPro', {
   getTelemetry() {
     return ipcRenderer.invoke('telemetry:stats')
   },
+  aiEdit(payload: { filePath: string; instruction: string; section?: string }) {
+    return ipcRenderer.invoke('ai:edit-section', payload)
+  },
+  listSnapshots(filePath: string) {
+    return ipcRenderer.invoke('snapshot:list', filePath)
+  },
+  restoreSnapshot(payload: { snapshotPath: string; targetPath: string }) {
+    return ipcRenderer.invoke('snapshot:restore', payload)
+  },
+  createSnapshot(filePath: string) {
+    return ipcRenderer.invoke('snapshot:create', filePath)
+  },
+  getPersonas() {
+    return ipcRenderer.invoke('personas:list')
+  },
+  savePersonas(personas: any[]) {
+    return ipcRenderer.invoke('personas:save', personas)
+  }
 })
 
 // --------- Preload scripts loading ---------

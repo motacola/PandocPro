@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 import { OnboardingChecklist } from './components/OnboardingChecklist'
+import { OnboardingTour } from './components/OnboardingTour'
 import { Button, Badge, ToastContainer, EmptyState as EmptyStateComponent } from './components/ui'
 import { CollapsibleSection } from './components/ui/CollapsibleSection'
 import { EditorToolbar } from './components/EditorToolbar'
@@ -688,6 +689,22 @@ function App() {
     }).length
   }, [docs])
 
+  const handleChooseReferenceDoc = useCallback(async () => {
+    try {
+      const updated = await window.pandocPro.chooseReferenceDoc()
+      if (updated) {
+        setSettings(updated)
+        if (updated.referenceDoc) {
+          addToast('success', 'Reference template updated.')
+        }
+      }
+      return updated
+    } catch (err) {
+      addToast('error', 'Failed to update reference doc setting.')
+      return null
+    }
+  }, [addToast])
+
   useEffect(() => {
     fetchDocs()
     fetchHistory()
@@ -702,6 +719,8 @@ function App() {
     })
     window.pandocPro.getSettings().then((s) => {
       setSettings(s)
+      // If no docs path, definitely show onboarding. 
+      // Ideally we'd also check a 'tourCompleted' flag, but 'docsPath' is a good proxy for new users for now.
       if (!s.docsPath) setShowOnboarding(true)
     })
     window.pandocPro.getTelemetry().then((stats) => setTelemetry(stats))
@@ -1131,6 +1150,7 @@ function App() {
               }
               return updated
             }}
+            onChooseReferenceDoc={handleChooseReferenceDoc}
             telemetry={telemetry}
             onReloadLlmStatus={async () => {
               const status = await window.pandocPro.getLlmStatus()

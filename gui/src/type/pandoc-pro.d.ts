@@ -90,6 +90,7 @@ export interface SettingsData {
   notificationsEnabled: boolean
   presets?: ConversionPreset[]
   lastUsedModes?: Record<string, ConversionMode>
+  referenceDoc?: string
 }
 
 export interface LlmStatus {
@@ -115,6 +116,20 @@ export interface TelemetryEntry {
   metadata?: Record<string, unknown>
 }
 
+export interface SnapshotEntry {
+  originalPath: string
+  snapshotPath: string
+  timestamp: number
+  size: number
+}
+
+export interface Persona {
+  id: string
+  name: string
+  instruction: string
+  icon?: string
+}
+
 declare global {
   interface Window {
     pandocPro: {
@@ -135,6 +150,7 @@ declare global {
       getSettings(): Promise<SettingsData>
       updateDocsPath(path: string): Promise<SettingsData>
       chooseDocsPath(): Promise<SettingsData | null>
+      chooseReferenceDoc(): Promise<SettingsData | null>
       updateSettings(payload: Partial<SettingsData>): Promise<SettingsData>
       getFaq(): Promise<string>
       getFaqEntries(): Promise<string>
@@ -146,6 +162,12 @@ declare global {
       openFile(filePath: string): Promise<boolean>
       getTelemetry(): Promise<TelemetryEntry[]>
       pickDocument(): Promise<string | null>
+      aiEdit(payload: { filePath: string; instruction: string; section?: string }): Promise<{ success: boolean; message: string }>
+      listSnapshots(filePath: string): Promise<SnapshotEntry[]>
+      restoreSnapshot(payload: { snapshotPath: string; targetPath: string }): Promise<boolean>
+      createSnapshot(filePath: string): Promise<string | null>
+      getPersonas(): Promise<Persona[]>
+      savePersonas(personas: Persona[]): Promise<boolean>
     }
   }
 }

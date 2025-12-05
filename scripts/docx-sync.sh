@@ -491,11 +491,45 @@ EOF
   exit 0
 fi
 
+# Parse positional arguments (legacy support)
 DOCX="${1:-docs/presentation.docx}"
 MD="${2:-docs/presentation.md}"
 MODE="${3:-auto}"   # auto | to-md | to-docx | to-pptx | to-pdf | to-html
 OUTPUT_OVERRIDE="${4:-}"
 TEXT_ONLY="${DOCSYNC_TEXT_ONLY:-0}"
+
+# Check for --reference-doc in input args
+for arg in "$@"; do
+  if [[ "$arg" == "--reference-doc="* ]]; then
+    REFERENCE_DOC="${arg#*=}"
+  elif [[ "$arg" == "--reference-doc" ]]; then
+    # This is harder with for loop on "$@", simplified approach:
+    # Just checking env var or looking for the flag specifically in known positions?
+    # Let's rely on standard loop if positions vary.
+    true
+  fi
+done
+
+# Better arg parsing for flags mixed with positionals
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --reference-doc)
+      REFERENCE_DOC="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --reference-doc=*)
+      REFERENCE_DOC="${1#*=}"
+      shift # past argument
+      ;;
+    *)
+      # positional args are already captured above by index,
+      # but if we want to be strict strictly about $1 $2 $3 we should be careful.
+      # For now, just shift
+      shift
+      ;;
+  esac
+done
 
 # Check for pandoc
 if ! command -v pandoc >/dev/null 2>&1; then
@@ -504,20 +538,7 @@ if ! command -v pandoc >/dev/null 2>&1; then
   echo "💡 Tip: After installing, rerun ./scripts/setup.sh so watch mode dependencies stay in sync." >&2
   exit 1
 fi
-echo "[1/3] ✅ Pandoc detected"
 
-case "$MODE" in
-  to-md)
-    lint_source_file "$DOCX" "docx"
-    echo "📄 Converting Word → Markdown..."
-    show_step 2 3 "Preparing Markdown folder..."
-    mkdir -p "$(dirname "$MD")"
-    show_step 3 3 "Running pandoc (Word → Markdown)..."
-    run_conversion "to-md" "$DOCX" "$MD" -t gfm
-    ;;
-  to-docx)
-    SOURCE_FORMAT=$(detect_text_format "$MD")
-    lint_source_file "$MD" "$SOURCE_FORMAT"
     READABLE_SOURCE=$(format_label "$SOURCE_FORMAT")
     echo "📘 Converting ${READABLE_SOURCE} → Word..."
     show_step 2 3 "Preparing Word folder..."

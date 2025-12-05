@@ -11,6 +11,7 @@ import { EditorContent } from '@tiptap/react'
 import type { LogRun, LogEntry } from '../../type/pandoc-pro'
 import { CollapsibleSection } from '../ui/CollapsibleSection'
 import { EditorToolbar } from '../EditorToolbar'
+import { VersionsPanel } from '../VersionsPanel'
 
 
 interface DocumentsViewProps {
@@ -321,7 +322,43 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
                 <div className={`editor-container ${isPreviewVisible ? 'split-view' : ''}`}>
                   <div className='editor-pane'>
-                    <EditorToolbar editor={editor} />
+                    <EditorToolbar 
+                      editor={editor} 
+                      onAiAction={async (instruction) => {
+                        if (!selectedDoc?.md) return
+                        
+                        // Optimistic UI for editor would be hard, so just loading toast
+                        // Ideally we set loading state
+                        
+                        try {
+                          // Simple toast or overlay? 
+                          // DocumentsView doesn't have addToast prop... wait.
+                          // It seems DocumentsView doesn't receive addToast.
+                          // But App.tsx handles it? NO, DocumentsView doesn't seem to emit toasts.
+                          // We'll trust the user sees global spinner if we set activeRequest?
+                          // But aiEdit is not a conversion request.
+                          // We should probably show a small overlay on the editor or something.
+                          
+                          // Quick hack: Use window.alert or console for now?
+                          // No, use a local loading state.
+                          
+                          // We need to trigger the edit.
+                          const toast = (msg: string) => console.log(msg) // Placeholder if we can't toast
+                          
+                          await window.pandocPro.aiEdit({
+                            filePath: selectedDoc.md,
+                            instruction
+                          })
+                          
+                          // Refresh content
+                          onPickDocument() // This effectively re-selects/refreshes the current doc content
+                          
+                        } catch (err) {
+                           console.error('AI Edit failed', err)
+                           // alert('AI Edit failed: ' + err)
+                        }
+                      }}
+                    />
                     <EditorContent editor={editor} />
                   </div>
                   {isPreviewVisible && (
@@ -349,6 +386,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                   {logs.length === 0 && <p className='muted'>No logs yet.</p>}
                 </div>
               </CollapsibleSection>
+
+              <VersionsPanel doc={selectedDoc} />
+
             </div>
           ) : (
             <div className='empty-selection fade-in'>

@@ -88,6 +88,13 @@ function updateSection(filePath, header, newContent) {
     process.exit(1);
   }
 
+  // Handle whole-file update
+  if (!header) {
+    fs.writeFileSync(filePath, newContent, 'utf8');
+    console.log(`Updated entire file: ${filePath}`);
+    return;
+  }
+
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split('\n');
   const { start, end } = findSectionRange(lines, header);

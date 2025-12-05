@@ -13,6 +13,9 @@ import { OnboardingChecklist } from './components/OnboardingChecklist'
 import { Badge, ToastContainer } from './components/ui'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ErrorDialog } from './components/ErrorDialog'
+import { Modal } from './components/ui/Modal'
+import { GlobalDragDrop } from './components/GlobalDragDrop'
+import { Maximize, Minimize } from 'lucide-react'
 
 import { DashboardView } from './components/views/DashboardView'
 import { DocumentsView } from './components/views/DocumentsView'
@@ -226,7 +229,16 @@ function App() {
   }>({ isOpen: false, title: '', problem: '', solution: '' })
   const [presets, setPresets] = useState<ConversionPreset[]>(BUILT_IN_PRESETS)
   const [selectedPresetId, setSelectedPresetId] = useState<string>('built-in-auto')
+
   const [lastUsedModes, setLastUsedModes] = useState<Record<string, ConversionMode>>({})
+  const [isZenMode, setIsZenMode] = useState<boolean>(false)
+  const [aiPrompt, setAiPrompt] = useState<{ isOpen: boolean; question: string; followUp: string }>({
+    isOpen: false,
+    question: '',
+    followUp: '',
+  })
+  // Zen Mode toast ref to prevent multiple toasts
+  const zenToastShown = useRef<boolean>(false)
 
   const turndown = useMemo(() => new TurndownService(), [])
 
@@ -798,8 +810,22 @@ function App() {
         setSelectedMode('auto')
       }
       if (isMod && key === 'f') {
-        const search = document.querySelector<HTMLInputElement>('input.doc-search')
-        search?.focus()
+        event.preventDefault()
+        if (event.shiftKey) {
+          // Zen Mode
+          setIsZenMode(prev => {
+            const next = !prev
+            if (next && !zenToastShown.current) {
+               addToast('info', 'Zen Mode: Press Cmd+Shift+F to exit')
+               zenToastShown.current = true
+            }
+            return next
+          })
+        } else {
+          // Focus search
+          const searchInput = document.querySelector('.search-input') as HTMLInputElement
+          if (searchInput) searchInput.focus()
+        }
       }
       if (isMod && key === 'p') {
         event.preventDefault()
@@ -815,7 +841,7 @@ function App() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [handleSaveMarkdown, triggerConversion])
+  }, [handleSaveMarkdown, triggerConversion, addToast])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -841,12 +867,23 @@ function App() {
 
   const handleFaqAi = async () => {
     if (!selectedFaq || !faqAiStatus.configured) return
-    const followUp = window.prompt('What would you like to ask the AI?', selectedFaq.question)
-    if (followUp === null || followUp.trim() === '') {
-      return
-    }
+    // Open custom modal instead of window.prompt
+    setAiPrompt({
+      isOpen: true,
+      question: selectedFaq.question,
+      followUp: ''
+    })
+  }
+
+  const submitAiQuestion = async () => {
+    if (!selectedFaq) return
+    const { followUp } = aiPrompt
+    if (!followUp || followUp.trim() === '') return
+
+    setAiPrompt(prev => ({ ...prev, isOpen: false }))
     setFaqAiLoading(true)
     setFaqAiResponse('')
+
     try {
       const reply = await window.pandocPro.askFaqAi({
         question: selectedFaq.question,
@@ -895,7 +932,35 @@ function App() {
   }, [docs])
 
   return (
-    <div className='App'>
+    <ErrorBoundary>
+      <GlobalDragDrop onDrop={(files) => {
+         // Create a synthetic event or adapt existing handler
+         // For now, adapter strictly for first file
+         const file = files[0]
+         if (file) {
+            // Need to mock event object or refactor handler.
+            // Better to refactor handleFileDrop or create a simple wrapper.
+            // Creating a wrapper here:
+            const items = new DataTransfer()
+            items.items.add(file)
+            const syntheticEvent = {
+              preventDefault: () => {},
+              dataTransfer: items,
+              // Add other needed properties if any
+            } as unknown as React.DragEvent<HTMLDivElement>
+
+            handleFileDrop(syntheticEvent)
+         }
+      }}>
+        <div
+          className={`App ${theme} ${isZenMode ? 'zen-mode' : ''} glass-effect`}
+          onDragOver={(e) => {
+             e.preventDefault()
+             setDropActive(true)
+          }}
+          onDragLeave={() => setDropActive(false)}
+          onDrop={handleFileDrop}
+        >
       <LegacyFaqAnchor />
       <AnimatePresence>
         {showOnboarding && (
@@ -923,8 +988,7 @@ function App() {
         severity={errorDialog.severity}
       />
 
-      <ErrorBoundary>
-        <motion.aside 
+        <motion.aside
         className='sidebar'
         initial={{ x: -280 }}
         animate={{ x: 0 }}
@@ -1097,9 +1161,40 @@ function App() {
           />
         )}
       </main>
-      </ErrorBoundary>
-    </div>
+      <Modal
+        isOpen={aiPrompt.isOpen}
+        onClose={() => setAiPrompt(prev => ({ ...prev, isOpen: false }))}
+        title='Ask AI'
+        footer={
+          <>
+            <button className='secondary' onClick={() => setAiPrompt(prev => ({ ...prev, isOpen: false }))}>Cancel</button>
+            <button className='primary' onClick={submitAiQuestion}>Ask Question</button>
+          </>
+        }
+      >
+        <div className='form-group'>
+          <label>Your Question</label>
+          <input
+            type='text'
+            className='form-input'
+            value={aiPrompt.followUp}
+            onChange={e => setAiPrompt(prev => ({ ...prev, followUp: e.target.value }))}
+            placeholder={aiPrompt.question}
+            autoFocus
+            onKeyDown={e => {
+              if (e.key === 'Enter') submitAiQuestion()
+            }}
+          />
+          <p className='help-text'>Ask a follow-up or clarification about this FAQ.</p>
+        </div>
+      </Modal>
+
+      {/* Global Drag Drop wrapper end */}
+      </div>
+      </GlobalDragDrop>
+    </ErrorBoundary>
   )
 }
 
 export default App
+

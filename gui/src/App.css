@@ -108,23 +108,111 @@
   transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
-/* Enhanced gradient background with glass effect */
-.App::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+
+/* ===== Visual Effects (Screenshot Matching) ===== */
+
+/* Enhanced Glass Card */
+.glass-card-hover {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.App > * {
-  position: relative;
-  z-index: 1;
+.glass-card-hover:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: var(--color-primary-500);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(59, 130, 246, 0.15); /* Soft Blue Glow */
 }
+
+/* Neon Glow for AI Trigger */
+.ai-glow {
+  position: relative;
+  border: 1px solid rgba(139, 92, 246, 0.3); /* Violet-ish border */
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+  color: #fff;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.ai-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, #8b5cf6, #3b82f6, #06b6d4);
+  z-index: -1;
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ai-glow:hover {
+  border-color: rgba(139, 92, 246, 0.8);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+  transform: scale(1.05);
+}
+
+.ai-glow:hover::before {
+  opacity: 0.7;
+}
+
+.ai-glow .icon {
+  color: #c4b5fd; /* Soft violet icon */
+}
+
+/* Large Drop Zone Styling */
+.drop-zone-large {
+  border: 2px dashed var(--border-primary);
+  border-radius: var(--radius-xl);
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 250px;
+}
+
+.drop-zone-large:hover, .drop-zone-large.active {
+  border-color: var(--color-primary-500);
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+.drop-zone-large .icon-large {
+  width: 64px;
+  height: 64px;
+  color: var(--color-primary-400);
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4));
+  transition: transform 0.3s ease;
+}
+
+.drop-zone-large:hover .icon-large {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.drop-text-primary {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.drop-text-secondary {
+  font-size: var(--text-base);
+  color: var(--text-tertiary);
+  text-align: center;
+  max-width: 400px;
+}
+
 
 /* Animation utilities */
 .fade-in {

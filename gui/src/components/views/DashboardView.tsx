@@ -47,29 +47,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <h2>Dashboard</h2>
       </header>
       <div className='dashboard-content'>
+        {/* Stats Row */}
         <motion.div
           className='stats-grid'
           variants={{
             hidden: { opacity: 0 },
             show: {
               opacity: 1,
-              transition: {
-                staggerChildren: 0.1,
-              },
+              transition: { staggerChildren: 0.1 },
             },
           }}
           initial='hidden'
           animate='show'
         >
           {[
-            { label: 'Total Documents', value: stats.total, color: '' },
+            { label: 'Total Documents', value: stats.total, color: 'text-gradient' },
             { label: 'Synced', value: stats.synced, color: 'text-success' },
             { label: 'Pending', value: stats.pending, color: 'text-warning' },
-            { label: 'Total Size', value: formatSize(stats.totalSize), color: '' },
+            { label: 'Total Size', value: formatSize(stats.totalSize), color: 'text-info' },
           ].map((stat, i) => (
             <motion.div
               key={i}
-              className='stat-card'
+              className='stat-card glass-card-hover'
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 show: { opacity: 1, y: 0 },
@@ -81,59 +80,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           ))}
         </motion.div>
 
-        <QuickActions
-          onQuickConvertAll={onQuickConvertAll}
-          onSyncRecent={onSyncRecent}
-          pendingCount={stats.pending}
-          recentCount={recentFilesCount}
-          isProcessing={isProcessing}
-        />
-
-        <div className='dashboard-section'>
-          <h3>Conversion Activity (Last 7 Days)</h3>
-          <div className='dashboard-chart-card'>
-             <div className='chart-container'>
-               {(() => {
-                 // Calculate chart data inline or move to useMemo above if complex
-                 const last7Days = Array.from({ length: 7 }, (_, i) => {
-                   const d = new Date()
-                   d.setDate(d.getDate() - i)
-                   return d.toISOString().split('T')[0]
-                 }).reverse()
-
-                 const counts = history.reduce((acc, entry) => {
-                   const date = new Date(entry.timestamp).toISOString().split('T')[0]
-                   acc[date] = (acc[date] || 0) + 1
-                   return acc
-                 }, {} as Record<string, number>)
-
-                 const data = last7Days.map(date => ({
-                   label: new Date(date).toLocaleDateString(undefined, { weekday: 'short' }),
-                   date,
-                   count: counts[date] || 0
-                 }))
-                 
-                 const max = Math.max(...data.map(d => d.count), 5) // At least 5 scale
-
-                 return data.map((d, i) => (
-                   <div key={i} className='chart-bar-group'>
-                     <div 
-                       className='chart-bar' 
-                       style={{ height: `${(d.count / max) * 100}%` }}
-                     >
-                        {d.count > 0 && <div className='chart-bar-value'>{d.count}</div>}
-                     </div>
-                     <span className='chart-bar-label'>{d.label}</span>
-                   </div>
-                 ))
-               })()}
-             </div>
+        {/* Large Prominent Drop Zone */}
+        <motion.div
+          className='drop-zone-large'
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          onClick={onQuickConvertAll}
+        >
+          <RefreshCw className='icon-large' />
+          <div className='drop-text-primary'>
+            Drop Word files to convert
           </div>
-        </div>
+          <div className='drop-text-secondary'>
+             or click here to run <strong>Quick Convert All</strong> ({stats.pending} pending)
+          </div>
+        </motion.div>
 
         <div className='dashboard-section'>
           <h3>Recent Activity</h3>
-          <div className='activity-list'>
+          <div className='activity-list glass-strong'>
             {isLoadingHistory ? (
               <div className='skeleton-container'>
                 {Array.from({ length: 3 }).map((_, i) => (

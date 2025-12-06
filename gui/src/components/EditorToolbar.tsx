@@ -133,17 +133,31 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onAiAction
           <div className="divider" />
           <div className="dropdown-container" ref={menuRef}>
            <button 
-             className={`ai-trigger ${showAiMenu ? 'is-active' : ''}`}
+             className={`ai-trigger ai-glow ${showAiMenu ? 'is-active' : ''}`}
              onClick={() => setShowAiMenu(!showAiMenu)}
              title="AI Actions"
+             style={{ borderRadius: '8px', padding: '6px 12px', display: 'flex', gap: '8px' }}
            >
              <Sparkles size={16} />
-             <ChevronDown size={12} />
+             <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>AI Actions</span>
+             <ChevronDown size={14} />
            </button>
            
            {showAiMenu && (
-             <div className="toolbar-dropdown">
-               <div className="dropdown-header">Editorial Board</div>
+             <div className="toolbar-dropdown glass-strong" style={{ 
+               width: '280px', 
+               padding: '8px',
+               borderRadius: '12px',
+               marginTop: '8px',
+               border: '1px solid var(--color-primary-500)'
+             }}>
+               <div className="dropdown-header" style={{
+                 padding: '8px 12px',
+                 fontSize: '0.75rem',
+                 textTransform: 'uppercase',
+                 letterSpacing: '0.05em',
+                 color: 'var(--text-tertiary)'
+               }}>Editorial Board</div>
                {personas.map((persona) => (
                  <button
                    key={persona.id}

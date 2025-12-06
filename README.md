@@ -115,9 +115,11 @@ Download → install → start working.
 
 ---
 
-## 🖼️ Visual Preview (add screenshots here)
+## 🖼️ Visual Preview
 
-*(Replace with real screenshots once you capture them.)*
+![PandocPro Dashboard](screenshots/dashboard.png)
+![Section Editing](screenshots/section-editing.png)
+![AI Actions](screenshots/ai-improve.png)
 
 ---
 

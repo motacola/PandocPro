@@ -1,189 +1,140 @@
 # 🚀 PandocPro
+### *AI-powered long-document editing — private, fast, and built for real workflows.*
 
-**AI-powered long-document editing — private, fast, and built for real workflows.**
+PandocPro is a local-first writing and editing tool that lets you convert, improve, and manage large Word and Markdown documents **without token limits, formatting issues, or privacy risks**.
 
-PandocPro is a local-first writing and editing tool that lets you convert, improve, and manage large Word and Markdown documents without token limits, formatting issues, or privacy risks.
-
-Work section-by-section. Use local LLMs. Keep everything on your device.
+Work section-by-section. Use local LLMs. Keep everything on your device.  
 Perfect for writers, agencies, researchers, and anyone producing long or sensitive documents.
 
 ---
 
 ## 🌟 Why PandocPro?
-
-Most AI tools collapse when you give them a 40-page brief, a client report, or a technical document. PandocPro solves this by creating a clean, predictable, private document workflow around AI.
+Most AI tools collapse when you give them a 40-page brief, a client report, or a technical document. PandocPro solves this by creating a **clean, predictable, private document workflow** around AI.
 
 You’ll download PandocPro because you want:
-*   AI assistance without leaking client files
-*   Long-document editing without token errors
-*   Clean DOCX ↔ Markdown transitions
-*   Precise section-based improvements
-*   A workflow you can trust, not a hacky workaround
-*   A desktop app (with a `.dmg`) you can run instantly
 
-PandocPro is built for people who write professionally — not for casual notes.
+- **AI assistance without exposing private files**
+- **Long-document editing without token or context limits**
+- **Clean DOCX ↔ Markdown transitions**
+- **Precise section-based editing and improvements**
+- **A workflow you can trust, not a hacky workaround**
+- **A desktop app (with a `.dmg`) you can install and run instantly**
+
+PandocPro is built for people who write or edit professionally — not for quick notes.
 
 ---
 
 ## 🎯 Core Value in One Sentence
-
-PandocPro makes AI practical for serious documents — privately, locally, and without breaking your formatting.
+**PandocPro makes AI practical for serious documents — privately, locally, and without breaking your formatting.**
 
 ---
 
 ## 🔥 Key Features at a Glance
 
-### 🧭 1. Clean Word ↔ Markdown Workflow
+### 🧭 Clean Word ↔ Markdown Workflow
+PandocPro uses Pandoc under the hood for conversions.  
+Expect:  
+- Full structure retention  
+- Proper headings & lists  
+- Reliable round-trip exports  
+- Zero formatting surprises  
 
-PandocPro handles conversion cleanly using Pandoc behind the scenes.
-You get:
-*   Perfect structure retention
-*   Clean headings + lists
-*   Predictable output
-*   Easy round-tripping back to `.docx`
+### ✂️ Section-based Editing for Long Documents
+Instead of feeding a 20,000-token document to an AI:  
 
-No more mangled formatting.
+- Select a section  
+- Ask for improvements  
+- Update just that part  
 
----
+That means:  
+- No token issues  
+- No broken formatting  
+- 70–90% fewer tokens per edit  
+- Higher control, lower risk  
 
-### ✂️ 2. Edit Long Documents in Small, Targeted Sections
+### 🤖 Targeted AI Improvements  
+Use AI for:  
+- Tone adjustments  
+- Grammar, clarity, style polishing  
+- Summaries or rewrites  
+- Structural edits or expansions  
 
-Instead of passing a 20,000-token document to an LLM, PandocPro lets you work like this:
-1.  Choose a section
-2.  Give an instruction
-3.  PandocPro updates only that part
+Each AI call affects only what you select. The rest of the document stays intact.
 
-This means:
-*   No token issues
-*   No memory problems
-*   No unexpected rewrites
-*   **70–90% fewer tokens per edit**
+### 🛡️ Privacy-first: Local or Cloud LLMs, Your Choice  
+Work entirely offline using local LLMs (Ollama, LM Studio, Qwen, etc.).  
+Cloud usage remains optional — only when you choose.  
 
-A controlled, surgical editing workflow.
+Ideal for:  
+> - Client deliverables under NDA  
+> - Legal, financial, academic, or sensitive documents  
+> - Internal reports or company-only content  
 
----
+### 🖥️ GUI + CLI + MCP — Work How You Want  
+#### GUI  
+- Intuitive dashboard  
+- Drag & drop import/export  
+- Live status of DOCX ⇆ MD sync  
+- Presets (Academic, Business, Blog)
 
-### 🤖 3. Precision AI Improvements
+#### CLI (for power users)  
+- `dsync` tools for automation  
+- Scriptable workflows  
 
-Use AI for:
-*   Tone improvement
-*   Grammar + clarity
-*   Summaries
-*   Rewrites
-*   Structural fixes
-*   Expansions
-*   Professional polish
+#### MCP Support  
+Integrate with MCP-enabled tools (ChatGPT, Claude, etc.) — trigger conversions, edits or exports directly from your AI assistant.  
 
-Each edit affects only the area you select — never the whole file.
-
----
-
-### 🛡️ 4. Privacy-First Architecture
-
-Your files stay on your device.
-Nothing is uploaded unless you explicitly choose to use a cloud model.
-
-Local support includes:
-*   Ollama
-*   LM Studio
-*   Qwen
-*   DeepSeek
-*   Mistral
-*   Llama 3
-*   Any model running locally via OpenAI-compatible servers
-
-This makes PandocPro ideal for confidential, legal, academic, and client-sensitive work.
-
----
-
-### 🖥️ 5. GUI + CLI + MCP
-
-PandocPro adapts to how you work:
-
-**GUI**
-A focused dashboard for converting, editing, exporting, and managing documents.
-
-**CLI**
-Scriptable for pipelines, automation, and power-users.
-
-**MCP Support**
-Connects seamlessly to Claude, ChatGPT, Cursor and any MCP-enabled editor.
-Your AI assistant can:
-*   List documents
-*   Convert DOCX to Markdown
-*   Improve sections
-*   Export back to Word
-*   Sync changes instantly
-
-This turns your LLM into a powerful, controlled editing partner.
-
----
-
-### 📦 6. macOS Ready-to-Run .dmg Installer
-
-No build steps.
-No terminal commands.
-No setup hassle.
-
-Download the `.dmg` → Install → Work.
-
-This is the fastest way to get started.
+### 📦 Ready-to-Use Installer for macOS  
+We provide a `.dmg` installer — no build steps, no dependency pain.  
+Download → install → start working.
 
 ---
 
 ## 🧑‍💻 Who PandocPro Is For
 
-PandocPro is perfect for:
-*   Agencies producing proposals, decks, and reports
-*   Technical writers + documentation teams
-*   Researchers + academics
-*   Lawyers + compliance writers
-*   Consultants + analysts
-*   Anyone writing 10–100+ page documents
-*   Anyone who needs AI support but cannot expose private files
-
-PandocPro fits into serious professional environments, not hobby projects.
+- Agencies producing proposals, decks, client reports  
+- Technical writing and documentation teams  
+- Researchers and academics  
+- Legal, financial, and consultancy professionals  
+- Anyone writing or editing 10–100+ page documents  
+- Anyone wanting AI editing **without risking privacy**  
 
 ---
 
 ## 🧩 Feature Overview
 
-| Category | Features |
-| :--- | :--- |
-| **Conversion** | DOCX ↔ Markdown, structure-preserving, preset templates |
-| **Editing** | Section-based modification, one-click rewrites, tone shifts, summaries |
-| **AI** | Local + cloud support, targeted improvements, safe output |
-| **Workflow** | Watch mode, smart sync, clean exports, conflict resolution |
-| **Interfaces** | GUI, CLI, MCP, automation-friendly |
-| **Privacy** | Local-first, no forced uploads, full offline editing |
+| Category   | Features |
+|------------|----------|
+| Conversion | DOCX ↔ Markdown via Pandoc, template support, clean exports |
+| Editing    | Section-based edits, targeted improvements, tone/style changes, summaries |
+| AI         | Local & optional cloud LLM support, precise control, safe editing |
+| Workflow   | Watch mode, smart sync, conflict handling, export management |
+| Interfaces | GUI, CLI, MCP — flexible for any user style |
+| Privacy    | Local-first, optional cloud, no forced uploads |
+| Distribution | Ready-to-use macOS `.dmg`, scriptable CLI install/build |
 
 ---
 
-## 🖼️ Screenshots (placeholders you can replace)
+## 🖼️ Visual Preview (add screenshots here)
 
-Add these below once you capture your UI:
-
-![PandocPro Dashboard](./screenshots/dashboard.png)
-![Section Editing](./screenshots/section-editing.png)
-![AI Improvements](./screenshots/ai-improve.png)
+*(Replace with real screenshots once you capture them.)*
 
 ---
 
-## 📥 Download
+## 📥 Download / Install
 
-### macOS .dmg Installer
+### ✅ macOS (recommended)  
+Download the latest `.dmg` installer from the Releases tab — install and run in seconds.
 
-👉 Available under “Releases” in this repository.
-
-### Developers
-
-If you want to run PandocPro from source:
+### 💻 From Source (all platforms)
 
 ```bash
-git clone https://github.com/motacola/PandocPro
-cd PandocPro
-npm install
-npm run gui:dev
+git clone https://github.com/motacola/PandocPro.git  
+cd PandocPro  
+npm install  
+npm run gui:dev   # for development  
+# or  
+npm run gui:build  # creates production build (dmg / zip)
 ```
 
 ---
@@ -191,25 +142,28 @@ npm run gui:dev
 ## ⚙️ CLI Quick Start
 
 **Convert DOCX → Markdown:**
+
 ```bash
-dsync convert report.docx
+dsync convert document.docx
 ```
 
 **Improve a section:**
+
 ```bash
-dsync improve report.md --section 3 --prompt "Tighten tone and improve clarity"
+dsync improve document.md --section 3 --prompt "Tighten tone and improve clarity"
 ```
 
-**Export back to Word:**
+**Export back to DOCX:**
+
 ```bash
-dsync export report.md --output final-report.docx
+dsync export document.md --output final-version.docx
 ```
 
 ---
 
-## 🔗 MCP Quick Start
+## 🔗 MCP Quick Start (for LLM-integrated workflows)
 
-Add this block to your Claude or ChatGPT MCP config:
+Add this to your MCP config:
 
 ```json
 {
@@ -217,49 +171,35 @@ Add this block to your Claude or ChatGPT MCP config:
     "pandocpro": {
       "command": "npx",
       "args": ["pandocpro", "mcp"],
-      "cwd": "/PATH/TO/PandocPro"
+      "cwd": "/path/to/PandocPro"
     }
   }
 }
 ```
 
-Then you can ask:
+Then you can ask your LLM:
 
-> “Convert report.docx to markdown, improve the introduction, and export to Word.”
-
----
-
-## 🧭 Example Workflow
-
-1.  Drag a `.docx` into PandocPro
-2.  The app converts it to Markdown
-3.  Select the intro → “Improve tone + clarity”
-4.  Make a few AI-assisted edits
-5.  Run Watch Mode while refining sections
-6.  Export back to Word for delivery
-
-A clean, repeatable document editing pipeline — with full privacy.
+“Convert report.docx to markdown, improve the introduction, and export to Word.”
 
 ---
 
-## ❤️ Why People Love PandocPro
-
-*   It saves hours per document
-*   It makes AI feel reliable
-*   It protects private content
-*   It eliminates token headaches
-*   It keeps formatting pristine
-*   It fits into real professional workflows
-
----
-
-## 📣 Contributing
-
-Pull requests welcome!
-If you build templates, presets, or integrations, submit them in `/plugins` or `/presets`.
+## ❤️ Why Users Love PandocPro
+- Saves time on long-form editing
+- Makes AI editing reliable and controlled
+- Keeps documents private and local
+- Eliminates formatting issues
+- Enables professional workflows for serious documents
+- Combines editing, AI, and export in one tool
 
 ---
 
-## 📝 License
+## 📣 Contributing & Feedback
+
+Pull requests and contributions welcome!
+Create templates, presets, or automation scripts — drop them into `/templates` or `/scripts`, and submit a PR.
+
+---
+
+## 📄 License
 
 MIT

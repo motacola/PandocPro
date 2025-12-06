@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { SegmentedControl } from '../ui/SegmentedControl'
 import type { SystemInfo, SettingsData, TelemetryEntry, Persona } from '../../type/pandoc-pro'
 import { CollapsibleSection } from '../ui/CollapsibleSection'
-import { Plus, X, Save } from 'lucide-react'
+import { Plus, X, Save, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '../ui'
 import { AiSetup } from '../AiSetup'
 
@@ -122,15 +122,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
             
-             <div className='settings-section-card'>
-              <h3>System Info</h3>
-              <div className='setting-row' style={{marginTop: '1rem'}}>
-                <span>Pandoc Version</span>
-                <span className='badge badge-neutral'>{systemInfo.pandocVersion || 'Not Installed'}</span>
+            <div className='settings-section-card'>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3>System Health</h3>
+                <button className='secondary small' onClick={() => window.location.reload()}>
+                  <RefreshCw size={14} style={{ marginRight: '6px' }} /> Re-scan
+                </button>
+              </div>
+              
+              <div className='setting-row'>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {systemInfo.pandocVersion ? <CheckCircle size={18} className='text-success' /> : <XCircle size={18} className='text-error' />}
+                  <span>Pandoc</span>
+                </div>
+                {systemInfo.pandocVersion ? (
+                  <span className='badge badge-success' title={systemInfo.pandocVersion}>Installed ({systemInfo.pandocVersion.split(' ')[1] || 'Detected'})</span>
+                ) : (
+                  <span className='badge badge-error'>Not Found</span>
+                )}
               </div>
               <div className='setting-row'>
-                <span>Node.js Version</span>
-                <span className='badge badge-neutral'>{systemInfo.nodeVersion}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                   <CheckCircle size={18} className='text-success' />
+                   <span>Node.js</span>
+                </div>
+                <span className='badge badge-success'>{systemInfo.nodeVersion}</span>
+              </div>
+               <div className='setting-row'>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {systemInfo.ollamaVersion ? <CheckCircle size={18} className='text-success' /> : <AlertTriangle size={18} className='text-warning' />}
+                  <span>Ollama (Optional)</span>
+                </div>
+                {systemInfo.ollamaVersion ? (
+                  <span className='badge badge-success'>{systemInfo.ollamaVersion}</span>
+                ) : (
+                  <span className='badge badge-neutral'>Not Installed</span>
+                )}
               </div>
             </div>
           </div>

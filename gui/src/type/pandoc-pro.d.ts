@@ -81,6 +81,7 @@ export interface WatchStatus {
 export interface SystemInfo {
   pandocVersion: string | null
   nodeVersion: string
+  ollamaVersion?: string | null
   docsPath: string
   notificationsEnabled: boolean
 }

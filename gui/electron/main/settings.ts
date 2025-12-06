@@ -103,6 +103,19 @@ function getPandocVersion() {
   return null
 }
 
+function getOllamaVersion() {
+  try {
+    const result = spawnSync('ollama', ['--version'], { encoding: 'utf8' })
+    if (result.status === 0) {
+      // output like "ollama version is 0.1.32"
+      return result.stdout.trim()
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
 export function registerSettingsHandlers() {
   // Run first-time setup if needed
   if (isFirstRun()) {
@@ -114,6 +127,7 @@ export function registerSettingsHandlers() {
     return {
       pandocVersion: getPandocVersion(),
       nodeVersion: process.version,
+      ollamaVersion: getOllamaVersion(),
       docsPath: settings.docsPath,
       notificationsEnabled: settings.notificationsEnabled,
     }

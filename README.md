@@ -123,6 +123,36 @@ Download → install → start working.
 
 ---
 
+## 🧩 Requirements
+
+PandocPro runs locally on macOS and relies on the following tools:
+
+- **Pandoc** (required for DOCX ↔ Markdown conversion)  
+  ```bash
+  brew install pandoc
+  ```
+
+- **Node.js** (required for the CLI, MCP tools, and running the Electron app)
+  ```bash
+  brew install node
+  ```
+
+- **Ollama** (optional, but recommended if you want fully private, local AI editing)
+  ```bash
+  brew install --cask ollama
+  ollama pull llama3
+  ```
+
+- **Xcode Command Line Tools** (optional — only needed if you plan to build PandocPro from source or compile native dependencies)
+  ```bash
+  xcode-select --install
+  ```
+
+PandocPro works entirely on your device with local LLMs, cloud models, and MCP-enabled editors.
+Install the required tools above before running the app.
+
+---
+
 ## 📥 Download / Install
 
 ### ✅ macOS (recommended)  

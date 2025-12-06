@@ -1,10 +1,8 @@
 .ai-setup {
-  background: var(--bg-secondary);
-  border-radius: 8px;
+  background: transparent;
   padding: 20px;
-  margin-top: 16px;
-  max-height: 500px;
-  overflow-y: auto;
+  margin-top: 0;
+  /* Removed max-height/overflow to allow parent scroll */
 }
 
 .ai-setup-header {
@@ -62,8 +60,7 @@
 
 .provider-list {
   margin-bottom: 16px;
-  max-height: 300px;
-  overflow-y: auto;
+  /* Removed max-height/overflow to allow parent scroll */
 }
 
 .provider-list h4 {

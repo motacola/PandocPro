@@ -30,8 +30,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   telemetry,
   onReloadLlmStatus,
 }) => {
+  const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'personas' | 'advanced'>('general')
   const [dirtySettings, setDirtySettings] = useState<boolean>(false)
   const [personas, setPersonas] = useState<Persona[]>([])
+  
+  // Personas State
   const [newPersonaName, setNewPersonaName] = useState('')
   const [newPersonaInstruction, setNewPersonaInstruction] = useState('')
 
@@ -71,16 +74,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     return { success, error, total: success + error }
   }, [telemetry])
 
-  return (
-    <motion.div className='view-settings fade-in'>
-      <header className='view-header'>
-        <h2>Settings</h2>
-      </header>
-      <div className='settings-grid'>
-        {systemInfo && settings && (
-          <>
-            <CollapsibleSection title='Appearance' defaultOpen={true} className='settings-card'>
-              <label className='toggle-row'>
+  const renderContent = () => {
+    if (!systemInfo || !settings) return null
+
+    switch (activeTab) {
+      case 'general':
+        return (
+          <div className="fade-in">
+            <h2>General Settings</h2>
+            
+            <div className='settings-section-card'>
+              <h3>Appearance</h3>
+              <label className='toggle-row' style={{marginTop: '1rem'}}>
                 <span>Dark Mode</span>
                 <input
                   type='checkbox'
@@ -88,10 +93,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onChange={(e) => onThemeChange(e.target.checked ? 'dark' : 'light')}
                 />
               </label>
-            </CollapsibleSection>
+            </div>
 
-            <CollapsibleSection title='Environment' defaultOpen={true} className='settings-card'>
-              <div className='setting-row'>
+            <div className='settings-section-card'>
+               <h3>Workspace</h3>
+               <p className="description">Where your documents are synced.</p>
+               <div className="setting-row" style={{ marginTop: '1rem' }}>
+                 <code className='path-display'>{settings.docsPath}</code>
+                 <button className='secondary' onClick={onChooseDocsPath}>Change Folder</button>
+               </div>
+            </div>
+
+            <div className='settings-section-card'>
+              <h3>Reference Template</h3>
+              <p className="description">Custom Word styling template.</p>
+              <div style={{ marginTop: '1rem' }}>
+                {settings.referenceDoc ? (
+                  <div className='setting-row'>
+                    <code className='path-display compact'>{settings.referenceDoc}</code>
+                    <button className='secondary small' onClick={onChooseReferenceDoc}>Change</button>
+                  </div>
+                ) : (
+                  <div className='empty-setting'>
+                    <span className='text-sm italic'>Using Default Template</span>
+                    <button className='secondary small' onClick={onChooseReferenceDoc}>Select File...</button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+             <div className='settings-section-card'>
+              <h3>System Info</h3>
+              <div className='setting-row' style={{marginTop: '1rem'}}>
                 <span>Pandoc Version</span>
                 <span className='badge badge-neutral'>{systemInfo.pandocVersion || 'Not Installed'}</span>
               </div>
@@ -99,115 +132,149 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <span>Node.js Version</span>
                 <span className='badge badge-neutral'>{systemInfo.nodeVersion}</span>
               </div>
-            </CollapsibleSection>
-
-            <CollapsibleSection title='Documents Location' defaultOpen={true} className='settings-card'>
-              <code className='path-display'>{settings.docsPath}</code>
-              <div className='card-actions'>
-                <button className='secondary' onClick={onChooseDocsPath}>
-                  Change Folder
-                </button>
-              </div>
-            </CollapsibleSection>
-
-            <CollapsibleSection title='Reference Template (Word)' defaultOpen={true} className='settings-card'>
-              <p className='text-sm text-dimmed mb-2'>
-                Use a custom Word document as a style template for exports.
-              </p>
-              {settings.referenceDoc ? (
-                <div className='setting-row'>
-                  <code className='path-display compact'>{settings.referenceDoc}</code>
-                  <button className='secondary small' onClick={onChooseReferenceDoc}>Change</button>
-                </div>
-              ) : (
-                <div className='empty-setting'>
-                  <span className='text-sm italic'>Using Default Template</span>
-                  <button className='secondary small' onClick={onChooseReferenceDoc}>Select File...</button>
-                </div>
-              )}
-            </CollapsibleSection>
-
-            <CollapsibleSection title='AI Configuration' defaultOpen={false} className='settings-card'>
-              <AiSetup onConfigured={onReloadLlmStatus} />
-            </CollapsibleSection>
-
-            <CollapsibleSection title="Editorial Board (AI Personas)">
-        <p className="description">Define custom AI agents to appear in your editor toolbar.</p>
-        
-        <div className="personas-list">
-          {personas.map(p => (
-            <div key={p.id} className="persona-item card" style={{ padding: '0.75rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong>{p.icon} {p.name}</strong>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>{p.instruction}</p>
-              </div>
-              <button className="icon-only danger" onClick={() => handleDeletePersona(p.id)} title="Delete">
-                <X size={16} />
-              </button>
             </div>
-          ))}
-        </div>
-
-        <div className="add-persona-form card" style={{ padding: '1rem', marginTop: '1rem', background: 'var(--bg-tertiary)' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0' }}>Add New Persona</h4>
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <input 
-              type="text" 
-              placeholder="Name (e.g. The SEO Expert)" 
-              value={newPersonaName}
-              onChange={(e) => setNewPersonaName(e.target.value)}
-              className="input"
-            />
-            <textarea 
-              placeholder="System Instruction (e.g. Optimize this text for search engines using keywords...)" 
-              value={newPersonaInstruction}
-              onChange={(e) => setNewPersonaInstruction(e.target.value)}
-              className="input"
-              rows={2}
-            />
-            <button className="primary small" onClick={handleAddPersona} disabled={!newPersonaName || !newPersonaInstruction}>
-              <Plus size={16} /> Add Persona
-            </button>
           </div>
-        </div>
-      </CollapsibleSection>
+        )
 
-            <CollapsibleSection title='Advanced' defaultOpen={false} className='settings-card'>
-              <label className='toggle-row'>
-                <span>Desktop Notifications</span>
-                <input
-                  type='checkbox'
-                  checked={settings.notificationsEnabled}
-                  onChange={async (event) => {
-                    await onUpdateSettings({
-                      notificationsEnabled: event.target.checked,
-                    })
-                  }}
-                />
-              </label>
-            </CollapsibleSection>
+      case 'ai':
+        return (
+          <div className="fade-in">
+            <h2>Artificial Intelligence</h2>
+            <div className='settings-section-card' style={{ padding: 0, overflow: 'hidden' }}>
+              <AiSetup onConfigured={onReloadLlmStatus} />
+            </div>
+          </div>
+        )
 
-            <CollapsibleSection title='Telemetry & Stats' defaultOpen={false} className='settings-card'>
-              <div className='stats-summary'>
-                <div className='stat-row'>
-                  <span>Total Conversions</span>
-                  <strong>{stats.total}</strong>
-                </div>
-                <div className='stat-row'>
-                  <span>Success Rate</span>
-                  <span className={stats.total > 0 && stats.error === 0 ? 'text-success' : ''}>
-                    {stats.total > 0 ? Math.round((stats.success / stats.total) * 100) : 0}%
-                  </span>
-                </div>
-                <div className='stat-row'>
-                  <span>Errors</span>
-                  <span className={stats.error > 0 ? 'text-warning' : ''}>{stats.error}</span>
-                </div>
-              </div>
-            </CollapsibleSection>
-          </>
-        )}
-      </div>
-    </motion.div>
+      case 'personas':
+        return (
+           <div className="fade-in">
+             <h2>Editorial Board</h2>
+             <p className="description" style={{ marginBottom: '1.5rem' }}>Create custom personas to appear in your editor's AI menu.</p>
+
+             <div className="personas-list">
+               {personas.map(p => (
+                 <div key={p.id} className="persona-item card" style={{ padding: '1rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                     <div style={{ fontSize: '1.5rem', background: 'var(--bg-tertiary)', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                       {p.icon}
+                     </div>
+                     <div>
+                       <div style={{ fontWeight: 600 }}>{p.name}</div>
+                       <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{p.instruction}</div>
+                     </div>
+                   </div>
+                   <button className="icon-only danger" onClick={() => handleDeletePersona(p.id)} title="Delete">
+                     <X size={18} />
+                   </button>
+                 </div>
+               ))}
+             </div>
+
+             <div className='settings-section-card' style={{ marginTop: '2rem', background: 'var(--bg-tertiary)' }}>
+               <h4>Add New Persona</h4>
+               <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+                 <input 
+                   type="text" 
+                   placeholder="Name (e.g. The SEO Expert)" 
+                   value={newPersonaName}
+                   onChange={(e) => setNewPersonaName(e.target.value)}
+                   className="input"
+                 />
+                 <textarea 
+                   placeholder="System Instruction (e.g. You are an expert SEO copywriter. Rewrite this text to...)" 
+                   value={newPersonaInstruction}
+                   onChange={(e) => setNewPersonaInstruction(e.target.value)}
+                   className="input"
+                   rows={3}
+                 />
+                 <div style={{ display: 'flex', justifySelf: 'end' }}>
+                     <button className="primary" onClick={handleAddPersona} disabled={!newPersonaName || !newPersonaInstruction}>
+                       <Plus size={16} /> Add Persona
+                     </button>
+                 </div>
+               </div>
+             </div>
+           </div>
+        )
+
+      case 'advanced':
+         return (
+           <div className="fade-in">
+             <h2>Advanced</h2>
+             
+             <div className='settings-section-card'>
+               <h3>Notifications</h3>
+               <label className='toggle-row' style={{marginTop: '1rem'}}>
+                 <span>Desktop Notifications</span>
+                 <input
+                   type='checkbox'
+                   checked={settings.notificationsEnabled}
+                   onChange={async (event) => {
+                     await onUpdateSettings({
+                       notificationsEnabled: event.target.checked,
+                     })
+                   }}
+                 />
+               </label>
+             </div>
+
+             <div className='settings-section-card'>
+               <h3>Telemetry Stats</h3>
+                 <div className='stats-summary' style={{ marginTop: '1rem' }}>
+                 <div className='stat-row'>
+                   <span>Total Conversions</span>
+                   <strong>{stats.total}</strong>
+                 </div>
+                 <div className='stat-row'>
+                   <span>Success Rate</span>
+                   <span className={stats.total > 0 && stats.error === 0 ? 'text-success' : ''}>
+                     {stats.total > 0 ? Math.round((stats.success / stats.total) * 100) : 0}%
+                   </span>
+                 </div>
+               </div>
+             </div>
+           </div>
+         )
+    }
+  }
+
+  return (
+    <div className='settings-layout view-settings'>
+       {/* Sidebar */}
+       <div className='settings-sidebar'>
+          <div className='settings-sidebar-nav'>
+            <div 
+              className={`settings-nav-item ${activeTab === 'general' ? 'active' : ''}`}
+              onClick={() => setActiveTab('general')}
+            >
+              General
+            </div>
+            <div 
+              className={`settings-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ai')}
+            >
+              AI Models
+            </div>
+            <div 
+              className={`settings-nav-item ${activeTab === 'personas' ? 'active' : ''}`}
+              onClick={() => setActiveTab('personas')}
+            >
+              Editorial Board
+            </div>
+             <div 
+              className={`settings-nav-item ${activeTab === 'advanced' ? 'active' : ''}`}
+              onClick={() => setActiveTab('advanced')}
+            >
+              Advanced
+            </div>
+          </div>
+       </div>
+
+       {/* Content Area */}
+       <div className='settings-content'>
+         {renderContent()}
+       </div>
+    </div>
   )
 }

@@ -59,20 +59,26 @@ AI assistants like Claude are amazing—until you try to edit a long document. T
 
 ### Option 1: The Modern GUI (Recommended)
 
-1. **Install Dependencies**
+1.  **Prerequisite: Install Pandoc**
+    *   **macOS**: `brew install pandoc`
+    *   **Windows**: `winget install pandoc`
+    *   **Linux**: `sudo apt install pandoc`
+    *   *Note: Pandoc is the core engine required for document conversion.*
+
+2.  **Install Dependencies**
    ```bash
    npm install
    ```
 
-2. **Run Development Mode**
-   ```bash
-   npm run gui:dev
-   ```
+3.  **Run Development Mode**
+    ```bash
+    npm run gui:dev
+    ```
 
-3. **Build for Production** (creates `.dmg` / `.zip`)
-   ```bash
-   npm run gui:build
-   ```
+4.  **Build for Production** (creates `.dmg` / `.zip`)
+    ```bash
+    npm run gui:build
+    ```
 
 ### Option 2: CLI Power Tools
 

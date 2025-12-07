@@ -1423,10 +1423,6 @@ button.small,
 }
 
 /* Logs */
-.logs-section {
-  /* Collapsible handles styling */
-}
-
 .logs-container {
   background: #000;
   border-radius: var(--radius-md);

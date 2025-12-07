@@ -12,10 +12,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-bg-primary disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden'
     
     const variantClasses = {
-      primary: 'bg-gradient-to-br from-primary-600 to-accent-600 text-white hover:shadow-glow hover:-translate-y-1 active:translate-y-0 shadow-md border border-primary-500/20',
-      secondary: 'bg-neutral-700/50 backdrop-blur-md text-white hover:bg-neutral-600/60 border border-neutral-600/50 hover:border-neutral-500',
-      ghost: 'text-neutral-300 hover:bg-neutral-800/50 hover:text-white backdrop-blur-sm',
-      danger: 'bg-gradient-to-br from-error-500 to-error-600 text-white hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:-translate-y-1 shadow-md border border-error-500/20',
+      primary: 'bg-gradient-to-br from-primary-600 via-primary-500 to-accent-600 text-white hover:shadow-glow hover:shadow-primary-500/50 hover:-translate-y-0.5 active:translate-y-0 shadow-lg border border-primary-400/30 hover:border-primary-400/50',
+      secondary: 'bg-gradient-to-br from-neutral-700/60 to-neutral-800/50 backdrop-blur-md text-white hover:from-neutral-600/70 hover:to-neutral-700/60 border border-neutral-500/30 hover:border-neutral-400/40 shadow-md',
+      ghost: 'text-neutral-300 hover:bg-neutral-800/60 hover:text-white backdrop-blur-sm border border-transparent hover:border-neutral-700/50',
+      danger: 'bg-gradient-to-br from-error-600 via-error-500 to-error-700 text-white hover:shadow-[0_0_20px_rgba(239,68,68,0.5)] hover:-translate-y-0.5 shadow-lg border border-error-400/30 hover:border-error-400/50',
     }
     
     const sizeClasses = {

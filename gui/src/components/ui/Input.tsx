@@ -32,10 +32,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             type={type}
             className={`
               w-full px-4 py-2.5 rounded-xl
-              bg-bg-secondary border border-border-primary
+              bg-bg-secondary/80 backdrop-blur-sm border border-border-primary
               text-text-primary placeholder:text-text-muted
               transition-all duration-200
               focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500
+              focus:bg-bg-secondary focus:shadow-lg focus:shadow-primary-500/10
+              hover:border-border-primary/60
               disabled:opacity-50 disabled:cursor-not-allowed
               ${leftIcon ? 'pl-10' : ''}
               ${rightIcon ? 'pr-10' : ''}

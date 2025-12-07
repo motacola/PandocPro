@@ -958,23 +958,35 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <GlobalDragDrop onDrop={(files) => {
-         // Create a synthetic event or adapt existing handler
-         // For now, adapter strictly for first file
+      <GlobalDragDrop onDrop={async (files) => {
          const file = files[0]
-         if (file) {
-            // Need to mock event object or refactor handler.
-            // Better to refactor handleFileDrop or create a simple wrapper.
-            // Creating a wrapper here:
-            const items = new DataTransfer()
-            items.items.add(file)
-            const syntheticEvent = {
-              preventDefault: () => {},
-              dataTransfer: items,
-              // Add other needed properties if any
-            } as unknown as React.DragEvent<HTMLDivElement>
-
-            handleFileDrop(syntheticEvent)
+         if (!file?.path) {
+           addToast('error', 'No file detected.')
+           return
+         }
+         const normalizedPath = file.path.replace(/\\/g, '/')
+         const docsRoot = normalizedDocsRoot || '/docs/'
+         if (!normalizedPath.startsWith(docsRoot)) {
+           addToast('error', 'Please drop files from your docs folder.')
+           return
+         }
+         try {
+           const refreshed = await window.pandocPro.listDocuments()
+           setDocs(refreshed)
+           const found = refreshed.find((d) => d.md.replace(/\\/g, '/') === normalizedPath)
+           if (found) {
+             setSelectedDoc(found)
+             addToast('success', 'File selected. Running conversion…')
+             const mode: ConversionMode =
+               found.docx.toLowerCase().endsWith('.docx') && (!found.mdExists || found.docxMtime > (found.mdMtime ?? 0))
+                 ? 'to-md'
+                 : 'to-docx'
+             triggerConversion(mode)
+           } else {
+             addToast('error', 'File is not a supported docx/md in docs/.')
+           }
+         } catch (err) {
+           addToast('error', err instanceof Error ? err.message : 'Failed to process dropped file.')
          }
       }}>
         <div

@@ -539,21 +539,7 @@ if ! command -v pandoc >/dev/null 2>&1; then
   exit 1
 fi
 
-    READABLE_SOURCE=$(format_label "$SOURCE_FORMAT")
-    echo "📘 Converting ${READABLE_SOURCE} → Word..."
-    show_step 2 3 "Preparing Word folder..."
-    mkdir -p "$(dirname "$DOCX")"
-    show_step 3 3 "Running pandoc (${READABLE_SOURCE} → Word)..."
-    DOCX_ARGS=("--from=${SOURCE_FORMAT}")
-    if [[ -f "$REFERENCE_DOC" ]]; then
-      DOCX_ARGS+=("--reference-doc=$REFERENCE_DOC")
-    fi
-    if [[ "$TEXT_ONLY" == "1" ]]; then
-      DOCX_ARGS+=("--wrap=none")
-      echo "🧰 Text-only mode enabled (large file fallback)."
-    fi
-    run_conversion "to-docx" "$MD" "$DOCX" "${DOCX_ARGS[@]}"
-    ;;
+case "$MODE" in
   to-pptx)
     SOURCE_FORMAT=$(detect_text_format "$MD")
     lint_source_file "$MD" "$SOURCE_FORMAT"

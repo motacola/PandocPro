@@ -12,7 +12,7 @@
     "dist-electron",
     "dist"
   ],
-  "publish": "never",
+  "publish": null,
   "mac": {
     "artifactName": "${productName}_${version}.${ext}",
     "target": [

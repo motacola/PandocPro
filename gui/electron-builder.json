@@ -1,3 +1,4 @@
+```json
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.motacola.pandocpro",
@@ -12,6 +13,7 @@
     "dist-electron",
     "dist"
   ],
+  "publish": "never",
   "mac": {
     "artifactName": "${productName}_${version}.${ext}",
     "target": [

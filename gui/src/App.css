@@ -1422,13 +1422,6 @@ button.small,
   font-family: 'Inter', sans-serif;
 }
 
-.preview-pane {
-  border-left: 1px solid var(--border-color);
-  background: var(--bg-primary);
-  padding: 1.5rem;
-  overflow-y: auto;
-}
-
 /* Logs */
 .logs-section {
   /* Collapsible handles styling */

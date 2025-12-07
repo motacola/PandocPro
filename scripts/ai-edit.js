@@ -53,6 +53,8 @@ async function main() {
   // ./ai-edit.js --file <f> --instruction <i> [--section <s>]
   // But previously we used positionals. Refactor to use named args parsing logic similar to mcp-ops.
   
+  const args = process.argv.slice(2);
+  
   const getArg = (name) => {
     const idx = args.indexOf(name);
     if (idx !== -1 && idx + 1 < args.length) return args[idx + 1];

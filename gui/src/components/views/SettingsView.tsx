@@ -31,7 +31,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onReloadLlmStatus,
 }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'personas' | 'advanced'>('general')
-  const [dirtySettings, setDirtySettings] = useState<boolean>(false)
+
   const [personas, setPersonas] = useState<Persona[]>([])
   
   // Personas State
@@ -238,9 +238,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                    type='checkbox'
                    checked={settings.notificationsEnabled}
                    onChange={async (event) => {
-                     await onUpdateSettings({
-                       notificationsEnabled: event.target.checked,
-                     })
+                     try {
+                       await onUpdateSettings({
+                         notificationsEnabled: event.target.checked,
+                       })
+                     } catch (err) {
+                       console.error('Failed to update settings:', err)
+                       // Ideally we would show a toast here, but we don't have addToast prop in this component yet.
+                       // For now, console error is better than crash.
+                     }
                    }}
                  />
                </label>

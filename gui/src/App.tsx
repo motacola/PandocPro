@@ -606,9 +606,15 @@ function App() {
       const requestId = crypto.randomUUID()
       setActiveRequest(requestId)
 
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          cleanup()
+          reject(new Error('Conversion timed out'))
+        }, 30000) // 30s timeout per doc
+
         const cleanup = window.pandocPro.onExit(({ code, requestId: exitRequestId }) => {
           if (exitRequestId === requestId) {
+            clearTimeout(timeoutId)
             cleanup()
             setConversionProgress(((i + 1) / pendingDocs.length) * 100)
             resolve()
@@ -622,6 +628,10 @@ function App() {
           requestId,
           textOnly: (doc.docxSize ?? 0) > LARGE_DOC_THRESHOLD,
         })
+      }).catch(err => {
+         console.error(`Skipping doc due to error: ${err.message}`)
+         // Don't crash the whole batch, just move to next
+         addToast('error', `Skipped ${formatDocLabel(doc)}: ${err.message}`)
       })
     }
 

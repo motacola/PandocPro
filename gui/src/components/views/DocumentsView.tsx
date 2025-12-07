@@ -343,7 +343,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                           // No, use a local loading state.
                           
                           // We need to trigger the edit.
-                          const toast = (msg: string) => console.log(msg) // Placeholder if we can't toast
+                          const toast = (msg: string) => console.debug(msg) // Placeholder if we can't toast
                           
                           await window.pandocPro.aiEdit({
                             filePath: selectedDoc.md,

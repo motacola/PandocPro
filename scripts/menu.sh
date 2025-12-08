@@ -11,6 +11,8 @@ cd "$PROJECT_ROOT"
 "$SCRIPT_DIR/welcome.sh"
 
 HISTORY_FILE="$PROJECT_ROOT/logs/history.log"
+LLM_CONFIG="$PROJECT_ROOT/config/llm-selection.json"
+MCP_CONFIG="$HOME/mcp/tools/docsync.yaml"
 
 sanitize_log_field() {
     local value="${1//$'\r'/ }"
@@ -72,6 +74,28 @@ if [[ -t 1 && -n "${TERM:-}" ]]; then
 else
     GREEN=''; BLUE=''; CYAN=''; YELLOW=''; RED=''; MAGENTA=''; BOLD=''; DIM=''; NC=''
 fi
+
+get_llm_status() {
+    if [[ ! -f "$LLM_CONFIG" ]]; then
+        echo "AI helper: not configured (run ./scripts/configure-llm.sh)"
+        return
+    fi
+    local label
+    label="$(node -e "const fs=require('fs');try{const d=JSON.parse(fs.readFileSync('$LLM_CONFIG','utf8'));const provider=(d.provider||'LLM');const model=(d.model||'');const name=(d.displayName||provider);console.log([name, model].filter(Boolean).join(' • '));}catch(e){process.exit(1);} " 2>/dev/null || true)"
+    if [[ -z "$label" ]]; then
+        echo "AI helper: configured (unable to read details)"
+    else
+        echo "AI helper: $label"
+    fi
+}
+
+get_mcp_status() {
+    if [[ -f "$MCP_CONFIG" ]]; then
+        echo "MCP tools: ready (docsync.yaml found)"
+    else
+        echo "MCP tools: not installed (run ./scripts/install-mcp.sh)"
+    fi
+}
 
 normalize_doc_path() {
     local raw="$1"
@@ -152,6 +176,12 @@ prompt_action_choice() {
                 ACTION_SELECTION="keynote"
                 flush_pending_newline
                 echo -e "${DIM}Shortcut K → Export and open in Keynote${NC}"
+                return
+                ;;
+            m|M)
+                ACTION_SELECTION="mcp-install"
+                flush_pending_newline
+                echo -e "${DIM}Shortcut M → Install MCP tools${NC}"
                 return
                 ;;
             p|P)
@@ -397,6 +427,11 @@ echo -e "${YELLOW}${BOLD}  What would you like to do?${NC}"
 echo -e "${YELLOW}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo -e "  ${CYAN}1${NC}) 📄 ${BOLD}Make a Markdown copy${NC} so I can edit here"
+LLM_STATUS="$(get_llm_status)"
+MCP_STATUS="$(get_mcp_status)"
+echo -e "  ${DIM}Status:${NC} ${LLM_STATUS}"
+echo -e "          ${MCP_STATUS}"
+echo ""
 echo -e "     ${DIM}└─ Convert .docx → .md for easy editing${NC}"
 echo ""
 echo -e "  ${CYAN}2${NC}) 📘 ${BOLD}Create a fresh Word file${NC} from my Markdown"
@@ -441,10 +476,13 @@ echo ""
 echo -e "  ${CYAN}F${NC}) ❔ ${BOLD}Browse the FAQ${NC}"
 echo -e "     ${DIM}└─ Search answers or ask AI follow-ups${NC}"
 echo ""
-echo -e "  ${DIM}Tip:${NC} Tap keys ${CYAN}1-9${NC} for instant shortcuts, ${CYAN}0${NC} for AI helper, ${CYAN}P${NC} for PDF, ${CYAN}H${NC} for HTML, ${CYAN}X${NC} for PPTX, ${CYAN}K${NC} for Keynote, ${CYAN}F${NC} for FAQ."
+echo -e "  ${CYAN}M${NC}) 🔗 ${BOLD}Install MCP tools${NC} (one-step)"
+echo -e "     ${DIM}└─ Copies docsync.yaml to ~/mcp/tools${NC}"
+echo ""
+echo -e "  ${DIM}Tip:${NC} Tap keys ${CYAN}1-9${NC} for instant shortcuts, ${CYAN}0${NC} for AI helper, ${CYAN}P${NC} for PDF, ${CYAN}H${NC} for HTML, ${CYAN}X${NC} for PPTX, ${CYAN}K${NC} for Keynote, ${CYAN}F${NC} for FAQ, ${CYAN}M${NC} to install MCP."
 echo -e "  ${DIM}     ${NC}Press ${CYAN}F${NC} any time to launch the interactive FAQ browser."
 echo ""
-prompt_action_choice "${CYAN}Choose action (1-10, P, H, X, K or F)${NC}: "
+prompt_action_choice "${CYAN}Choose action (1-10, P, H, X, K, F, or M)${NC}: "
 action="$ACTION_SELECTION"
 
 if [[ "$action" == "q" ]]; then
@@ -516,6 +554,13 @@ case $action in
         echo ""
         echo -e "${BLUE}📂 Opening Word document...${NC}"
         open "$SELECTED_DOCX"
+        ;;
+    mcp-install)
+        echo ""
+        echo -e "${BLUE}🔗 Installing MCP tools...${NC}"
+        ./scripts/install-mcp.sh
+        echo ""
+        echo -e "${GREEN}${BOLD}✓ MCP tools installed.${NC} Restart your MCP client (Claude Desktop, Context7, VS Code) so it sees docSync."
         ;;
     pdf)
         if [[ ! -f "$SELECTED_MD" ]]; then

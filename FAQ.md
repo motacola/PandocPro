@@ -1,8 +1,8 @@
 # ❔ Frequently Asked Questions
 
-Quick answers when you're in the middle of a conversion and don't want to dig through every guide.
+Quick answers when you just want to keep working—no deep dive required.
 
-> **Need it interactive?** Run `./scripts/faq.sh` (or press **F** in the `dsync` menu) to browse this FAQ in your terminal, search by keyword, and send follow-up questions to your configured AI helper.
+> **Need it interactive?** Run `./scripts/faq.sh` (or press **F** in the `dsync` menu) to search this FAQ and ask follow-ups with your AI helper.
 
 ## 🧰 Setup & Requirements
 
@@ -17,50 +17,67 @@ brew install pandoc node
 Pandoc handles the Docx/Markdown conversions, Node powers watch mode + the GUI, and Microsoft Word/VS Code let you edit comfortably.
 
 **Q: Where should I put my Word documents?**  
-Drop them anywhere inside the `docs/` folder (subdirectories are fine). The menu crawls that tree every run, and the GUI uses the same folder (or whichever folder you pick in Settings → “Docs folder”).
+Anywhere under `docs/` (subfolders are fine). The menu and GUI look there by default, or whatever folder you pick in Settings → “Docs folder.”
 
 **Q: Can I keep documents somewhere else?**  
-Yes. For the GUI, open Quick settings → “Docs folder” → `Change…` and select a new directory. For the CLI, launch from the repo root so `dsync` still finds `docs/`, or symlink your preferred folder into `docs/`.
+Yes. GUI: Quick settings → “Docs folder” → Change…. CLI: run from the repo root so `dsync` sees `docs/`, or symlink your preferred folder into `docs/`.
 
 ## 📄 Menu & Conversions
 
 **Q: The menu can’t see my document. What should I check?**  
-Confirm the file ends with `.docx` (not `.doc`), that it lives under `docs/`, and that you ran `dsync` from the project folder so the script has the right working directory. The banner now prints ⭐ “Quick picks” for your recent files—if a document appears there, just type its number instead of scrolling.
+Make sure it’s `.docx`, lives under `docs/`, and you ran `dsync` from the project folder. The banner shows ⭐ quick picks—type the number if you see it there.
 
 **Q: When do I use Convert vs Auto Sync?**  
-Use **Convert to Markdown** (option 1) the first time you bring a Word file into VS Code. Use **Export to Word** (option 2) once you’re done editing Markdown. **Auto Sync** (option 3) compares modification times and copies the newer file over the older one—handy when you alternate edits between Word and Markdown.
+- **Convert to Markdown** (1): first time from Word → VS Code.  
+- **Export to Word** (2): when you’re done editing Markdown.  
+- **Auto Sync** (3): newest file wins; great when you bounce between Word and Markdown.
 
 **Q: Where do backups and logs live?**  
-Every conversion appends a line to `logs/history.log` and stores a timestamped backup in `backups/`. Option 8 (“Undo the last thing I did”) reads those entries so you can roll back a bad export.
+`logs/history.log` for every run, `backups/` for timestamped safety copies. Menu option 8 (“Undo the last thing I did”) restores the last backup.
 
 ## 👀 Watch Mode & Live Editing
 
 **Q: Why does watch mode complain about npm?**  
-Watch mode runs the Node-based file watcher in `watch-md.js`. Install Node (`brew install node`), run `npm install` once in the repo, and make sure the Markdown twin exists. The menu now helps by creating the `.md` file automatically before starting watch mode.
+Install Node (`brew install node`), run `npm install` once in the repo, and make sure the `.md` twin exists. The menu will auto-create it before starting watch mode.
 
 **Q: Can I stop watch mode without closing the menu?**  
-Yes. Press `Ctrl+C` in the terminal that started watch mode. Your conversions and quick picks remain logged for next time.
+Yes—press `Ctrl+C` in the terminal that started watch mode. Your quick picks and history stay intact.
 
 ## 🖥️ GUI & Automation
 
-**Q: Is there a desktop app yet?**  
-Yes—open `gui/` and run `npm run gui:dev`. The preview app lists the same documents, streams conversion logs, offers watch controls, and includes a TipTap-based editor with Markdown preview. Packaging via `npm run gui:build` produces a DMG in `gui/release/`.
+**Q: Is there a desktop app?**  
+Yes. From repo root: `npm run gui:dev`. It shows your docs, live logs, watch controls, and a Markdown/preview editor. `npm run gui:build` creates a DMG in `gui/release/`.
 
-**Q: How do I bring AI into the workflow?**  
-Run `./scripts/configure-llm.sh` to detect local runtimes (Ollama, LM Studio, llama.cpp, custom HTTP endpoint). The script saves `config/llm-selection.json`, which the MCP tools and GUI use to route AI-powered edits. For Claude Desktop, drop the provided YAML into `~/mcp/tools/docsync.yaml` and restart.
+**Q: How do I turn on AI help (in-app or any MCP client)?**  
+1) Run `./scripts/configure-llm.sh` and pick your model (Ollama, LM Studio, llama.cpp, or custom/OpenAI-style). This writes `config/llm-selection.json`.  
+2) Start your model server.  
+3) Want MCP?  
+   ```bash
+   ./scripts/install-mcp.sh
+   # export PROJECT_ROOT="/absolute/path/to/docx-md-sync"  # only if your client launches elsewhere
+   ```  
+   Restart/reload your MCP client.  
+After that, in-app AI and `docSync.applyAiEdit` use the same model.
+
+**Q: Which MCP clients do you recommend (with install links)?**  
+- Claude Desktop (Desktop Commander): https://www.anthropic.com/claude-desktop  
+- Context7: https://context7.com/  
+- VS Code MCP client: https://marketplace.visualstudio.com/  
+- More clients: https://modelcontextprotocol.io/  
+Install the client, run `./scripts/install-mcp.sh`, set `PROJECT_ROOT` if you launch outside the repo, then restart so it picks up docSync.
 
 ## 🛠️ Troubleshooting
 
 **Q: Pandoc failed with a cryptic error. What now?**  
-The conversion script now prints spinner progress, the raw Pandoc error, and practical tips. Make sure the source file exists, isn’t locked by Word, and try running `brew upgrade pandoc`. You can rerun the same command manually: `./scripts/docx-sync.sh path/to/file.docx path/to/file.md to-md`.
+Check the paths, close the file in Word, and try `brew upgrade pandoc`. You can rerun the exact command: `./scripts/docx-sync.sh path/to/file.docx path/to/file.md to-md`.
 
 **Q: I renamed or moved a document and history looks wrong.**  
-Run `dsync` again so it refreshes the file list. If you moved the file outside `docs/`, either move it back or update the GUI docs folder setting. Conversions automatically recreate missing Markdown twins.
+Run `dsync` to refresh. If the file left `docs/`, move it back or point the GUI to the new folder. Conversions recreate missing Markdown twins automatically.
 
 **Q: How do I reset after a mistake?**  
-Use menu option 8 to undo the last successful conversion. It restores the backup (if one exists) or removes the newly created target file. For manual recovery, check the latest entry in `logs/history.log` to locate the exact backup file.
+Menu option 8 undoes the last conversion (restores the backup or removes the new file). For manual recovery, use `logs/history.log` to find the backup.
 
 **Q: Where can I see what changed?**  
-Open `logs/history.log` or use GUI → “Recent activity.” Timestamps, modes, source/target paths, and notes appear there so you can trace who converted what.
+`logs/history.log` or GUI → “Recent activity” shows timestamps, mode, paths, and notes for each run.
 
 Have a question that isn’t covered here? Open an issue or drop it into `IMPROVEMENTS.md` so we can expand this FAQ.

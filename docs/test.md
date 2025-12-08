@@ -1,9 +1,7 @@
 # Test Document
 
 ## Welcome! 👋
-
 This is a test document to verify your setup is working correctly.
-
 ## Features to Try
 
 1.  **Edit this file** in VS Code

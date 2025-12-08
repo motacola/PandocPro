@@ -23,8 +23,12 @@ async function main() {
   const followUp = followUpB64 ? Buffer.from(followUpB64, 'base64').toString('utf8') : ''
   try {
     const validatedRoot = validateProjectRoot(projectRoot)
-    const reply = await askFaqAi(validatedRoot, { question, answer, followUp })
-    process.stdout.write(`${reply.trim()}\n`)
+    const raw = await askFaqAi(validatedRoot, { question, answer, followUp })
+    const cleaned = String(raw || '')
+      .replace(/<\|im_end\|>/gi, '')
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .trim()
+    process.stdout.write(`${cleaned}\n`)
   } catch (err) {
     process.stderr.write(`Error: ${err?.message || err}\n`)
     process.exit(1)

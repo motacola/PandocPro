@@ -219,23 +219,23 @@ dsync export document.md --output final-version.docx
 
 ## 🔗 MCP Quick Start (for LLM-integrated workflows)
 
-Add this to your MCP config:
+Works with **Desktop Commander**, **Context7**, and any other MCP-aware client.
 
-```json
-{
-  "servers": {
-    "pandocpro": {
-      "command": "npx",
-      "args": ["pandocpro", "mcp"],
-      "cwd": "/path/to/PandocPro"
-    }
-  }
-}
+```bash
+# Easiest: one-step installer
+./scripts/install-mcp.sh
+
+# Optional: if your client is launched outside the repo, set PROJECT_ROOT
+# export PROJECT_ROOT="/absolute/path/to/docx-md-sync"
 ```
 
-Then you can ask your LLM:
-
+Restart your MCP client so it discovers the `docsync` tools, then ask:
 “Convert report.docx to markdown, improve the introduction, and export to Word.”
+
+Common client setups:
+- Desktop Commander (Claude Desktop): restart the app after copying the YAML.
+- Context7: reload the workspace/client so it rescans `~/mcp/tools`.
+- Other MCP clients (VS Code extension, custom CLIs): point them at the same `~/mcp/tools/docsync.yaml`; set `PROJECT_ROOT` if they launch outside the repo.
 
 ---
 

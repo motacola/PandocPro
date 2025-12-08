@@ -10,6 +10,26 @@ You can now ask me (Claude) to handle your documents using **natural language**,
 
 ---
 
+## 🛠️ One-Time Setup (works with any MCP client)
+
+Run this from the repo root so any MCP client can discover the tools:
+
+```bash
+mkdir -p ~/mcp/tools
+cp mcp/docsync.yaml ~/mcp/tools/docsync.yaml
+# Optional if your client starts outside the repo:
+# export PROJECT_ROOT="/absolute/path/to/docx-md-sync"
+```
+
+Then restart or reload your MCP client so it picks up the `docsync` suite.
+
+### Client recipes
+- **Desktop Commander (Claude Desktop):** copy the YAML, restart the app.
+- **Context7:** copy the YAML, reload the workspace/client so it rescans `~/mcp/tools`.
+- **Other MCP clients (VS Code MCP extension, custom CLIs):** point them at `~/mcp/tools/docsync.yaml`; set `PROJECT_ROOT` if they launch outside this repo.
+
+---
+
 ## 🚀 Available Commands (Just Ask!)
 
 ### **Document Discovery**

@@ -5,8 +5,11 @@ const statusEl = document.getElementById('status');
 const fileMeta = document.getElementById('fileMeta');
 const resultsEl = document.getElementById('results');
 const formatCheckboxes = Array.from(document.querySelectorAll('.formats input[type="checkbox"]'));
+const serverStatusEl = document.getElementById('serverStatus');
+const notifyToggle = document.getElementById('notifyToggle');
 
 let selectedFile = null;
+let notificationsEnabled = false;
 
 function formatSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -65,6 +68,35 @@ function updateConvertButton() {
   convertBtn.disabled = !selectedFile || !hasFormat;
 }
 
+function setServerStatus(state, text) {
+  if (!serverStatusEl) return;
+  serverStatusEl.textContent = text;
+  serverStatusEl.classList.remove('status-online', 'status-offline', 'status-checking');
+  serverStatusEl.classList.add(`status-${state}`);
+}
+
+async function refreshHealth() {
+  try {
+    const res = await fetch('/api/health');
+    if (!res.ok) throw new Error('Health failed');
+    const data = await res.json();
+    setServerStatus('online', `Server: online · ${data.cache.entries} cache entries`);
+  } catch (error) {
+    setServerStatus('offline', 'Server: offline');
+  }
+}
+
+function maybeNotify(title, body) {
+  if (!notificationsEnabled || typeof Notification === 'undefined') return;
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification(title, { body });
+    } catch (error) {
+      // ignore
+    }
+  }
+}
+
 function handleFile(file) {
   if (!file) return;
   selectedFile = file;
@@ -95,6 +127,26 @@ fileInput.addEventListener('change', (event) => {
 });
 
 formatCheckboxes.forEach((box) => box.addEventListener('change', updateConvertButton));
+
+if (notifyToggle) {
+  notifyToggle.addEventListener('change', async (event) => {
+    if (!event.target.checked) {
+      notificationsEnabled = false;
+      return;
+    }
+    if (typeof Notification === 'undefined') {
+      statusEl.textContent = 'This browser does not support notifications.';
+      notifyToggle.checked = false;
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    notificationsEnabled = permission === 'granted';
+    if (!notificationsEnabled) {
+      notifyToggle.checked = false;
+      statusEl.textContent = 'Enable notifications in your browser settings to get alerts.';
+    }
+  });
+}
 
 convertBtn.addEventListener('click', async () => {
   if (!selectedFile) {
@@ -129,6 +181,7 @@ convertBtn.addEventListener('click', async () => {
     }
     const result = await response.json();
     statusEl.textContent = `Done! Job ${result.jobId}`;
+    maybeNotify('PandocPro conversion complete', `Job ${result.jobId} finished.`);
     prependJobCard(result);
   } catch (error) {
     console.error(error);
@@ -184,3 +237,6 @@ function prependJobCard(meta) {
 }
 
 resetDropZone();
+setServerStatus('checking', 'Server: checking…');
+refreshHealth();
+setInterval(refreshHealth, 20000);

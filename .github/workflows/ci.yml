@@ -29,5 +29,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: UI server tests
+        run: npm run test:ui
+
       - name: Test
         run: npm test

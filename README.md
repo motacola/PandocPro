@@ -193,6 +193,30 @@ dsync export document.md --output final-version.docx
 
 ---
 
+## 🔄 Watch & Auto Sync
+
+- Live watch (auto-export on save):
+  ```bash
+  DOCX_FILE=docs/presentation.docx MD_FILE=docs/presentation.md npm run watch
+  ```
+  Use `--mode=to-pdf|to-html|to-pptx` to change outputs; `--once` runs a single export and exits.
+- Auto mode (newest file wins):
+  ```bash
+  ./scripts/docx-sync.sh docs/report.docx docs/report.md auto
+  ```
+- Keep Markdown + Word twins ready: drop `.docx` files in `docs/`, run `dsync` option 1 once, then leave watch mode running while you edit.
+
+## 🚢 Release Flow (when to cut a new DMG)
+
+1) Ensure Pandoc + PPTX writer are installed (or CI installs them). Run `npm test` (smoke + UI server tests).  
+2) For server-only changes, no DMG is needed; for GUI/electron changes, run:
+   ```bash
+   npm run gui:build   # production build
+   npm run gui:package # opens gui/release with the DMG
+   ```
+3) Smoke the drag-and-drop UI: `npm run ui` and convert a small `.md` → `.docx`/`.pdf`.  
+4) Tag and publish only when both smoke tests and GUI packaging succeed.
+
 ## 🔗 MCP Quick Start (for LLM-integrated workflows)
 
 Add this to your MCP config:

@@ -148,6 +148,57 @@ header .lede {
   margin-bottom: 0.4rem;
 }
 
+.status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+  margin: 0.2rem 0 1rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+}
+
+.status-pill::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.status-pill.status-online::before {
+  background: #10b981;
+}
+
+.status-pill.status-offline::before {
+  background: #ef4444;
+}
+
+.status-pill.status-checking::before {
+  background: #f59e0b;
+}
+
+.notify-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.notify-toggle input {
+  transform: scale(1.1);
+}
+
 .convert {
   width: 100%;
   padding: 1rem 1.2rem;

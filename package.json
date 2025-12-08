@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "lint": "bash scripts/lint.sh",
-    "test": "bash scripts/smoke.sh",
+    "test": "npm run test:ui && bash scripts/smoke.sh",
+    "test:ui": "node --test ui-server/server.test.js",
     "ci": "npm run lint && npm test",
     "dev:all": "bash scripts/dev-all.sh",
     "watch": "node watch-md.js",

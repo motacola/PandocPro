@@ -6,17 +6,17 @@ const { spawn } = require('child_process');
 const crypto = require('crypto');
 const zlib = require('zlib');
 const { logger, LOG_LEVELS } = require('./logger');
-const ProcessPool = require('./process-pool');
+const { ProcessPool } = require('./process-pool');
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const SCRIPT_PATH = path.join(PROJECT_ROOT, 'scripts', 'docx-sync.sh');
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const JOB_ROOT = path.join(PROJECT_ROOT, 'tmp', 'ui-jobs');
+const JOB_ROOT = path.join(PROJECT_ROOT, process.env.DSYNC_JOB_ROOT || 'tmp/ui-jobs');
 const JOB_TTL_MS = Number(process.env.DSYNC_UI_JOB_TTL_MS || 24 * 60 * 60 * 1000);
 const JOB_MAX_KEEP = Number(process.env.DSYNC_UI_MAX_JOBS || 200);
 const PORT = Number(process.env.DSYNC_UI_PORT || 4174);
 const MAX_BODY_BYTES = Number(process.env.DSYNC_UI_MAX_BYTES || 25 * 1024 * 1024);
-const MAX_REQUESTS_PER_MINUTE = 60;
+const MAX_REQUESTS_PER_MINUTE = Number(process.env.DSYNC_MAX_REQUESTS_PER_MINUTE || 60);
 const MAX_CONCURRENT_JOBS = 5;
 const FORMAT_SUPPORT = {
   docx: new Set(['docx', 'md', 'pdf', 'html', 'pptx']),
@@ -27,6 +27,7 @@ const FORMAT_SUPPORT = {
 // Request throttling
 const requestCounts = new Map();
 let activeConversions = 0;
+let lastCleanupSummary = { timestamp: null, deleted: 0, kept: 0 };
 
 // Process pool for pandoc conversions
 const processPool = new ProcessPool(MAX_CONCURRENT_JOBS, logger);
@@ -103,8 +104,14 @@ async function cleanupOldJobs() {
         // Delete oldest jobs beyond the configured cap
         // eslint-disable-next-line no-await-in-loop
         await removeJobDir(job.dirPath);
+        expired.push(job);
       }
     }
+    lastCleanupSummary = {
+      timestamp: new Date().toISOString(),
+      deleted: expired.length,
+      kept: keepers.length,
+    };
   } catch (error) {
     if (error.code !== 'ENOENT') {
       console.warn('Job cleanup skipped', error);
@@ -156,7 +163,8 @@ function runSync(docxPath, textPath, mode, outputOverride) {
 
 // HTTP header optimization helpers
 function getCompressionHeader(req) {
-  const acceptEncoding = req.headers['accept-encoding'] || '';
+  const headers = (req && req.headers) || {};
+  const acceptEncoding = headers['accept-encoding'] || '';
   if (acceptEncoding.includes('gzip')) return 'gzip';
   if (acceptEncoding.includes('deflate')) return 'deflate';
   return null;
@@ -182,9 +190,17 @@ function getCacheControlHeader(isStatic, hasVary) {
   return hasVary ? 'private, max-age=0, must-revalidate' : 'no-cache';
 }
 
+function getCacheMetrics() {
+  return {
+    entries: conversionCache.size,
+    maxEntries: CONVERSION_CACHE_MAX_SIZE,
+    ttlMs: CONVERSION_CACHE_TTL_MS,
+  };
+}
+
 function sendJsonCompressed(res, status, payload, requestId) {
   const body = JSON.stringify(payload);
-  const encoding = getCompressionHeader(res.req || {});
+  const encoding = getCompressionHeader(res.req);
   const compressed = shouldCompress('application/json', Buffer.byteLength(body));
   const headers = {
     'Content-Type': 'application/json; charset=utf-8',
@@ -251,7 +267,7 @@ function sendError(res, status, requestId, errorType, userMessage, details = {})
 
 function isRateLimited(ip) {
   const now = Date.now();
-  const key = `${ip}:${Math.floor(now / 60000)}`;
+  const key = `${ip}|${Math.floor(now / 60000)}`;
   const count = (requestCounts.get(key) || 0) + 1;
   requestCounts.set(key, count);
 
@@ -259,7 +275,9 @@ function isRateLimited(ip) {
   if (Math.random() < 0.01) {
     const cutoff = now - 120000;
     for (const [k, _] of requestCounts.entries()) {
-      if (parseInt(k.split(':')[1]) * 60000 < cutoff) {
+      const minuteStr = k.split('|').pop();
+      const minuteVal = Number(minuteStr);
+      if (Number.isFinite(minuteVal) && minuteVal * 60000 < cutoff) {
         requestCounts.delete(k);
       }
     }
@@ -365,10 +383,10 @@ async function handleConvert(req, res) {
     if (cachedResult) {
       logger.info('Conversion cache hit', { cacheKey, formats }, requestId);
       const meta = {
-        jobId: generateId(),
+        jobId: cachedResult.jobId,
         requestId,
         originalName: fileName,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(cachedResult.time).toISOString(),
         outputs: cachedResult.outputs,
         logs: cachedResult.logs,
         fromCache: true,
@@ -525,7 +543,7 @@ async function handleConvert(req, res) {
     await fsp.writeFile(metaPath, JSON.stringify(meta, null, 2));
 
     // Cache conversion results for future identical requests
-    setConversionCache(cacheKey, outputs, logs);
+    setConversionCache(cacheKey, jobId, jobDir, outputs, logs);
 
     logger.logConversion(jobId, 'conversion', 'completed', undefined, undefined);
     logger.info('Conversion completed successfully', {
@@ -694,10 +712,22 @@ function getConversionCacheEntry(cacheKey) {
     return null;
   }
 
+  if (!entry.jobDir) {
+    conversionCache.delete(cacheKey);
+    return null;
+  }
+
+  // Ensure cached files still exist; otherwise drop the cache entry
+  const allExist = entry.outputs.every((o) => fs.existsSync(path.join(entry.jobDir, o.fileName)));
+  if (!allExist) {
+    conversionCache.delete(cacheKey);
+    return null;
+  }
+
   return entry;
 }
 
-function setConversionCache(cacheKey, outputs, logs) {
+function setConversionCache(cacheKey, jobId, jobDir, outputs, logs) {
   // Prevent cache from growing too large (LRU-style by deletion)
   if (conversionCache.size >= CONVERSION_CACHE_MAX_SIZE) {
     // Delete oldest entry
@@ -706,6 +736,8 @@ function setConversionCache(cacheKey, outputs, logs) {
   }
 
   conversionCache.set(cacheKey, {
+    jobId,
+    jobDir,
     outputs,
     logs,
     time: Date.now(),
@@ -852,6 +884,21 @@ async function requestListener(req, res) {
     await handleConvert(req, res);
     return;
   }
+  if (req.method === 'GET' && pathname === '/api/health') {
+    const requestId = createRequestId();
+    sendJsonCompressed(res, 200, {
+      status: 'ok',
+      uptime: process.uptime(),
+      activeConversions,
+      cache: getCacheMetrics(),
+      jobs: {
+        root: JOB_ROOT,
+        lastCleanup: lastCleanupSummary,
+      },
+      timestamp: new Date().toISOString(),
+    }, requestId);
+    return;
+  }
   if (req.method === 'GET' && pathname === '/api/metrics') {
     const metrics = processPool.getMetrics();
     sendJsonCompressed(res, 200, {
@@ -859,6 +906,8 @@ async function requestListener(req, res) {
       metrics: {
         processPool: metrics,
         activeConversions,
+        cache: getCacheMetrics(),
+        jobs: lastCleanupSummary,
       },
       timestamp: new Date().toISOString(),
     });

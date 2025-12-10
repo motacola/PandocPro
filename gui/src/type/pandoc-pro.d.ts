@@ -125,6 +125,9 @@ export interface SnapshotEntry {
   snapshotPath: string
   timestamp: number
   size: number
+  version?: string
+  notes?: string
+  tags?: string[]
 }
 
 export interface Persona {

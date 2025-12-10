@@ -111,7 +111,7 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
                       {snap.notes && <div className="version-notes">Notes: {snap.notes}</div>}
                       {snap.tags && snap.tags.length > 0 && (
                         <div className="version-tags">
-                          {snap.tags.map((tag, i) => (
+                          {snap.tags.map((tag: string, i: number) => (
                             <span key={i} className="tag-badge">{tag}</span>
                           ))}
                         </div>
@@ -145,7 +145,7 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
                       {version.notes && <div className="version-notes">Notes: {version.notes}</div>}
                       {version.tags && version.tags.length > 0 && (
                         <div className="version-tags">
-                          {version.tags.map((tag, i) => (
+                          {version.tags.map((tag: string, i: number) => (
                             <span key={i} className="tag-badge">{tag}</span>
                           ))}
                         </div>

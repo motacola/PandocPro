@@ -21,6 +21,8 @@ interface DashboardViewProps {
   onSyncRecent: () => void
   recentFilesCount: number
   isProcessing: boolean
+  conversionProgress?: number
+  bulkConversionActive?: boolean
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -34,6 +36,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSyncRecent,
   recentFilesCount,
   isProcessing,
+  conversionProgress,
+  bulkConversionActive,
 }) => {
   return (
     <motion.div
@@ -65,6 +69,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             { label: 'Synced', value: stats.synced, color: 'text-success' },
             { label: 'Pending', value: stats.pending, color: 'text-warning' },
             { label: 'Total Size', value: formatSize(stats.totalSize), color: 'text-info' },
+            { label: 'Performance', value: 'Optimized', color: 'text-success' },
           ].map((stat, i) => (
             <motion.div
               key={i}
@@ -92,8 +97,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             Drop Word files to convert
           </div>
           <div className='drop-text-secondary'>
-             or click here to run <strong>Quick Convert All</strong> ({stats.pending} pending)
+            or click here to run <strong>Quick Convert All</strong> ({stats.pending} pending)
           </div>
+          <div className='performance-indicator'>
+            <span className='performance-label'>Performance Mode:</span>
+            <span className='performance-value'>Optimized</span>
+          </div>
+
+          {/* Progress Indicator */}
+          {bulkConversionActive && (
+            <div className='conversion-progress'>
+              <div className='progress-bar-container'>
+                <div
+                  className='progress-bar'
+                  style={{ width: `${conversionProgress || 0}%` }}
+                />
+              </div>
+              <div className='progress-text'>
+                Converting... {Math.round(conversionProgress || 0)}% complete
+              </div>
+            </div>
+          )}
         </motion.div>
 
         <div className='dashboard-section'>

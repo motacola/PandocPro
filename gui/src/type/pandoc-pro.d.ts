@@ -56,6 +56,9 @@ export interface DocsListEntry {
   mdMtime: number | null
   docxSize: number
   mdSize: number | null
+  previewText?: string
+  tags?: string[]
+  version?: string
 }
 
 export interface HistoryEntry {

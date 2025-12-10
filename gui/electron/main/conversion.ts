@@ -25,6 +25,9 @@ interface DocsListEntry {
   mdMtime: number | null
   docxSize: number
   mdSize: number | null
+  previewText?: string
+  tags?: string[]
+  version?: string
 }
 
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
@@ -94,6 +97,21 @@ async function discoverDocs(): Promise<DocsListEntry[]> {
               // md file doesn't exist or other error
             }
 
+            // Extract preview text from the document if available
+            let previewText: string | undefined
+            try {
+              if (mdExists) {
+                // Read first few lines from markdown file for preview
+                const mdContent = await fs.promises.readFile(mdPath, 'utf-8')
+                previewText = mdContent.split('\n').slice(0, 3).join(' ').substring(0, 100)
+              } else {
+                // For docx files without md, we could extract text using pandoc or other tools
+                // For now, we'll leave it empty
+              }
+            } catch {
+              // Ignore preview extraction errors
+            }
+
             entries.push({
               docx: fullPath,
               md: mdPath,
@@ -101,7 +119,8 @@ async function discoverDocs(): Promise<DocsListEntry[]> {
               docxMtime: docxStats.mtimeMs,
               mdMtime,
               docxSize: docxStats.size,
-              mdSize
+              mdSize,
+              previewText
             })
           } catch (e) {
             console.error(`Error processing file ${fullPath}:`, e)
@@ -136,17 +155,17 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
 
     // Create snapshot of the source file before converting
     // auto mode? if to-md, source is docx. if to-docx, source is md.
-    const sourceFile = payload.mode === 'to-md' ? payload.docxPath : 
-                      (payload.mode === 'to-docx' ? payload.mdPath : 
-                      (payload.mode === 'to-pptx' ? payload.mdPath : 
-                      (fs.existsSync(payload.docxPath) ? payload.docxPath : payload.mdPath))) // heuristic for auto
+    const sourceFile = payload.mode === 'to-md' ? payload.docxPath :
+      (payload.mode === 'to-docx' ? payload.mdPath :
+        (payload.mode === 'to-pptx' ? payload.mdPath :
+          (fs.existsSync(payload.docxPath) ? payload.docxPath : payload.mdPath))) // heuristic for auto
 
     if (sourceFile && fs.existsSync(sourceFile)) {
-        createSnapshot(sourceFile).catch(err => console.error('Auto-snapshot failed', err))
+      createSnapshot(sourceFile).catch(err => console.error('Auto-snapshot failed', err))
     }
 
     const args = [payload.docxPath, payload.mdPath, payload.mode]
-    
+
     // Check for reference doc setting
     try {
       const settings = readSettings()

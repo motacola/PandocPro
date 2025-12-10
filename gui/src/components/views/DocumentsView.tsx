@@ -103,34 +103,55 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     // Show status icon
     if (!doc.mdExists) {
       return (
-        <div title='MD file missing'>
+        <div className='doc-status-icon' title='MD file missing'>
           <AlertCircle className='w-4 h-4 text-yellow-500' />
+          <span className='status-tooltip'>Missing Markdown</span>
         </div>
       )
     }
-    
+
     const docxTime = doc.docxMtime ?? 0
     const mdTime = doc.mdMtime ?? 0
-    
+
     if (docxTime > mdTime) {
       return (
-        <div title='DOCX is newer'>
+        <div className='doc-status-icon' title='DOCX is newer'>
           <Clock className='w-4 h-4 text-blue-500' />
+          <span className='status-tooltip'>DOCX newer</span>
         </div>
       )
     } else if (mdTime > docxTime) {
       return (
-        <div title='MD is newer'>
+        <div className='doc-status-icon' title='MD is newer'>
           <Clock className='w-4 h-4 text-purple-500' />
+          <span className='status-tooltip'>Markdown newer</span>
         </div>
       )
     }
-    
+
     return (
-      <div title='In sync'>
+      <div className='doc-status-icon' title='In sync'>
         <CheckCircle2 className='w-4 h-4 text-green-500' />
+        <span className='status-tooltip'>In sync</span>
       </div>
     )
+  }
+
+  const getDocStatusBadge = (doc: DocsListEntry) => {
+    if (!doc.mdExists) {
+      return <span className='badge badge-warning'>Unsynced</span>
+    }
+
+    const docxTime = doc.docxMtime ?? 0
+    const mdTime = doc.mdMtime ?? 0
+
+    if (docxTime > mdTime) {
+      return <span className='badge badge-info'>Needs Conversion</span>
+    } else if (mdTime > docxTime) {
+      return <span className='badge badge-success'>Up to date</span>
+    }
+
+    return <span className='badge badge-success'>Synced</span>
   }
 
   const formatFileSize = (bytes?: number | null) => {
@@ -141,7 +162,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   }
 
   return (
-    <section 
+    <section
       className={`view-documents fade-in panel ${isDraggingOver ? 'drag-active' : ''}`}
       onDragEnter={handleDragEnter}
       onDragOver={(e) => e.preventDefault()}
@@ -160,21 +181,40 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
       <div className='doc-browser'>
         <div className='doc-list-pane'>
           <div className='doc-controls'>
-            <input
-              type='search'
-              className='doc-search'
-              placeholder='Search documents'
-              value={docFilter}
-              onChange={(event) => onDocFilterChange(event.target.value)}
-            />
-            <select
-              className='doc-sort-select'
-              value={docSort}
-              onChange={(event) => onDocSortChange(event.target.value as 'alpha' | 'recent')}
-            >
-              <option value='alpha'>A → Z</option>
-              <option value='recent'>Recent</option>
-            </select>
+            <div className='search-container'>
+              <input
+                type='search'
+                className='doc-search'
+                placeholder='Search documents'
+                value={docFilter}
+                onChange={(event) => onDocFilterChange(event.target.value)}
+              />
+              <Search className='search-icon' size={16} />
+            </div>
+            <div className='filter-controls'>
+              <select
+                className='doc-sort-select'
+                value={docSort}
+                onChange={(event) => onDocSortChange(event.target.value as 'alpha' | 'recent')}
+              >
+                <option value='alpha'>A → Z</option>
+                <option value='recent'>Recent</option>
+                <option value='size'>File Size</option>
+                <option value='status'>Status</option>
+              </select>
+              <select
+                className='doc-filter-select'
+                onChange={(event) => {
+                  // Additional filter logic would go here
+                  console.log('Filter selected:', event.target.value)
+                }}
+              >
+                <option value='all'>All Files</option>
+                <option value='synced'>Synced</option>
+                <option value='unsynced'>Unsynced</option>
+                <option value='large'>Large Files</option>
+              </select>
+            </div>
           </div>
 
           <div
@@ -191,7 +231,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
           <div className='doc-list'>
             {isLoadingDocs ? (
               <div className='skeleton-container'>
-                 {Array.from({ length: 5 }).map((_, i) => (
+                {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className='skeleton-item' style={{ height: '2.5rem' }} />
                 ))}
               </div>
@@ -216,12 +256,27 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                     {getDocIcon(doc)}
                   </div>
                   <div className='doc-item-content'>
-                    <div className='doc-item-name'>{formatDocLabel(doc)}</div>
+                    <div className='doc-item-header'>
+                      <div className='doc-item-name'>{formatDocLabel(doc)}</div>
+                      <div className='doc-item-badge'>
+                        {getDocStatusBadge(doc)}
+                      </div>
+                    </div>
                     <div className='doc-item-meta'>
                       <span className='doc-size'>{formatFileSize(doc.docxSize)}</span>
                       <span className='doc-status'>
                         {!doc.mdExists ? '⚠️ No MD' : doc.docxMtime > (doc.mdMtime ?? 0) ? '📄 → 📝' : '📝 → 📄'}
                       </span>
+                      {doc.docxSize && doc.docxSize > 5 * 1024 * 1024 && (
+                        <span className='badge badge-warning badge-sm'>Large</span>
+                      )}
+                    </div>
+                    <div className='doc-item-preview'>
+                      {doc.previewText && (
+                        <span className='doc-preview-text' title={doc.previewText}>
+                          {doc.previewText.substring(0, 50)}{doc.previewText.length > 50 ? '...' : ''}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -322,14 +377,14 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
                 <div className={`editor-container ${isPreviewVisible ? 'split-view' : ''}`}>
                   <div className='editor-pane'>
-                    <EditorToolbar 
-                      editor={editor} 
+                    <EditorToolbar
+                      editor={editor}
                       onAiAction={async (instruction) => {
                         if (!selectedDoc?.md) return
-                        
+
                         // Optimistic UI for editor would be hard, so just loading toast
                         // Ideally we set loading state
-                        
+
                         try {
                           // Simple toast or overlay? 
                           // DocumentsView doesn't have addToast prop... wait.
@@ -338,24 +393,24 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                           // We'll trust the user sees global spinner if we set activeRequest?
                           // But aiEdit is not a conversion request.
                           // We should probably show a small overlay on the editor or something.
-                          
+
                           // Quick hack: Use window.alert or console for now?
                           // No, use a local loading state.
-                          
+
                           // We need to trigger the edit.
                           const toast = (msg: string) => console.debug(msg) // Placeholder if we can't toast
-                          
+
                           await window.pandocPro.aiEdit({
                             filePath: selectedDoc.md,
                             instruction
                           })
-                          
+
                           // Refresh content
                           onPickDocument() // This effectively re-selects/refreshes the current doc content
-                          
+
                         } catch (err) {
-                           console.error('AI Edit failed', err)
-                           // alert('AI Edit failed: ' + err)
+                          console.error('AI Edit failed', err)
+                          // alert('AI Edit failed: ' + err)
                         }
                       }}
                     />

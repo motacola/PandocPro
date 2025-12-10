@@ -7,11 +7,9 @@
 }
 
 .view-documents.drag-active {
-  background: linear-gradient(
-    135deg,
-    rgba(59, 130, 246, 0.05) 0%,
-    rgba(139, 92, 246, 0.05) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(59, 130, 246, 0.05) 0%,
+      rgba(139, 92, 246, 0.05) 100%);
   border: 2px dashed var(--primary-color);
   border-radius: 8px;
 }
@@ -40,10 +38,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
+
   50% {
     transform: translate(-50%, -50%) scale(1.05);
     opacity: 0.9;
@@ -69,6 +70,76 @@
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.doc-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.3s ease;
+  border-radius: 0 3px 3px 0;
+}
+
+.doc-item:hover::before {
+  background: linear-gradient(180deg, var(--color-primary-500), var(--color-accent-500));
+}
+
+.doc-item.selected::before {
+  background: linear-gradient(180deg, var(--color-primary-500), var(--color-accent-500));
+}
+
+.doc-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.doc-item-badge {
+  flex-shrink: 0;
+}
+
+.doc-status-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  margin-bottom: 4px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  z-index: 10;
+}
+
+.doc-status-icon:hover .status-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.badge-sm {
+  padding: 2px 6px;
+  font-size: 0.7rem;
 }
 
 .doc-item-icon {

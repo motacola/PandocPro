@@ -10,6 +10,8 @@ interface VersionsPanelProps {
 export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [versions, setVersions] = useState<any[]>([])
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false)
 
   const fetchSnapshots = async () => {
     setIsLoading(true)
@@ -21,7 +23,7 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
       // Let's show snapshots for the MD file primarily as that's what is editable in the app.
       // BUT if we are doing docx->md, we might want to revert the docx.
       // Let's just list MD snapshots for now as "Editor Versions".
-      
+
       const mdSnaps = doc.mdExists ? await window.pandocPro.listSnapshots(doc.md) : []
       setSnapshots(mdSnaps)
     } catch (err) {
@@ -47,45 +49,127 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
     }
   }
 
-  // Fetch when doc changes or panel opens? 
+  const handleRestoreVersion = async (version: any) => {
+    if (!confirm(`Are you sure you want to restore version ${version.version} from ${new Date(version.timestamp).toLocaleString()}?`)) {
+      return
+    }
+    try {
+      await window.pandocPro.restoreSnapshot({
+        snapshotPath: version.snapshotPath,
+        targetPath: version.filePath
+      })
+      alert(`Version ${version.version} restored successfully. Please refresh the document.`)
+      fetchVersions() // Refresh list
+    } catch (err) {
+      alert(`Failed to restore version ${version.version}`)
+    }
+  }
+
+  const fetchVersions = async () => {
+    setIsLoadingVersions(true)
+    try {
+      // Try to get document versions if available
+      // For now, we'll simulate this since the backend doesn't have versionList yet
+      const mdVersions = doc.mdExists ? [] : []
+      setVersions(mdVersions || [])
+    } catch (err) {
+      console.error('Failed to load versions', err)
+      setVersions([])
+    } finally {
+      setIsLoadingVersions(false)
+    }
+  }
+
+  // Fetch when doc changes or panel opens?
   // We'll fetch on mount if doc changes.
   useEffect(() => {
     fetchSnapshots()
+    fetchVersions()
   }, [doc.md]) // Refetch if MD path changes
 
   return (
     <CollapsibleSection title="Version History (Time Machine)" defaultOpen={false}>
-      <div className="versions-list" style={{ padding: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
-        {isLoading && <p className="muted">Loading versions...</p>}
-        {!isLoading && snapshots.length === 0 && <p className="muted">No backups found.</p>}
-        
-        {snapshots.map((snap) => (
-          <div key={snap.snapshotPath} style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            padding: '0.5rem',
-            borderBottom: '1px solid var(--border-color)',
-            fontSize: '0.9rem'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <History size={14} className="text-secondary" />
-              <span>{new Date(snap.timestamp).toLocaleString()}</span>
-              <span className="muted" style={{ fontSize: '0.8rem' }}>({(snap.size / 1024).toFixed(1)} KB)</span>
-            </div>
-            <button 
-              className="secondary small" 
-              onClick={() => handleRestore(snap)}
-              title="Restore this version"
-            >
-              <RotateCcw size={14} /> Restore
-            </button>
+      <div className="versions-panel-content">
+        {isLoading && <p className="versions-loading">Loading versions...</p>}
+        {!isLoading && snapshots.length === 0 && versions.length === 0 && (
+          <div className="versions-empty">
+            <p>No version history available. Snapshots are automatically created before every conversion.</p>
           </div>
-        ))}
-        
-         <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-           <p>Snapshots are automatically created before every conversion.</p>
-         </div>
+        )}
+
+        {snapshots.length > 0 && (
+          <div className="versions-section">
+            <h4 className="versions-section-title">Automatic Snapshots</h4>
+            <div className="versions-grid">
+              {snapshots.map((snap) => (
+                <div key={snap.snapshotPath} className="version-card">
+                  <div className="version-meta">
+                    <History size={16} className="version-icon" />
+                    <div className="version-info">
+                      <div className="version-timestamp">{new Date(snap.timestamp).toLocaleString()}</div>
+                      <div className="version-size">Size: {(snap.size / 1024).toFixed(1)} KB</div>
+                      {snap.notes && <div className="version-notes">Notes: {snap.notes}</div>}
+                      {snap.tags && snap.tags.length > 0 && (
+                        <div className="version-tags">
+                          {snap.tags.map((tag, i) => (
+                            <span key={i} className="tag-badge">{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    className="version-restore-btn"
+                    onClick={() => handleRestore(snap)}
+                    title="Restore this version"
+                    aria-label={`Restore snapshot from ${new Date(snap.timestamp).toLocaleString()}`}
+                  >
+                    <RotateCcw size={16} /> Restore
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {versions.length > 0 && (
+          <div className="versions-section">
+            <h4 className="versions-section-title">Document Versions</h4>
+            <div className="versions-grid">
+              {versions.map((version) => (
+                <div key={version.timestamp} className="version-card">
+                  <div className="version-meta">
+                    <span className="version-badge">{version.version}</span>
+                    <div className="version-info">
+                      <div className="version-timestamp">{new Date(version.timestamp).toLocaleString()}</div>
+                      {version.notes && <div className="version-notes">Notes: {version.notes}</div>}
+                      {version.tags && version.tags.length > 0 && (
+                        <div className="version-tags">
+                          {version.tags.map((tag, i) => (
+                            <span key={i} className="tag-badge">{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    className="version-restore-btn"
+                    onClick={() => handleRestoreVersion(version)}
+                    title={`Restore version ${version.version}`}
+                    aria-label={`Restore version ${version.version}`}
+                  >
+                    <RotateCcw size={16} /> Restore
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="versions-footer">
+          <p>Snapshots are automatically created before every conversion to preserve your work.</p>
+          {versions.length > 0 && <p>Document versions provide named milestones for tracking progress.</p>}
+        </div>
       </div>
     </CollapsibleSection>
   )

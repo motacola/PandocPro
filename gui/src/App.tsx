@@ -167,6 +167,10 @@ const ShortcutsModal = ({ onClose }: { onClose: () => void }) => {
             <span className='shortcut-desc'>Show Shortcuts</span>
             <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>/</kbd></span>
           </div>
+          <div className='shortcut-row'>
+            <span className='shortcut-desc'>Toggle Sidebar</span>
+            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>B</kbd></span>
+          </div>
         </div>
         <button className='primary full-width' onClick={onClose}>Close</button>
       </div>
@@ -211,6 +215,7 @@ function App() {
     return (saved === 'light' || saved === 'dark') ? saved : 'dark'
   })
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
   const LARGE_DOC_THRESHOLD = 50 * 1024 * 1024 // 50MB
   const [dropActive, setDropActive] = useState<boolean>(false)
   const [telemetry, setTelemetry] = useState<TelemetryEntry[]>([])
@@ -629,9 +634,9 @@ function App() {
           textOnly: (doc.docxSize ?? 0) > LARGE_DOC_THRESHOLD,
         })
       }).catch(err => {
-         console.error(`Skipping doc due to error: ${err.message}`)
-         // Don't crash the whole batch, just move to next
-         addToast('error', `Skipped ${formatDocLabel(doc)}: ${err.message}`)
+        console.error(`Skipping doc due to error: ${err.message}`)
+        // Don't crash the whole batch, just move to next
+        addToast('error', `Skipped ${formatDocLabel(doc)}: ${err.message}`)
       })
     }
 
@@ -841,8 +846,8 @@ function App() {
           setIsZenMode(prev => {
             const next = !prev
             if (next && !zenToastShown.current) {
-               addToast('info', 'Zen Mode: Press Cmd+Shift+F to exit')
-               zenToastShown.current = true
+              addToast('info', 'Zen Mode: Press Cmd+Shift+F to exit')
+              zenToastShown.current = true
             }
             return next
           })
@@ -851,6 +856,11 @@ function App() {
           const searchInput = document.querySelector('.search-input') as HTMLInputElement
           if (searchInput) searchInput.focus()
         }
+      }
+      if (isMod && key === 'b') {
+        event.preventDefault()
+        setSidebarCollapsed(prev => !prev)
+        addToast('info', sidebarCollapsed ? 'Sidebar expanded' : 'Sidebar collapsed')
       }
       if (isMod && key === 'p') {
         event.preventDefault()
@@ -959,276 +969,299 @@ function App() {
   return (
     <ErrorBoundary>
       <GlobalDragDrop onDrop={async (files) => {
-         const file = files[0]
-         if (!file?.path) {
-           addToast('error', 'No file detected.')
-           return
-         }
-         const normalizedPath = file.path.replace(/\\/g, '/')
-         const docsRoot = normalizedDocsRoot || '/docs/'
-         if (!normalizedPath.startsWith(docsRoot)) {
-           addToast('error', 'Please drop files from your docs folder.')
-           return
-         }
-         try {
-           const refreshed = await window.pandocPro.listDocuments()
-           setDocs(refreshed)
-           const found = refreshed.find((d) => d.md.replace(/\\/g, '/') === normalizedPath)
-           if (found) {
-             setSelectedDoc(found)
-             addToast('success', 'File selected. Running conversion…')
-             const mode: ConversionMode =
-               found.docx.toLowerCase().endsWith('.docx') && (!found.mdExists || found.docxMtime > (found.mdMtime ?? 0))
-                 ? 'to-md'
-                 : 'to-docx'
-             triggerConversion(mode)
-           } else {
-             addToast('error', 'File is not a supported docx/md in docs/.')
-           }
-         } catch (err) {
-           addToast('error', err instanceof Error ? err.message : 'Failed to process dropped file.')
-         }
+        const file = files[0]
+        if (!file?.path) {
+          addToast('error', 'No file detected.')
+          return
+        }
+        const normalizedPath = file.path.replace(/\\/g, '/')
+        const docsRoot = normalizedDocsRoot || '/docs/'
+        if (!normalizedPath.startsWith(docsRoot)) {
+          addToast('error', 'Please drop files from your docs folder.')
+          return
+        }
+        try {
+          const refreshed = await window.pandocPro.listDocuments()
+          setDocs(refreshed)
+          const found = refreshed.find((d) => d.md.replace(/\\/g, '/') === normalizedPath)
+          if (found) {
+            setSelectedDoc(found)
+            addToast('success', 'File selected. Running conversion…')
+            const mode: ConversionMode =
+              found.docx.toLowerCase().endsWith('.docx') && (!found.mdExists || found.docxMtime > (found.mdMtime ?? 0))
+                ? 'to-md'
+                : 'to-docx'
+            triggerConversion(mode)
+          } else {
+            addToast('error', 'File is not a supported docx/md in docs/.')
+          }
+        } catch (err) {
+          addToast('error', err instanceof Error ? err.message : 'Failed to process dropped file.')
+        }
       }}>
         <div
           className={`App ${theme} ${isZenMode ? 'zen-mode' : ''} glass-effect`}
           onDragOver={(e) => {
-             e.preventDefault()
-             setDropActive(true)
+            e.preventDefault()
+            setDropActive(true)
           }}
           onDragLeave={() => setDropActive(false)}
           onDrop={handleFileDrop}
         >
-      <LegacyFaqAnchor />
-      <AnimatePresence>
-        {showOnboarding && (
-          <OnboardingChecklist
-            systemInfo={systemInfo}
-            settings={settings}
-            onClose={() => setShowOnboarding(false)}
+          <LegacyFaqAnchor />
+          <AnimatePresence>
+            {showOnboarding && (
+              <OnboardingChecklist
+                systemInfo={systemInfo}
+                settings={settings}
+                onClose={() => setShowOnboarding(false)}
+              />
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+          </AnimatePresence>
+
+          <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+          <ErrorDialog
+            isOpen={errorDialog.isOpen}
+            onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+            title={errorDialog.title}
+            problem={errorDialog.problem}
+            solution={errorDialog.solution}
+            actions={errorDialog.actions}
+            severity={errorDialog.severity}
           />
-        )}
-      </AnimatePresence>
 
-      <AnimatePresence>
-        {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
-      </AnimatePresence>
-
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-
-      <ErrorDialog
-        isOpen={errorDialog.isOpen}
-        onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
-        title={errorDialog.title}
-        problem={errorDialog.problem}
-        solution={errorDialog.solution}
-        actions={errorDialog.actions}
-        severity={errorDialog.severity}
-      />
-
-        <motion.aside
-        className='sidebar'
-        initial={{ x: -280 }}
-        animate={{ x: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      >
-        <div className='sidebar-header'>
-          <h1>PandocPro (Preview)</h1>
-          <Badge variant="info" size="sm">Preview</Badge>
-        </div>
-        <nav className='sidebar-nav'>
-          <motion.button
-            className={view === 'dashboard' ? 'active' : ''}
-            onClick={() => setView('dashboard')}
-            whileHover={{ x: 2 }}
-            whileTap={{ scale: 0.98 }}
+          <motion.aside
+            className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
-            <Home className="w-5 h-5" /> Dashboard
-          </motion.button>
-          <motion.button
-            className={view === 'documents' ? 'active' : ''}
-            onClick={() => setView('documents')}
-            whileHover={{ x: 2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <FileText className="w-5 h-5" /> Documents
-          </motion.button>
-          <motion.button
-            className={view === 'settings' ? 'active' : ''}
-            onClick={() => setView('settings')}
-            whileHover={{ x: 2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <SettingsIcon className="w-5 h-5" /> Settings
-          </motion.button>
-          <motion.button
-            className={view === 'faq' ? 'active' : ''}
-            onClick={() => setView('faq')}
-            whileHover={{ x: 2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <HelpCircle className="w-5 h-5" /> FAQ
-          </motion.button>
-        </nav>
-        <div className='sidebar-footer'>
-          {systemInfo && (
-            <div className='status-indicator'>
-              <span className={`dot ${systemInfo.pandocVersion ? 'online' : 'offline'}`} />
-              Pandoc {systemInfo.pandocVersion || 'Missing'}
+            <div className='sidebar-header'>
+              {!sidebarCollapsed && (
+                <>
+                  <h1>PandocPro (Preview)</h1>
+                  <Badge variant="info" size="sm">Preview</Badge>
+                </>
+              )}
+              <button
+                className='sidebar-toggle'
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                aria-expanded={!sidebarCollapsed}
+              >
+                {sidebarCollapsed ? <Maximize className="w-5 h-5" /> : <Minimize className="w-5 h-5" />}
+              </button>
             </div>
-          )}
+            <nav className='sidebar-nav' role="navigation" aria-label="Main navigation">
+              <motion.button
+                className={view === 'dashboard' ? 'active' : ''}
+                onClick={() => setView('dashboard')}
+                whileHover={{ x: 2 }}
+                whileTap={{ scale: 0.98 }}
+                title="Dashboard"
+                aria-current={view === 'dashboard'}
+              >
+                <Home className="w-5 h-5" /> {!sidebarCollapsed && <span className="nav-label">Dashboard</span>}
+              </motion.button>
+              <motion.button
+                className={view === 'documents' ? 'active' : ''}
+                onClick={() => setView('documents')}
+                whileHover={{ x: 2 }}
+                whileTap={{ scale: 0.98 }}
+                title="Documents"
+                aria-current={view === 'documents'}
+              >
+                <FileText className="w-5 h-5" /> {!sidebarCollapsed && <span className="nav-label">Documents</span>}
+              </motion.button>
+              <motion.button
+                className={view === 'settings' ? 'active' : ''}
+                onClick={() => setView('settings')}
+                whileHover={{ x: 2 }}
+                whileTap={{ scale: 0.98 }}
+                title="Settings"
+                aria-current={view === 'settings'}
+              >
+                <SettingsIcon className="w-5 h-5" /> {!sidebarCollapsed && <span className="nav-label">Settings</span>}
+              </motion.button>
+              <motion.button
+                className={view === 'faq' ? 'active' : ''}
+                onClick={() => setView('faq')}
+                whileHover={{ x: 2 }}
+                whileTap={{ scale: 0.98 }}
+                title="FAQ"
+                aria-current={view === 'faq'}
+              >
+                <HelpCircle className="w-5 h-5" /> {!sidebarCollapsed && <span className="nav-label">FAQ</span>}
+              </motion.button>
+            </nav>
+            <div className='sidebar-footer' role="contentinfo">
+              {systemInfo && (
+                <div className='status-indicator' title={`Pandoc ${systemInfo.pandocVersion || 'Missing'}`} aria-label={`Pandoc status: ${systemInfo.pandocVersion || 'Not installed'}`}>
+                  <span className={`dot ${systemInfo.pandocVersion ? 'online' : 'offline'}`} aria-hidden="true" />
+                  {!sidebarCollapsed && <span className="status-text">Pandoc {systemInfo.pandocVersion || 'Not installed'}</span>}
+                </div>
+              )}
+            </div>
+          </motion.aside>
+
+          <main className='main-content' role="main">
+            {view === 'dashboard' && (
+              <DashboardView
+                stats={stats}
+                history={history}
+                isLoadingHistory={isLoadingHistory}
+                onScan={() => {
+                  fetchDocs()
+                  setView('documents')
+                }}
+                onSettings={() => setView('settings')}
+                formatSize={formatSize}
+                onQuickConvertAll={handleQuickConvertAll}
+                onSyncRecent={handleSyncRecent}
+                recentFilesCount={recentFilesCount}
+                isProcessing={bulkConversionActive || !!activeRequest}
+                conversionProgress={conversionProgress}
+                bulkConversionActive={bulkConversionActive}
+              />
+            )}
+
+            {view === 'documents' && (
+              <DocumentsView
+                docs={filteredDocs}
+                isLoadingDocs={isLoadingDocs}
+                onRefresh={fetchDocs}
+                selectedDoc={selectedDoc}
+                onSelectDoc={setSelectedDoc}
+                docFilter={docFilter}
+                onDocFilterChange={(val) => setDocFilter(sanitizeInput(val))}
+                docSort={docSort}
+                onDocSortChange={setDocSort}
+                dropActive={dropActive}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setDropActive(true)
+                }}
+                onDragLeave={() => setDropActive(false)}
+                onDrop={handleFileDrop}
+                onPickDocument={async () => {
+                  try {
+                    const picked = await window.pandocPro.pickDocument()
+                    if (!picked) return
+                    const normalized = picked.replace(/\\/g, '/')
+                    const refreshed = await window.pandocPro.listDocuments()
+                    setDocs(refreshed)
+                    const found =
+                      refreshed.find((d) => d.docx.replace(/\\/g, '/') === normalized) ||
+                      refreshed.find((d) => d.md.replace(/\\/g, '/') === normalized)
+                    if (found) {
+                      setSelectedDoc(found)
+                      addToast('success', 'File selected.')
+                    } else {
+                      addToast('error', 'Selected file is not in docs/ or not a docx/md.')
+                    }
+                  } catch (err) {
+                    addToast('error', err instanceof Error ? err.message : 'Failed to pick document.')
+                  }
+                }}
+                formatDocLabel={formatDocLabel}
+                LARGE_DOC_THRESHOLD={LARGE_DOC_THRESHOLD}
+                dirty={dirty}
+                selectedMode={selectedMode}
+                onSelectMode={setSelectedMode}
+                disableActions={disableActions}
+                activeRequest={activeRequest}
+                onTriggerConversion={() => triggerConversion()}
+                isPreviewVisible={isPreviewVisible}
+                onTogglePreview={() => setIsPreviewVisible(!isPreviewVisible)}
+                onSaveMarkdown={() => handleSaveMarkdown()}
+                editor={editor}
+                previewHtml={previewHtml}
+                logs={logs}
+              />
+            )}
+
+            {view === 'settings' && (
+              <SettingsView
+                systemInfo={systemInfo}
+                settings={settings}
+                theme={theme}
+                onThemeChange={setTheme}
+                onUpdateSettings={async (payload) => {
+                  const updated = await window.pandocPro.updateSettings(payload)
+                  setSettings(updated)
+                  return updated
+                }}
+                onChooseDocsPath={async () => {
+                  const updated = await window.pandocPro.chooseDocsPath()
+                  if (updated) {
+                    setSettings(updated)
+                    fetchDocs()
+                  }
+                  return updated
+                }}
+                onChooseReferenceDoc={handleChooseReferenceDoc}
+                telemetry={telemetry}
+                onReloadLlmStatus={async () => {
+                  const status = await window.pandocPro.getLlmStatus()
+                  setFaqAiStatus(status)
+                }}
+              />
+            )}
+
+            {view === 'faq' && (
+              <FaqView
+                entries={filteredFaqEntries}
+                filter={faqFilter}
+                onFilterChange={(val) => setFaqFilter(sanitizeInput(val))}
+                selected={selectedFaq}
+                onSelect={(entry) => {
+                  setSelectedFaq(entry)
+                  setFaqAiResponse('')
+                }}
+                aiStatus={faqAiStatus}
+                onAskAi={handleFaqAi}
+                aiResponse={faqAiResponse}
+                aiLoading={faqAiLoading}
+                renderMarkdown={renderMarkdown}
+              />
+            )}
+          </main>
+          <Modal
+            isOpen={aiPrompt.isOpen}
+            onClose={() => setAiPrompt(prev => ({ ...prev, isOpen: false }))}
+            title='Ask AI'
+            footer={
+              <>
+                <button className='secondary' onClick={() => setAiPrompt(prev => ({ ...prev, isOpen: false }))}>Cancel</button>
+                <button className='primary' onClick={submitAiQuestion}>Ask Question</button>
+              </>
+            }
+          >
+            <div className='form-group'>
+              <label>Your Question</label>
+              <input
+                type='text'
+                className='form-input'
+                value={aiPrompt.followUp}
+                onChange={e => setAiPrompt(prev => ({ ...prev, followUp: e.target.value }))}
+                placeholder={aiPrompt.question}
+                autoFocus
+                onKeyDown={e => {
+                  if (e.key === 'Enter') submitAiQuestion()
+                }}
+              />
+              <p className='help-text'>Ask a follow-up or clarification about this FAQ.</p>
+            </div>
+          </Modal>
+
+          {/* Global Drag Drop wrapper end */}
         </div>
-      </motion.aside>
-
-      <main className='main-content'>
-        {view === 'dashboard' && (
-          <DashboardView
-            stats={stats}
-            history={history}
-            isLoadingHistory={isLoadingHistory}
-            onScan={() => {
-              fetchDocs()
-              setView('documents')
-            }}
-            onSettings={() => setView('settings')}
-            formatSize={formatSize}
-            onQuickConvertAll={handleQuickConvertAll}
-            onSyncRecent={handleSyncRecent}
-            recentFilesCount={recentFilesCount}
-            isProcessing={bulkConversionActive || !!activeRequest}
-          />
-        )}
-
-        {view === 'documents' && (
-          <DocumentsView
-            docs={filteredDocs}
-            isLoadingDocs={isLoadingDocs}
-            onRefresh={fetchDocs}
-            selectedDoc={selectedDoc}
-            onSelectDoc={setSelectedDoc}
-            docFilter={docFilter}
-            onDocFilterChange={(val) => setDocFilter(sanitizeInput(val))}
-            docSort={docSort}
-            onDocSortChange={setDocSort}
-            dropActive={dropActive}
-            onDragOver={(e) => {
-              e.preventDefault()
-              setDropActive(true)
-            }}
-            onDragLeave={() => setDropActive(false)}
-            onDrop={handleFileDrop}
-            onPickDocument={async () => {
-              try {
-                const picked = await window.pandocPro.pickDocument()
-                if (!picked) return
-                const normalized = picked.replace(/\\/g, '/')
-                const refreshed = await window.pandocPro.listDocuments()
-                setDocs(refreshed)
-                const found =
-                  refreshed.find((d) => d.docx.replace(/\\/g, '/') === normalized) ||
-                  refreshed.find((d) => d.md.replace(/\\/g, '/') === normalized)
-                if (found) {
-                  setSelectedDoc(found)
-                  addToast('success', 'File selected.')
-                } else {
-                  addToast('error', 'Selected file is not in docs/ or not a docx/md.')
-                }
-              } catch (err) {
-                addToast('error', err instanceof Error ? err.message : 'Failed to pick document.')
-              }
-            }}
-            formatDocLabel={formatDocLabel}
-            LARGE_DOC_THRESHOLD={LARGE_DOC_THRESHOLD}
-            dirty={dirty}
-            selectedMode={selectedMode}
-            onSelectMode={setSelectedMode}
-            disableActions={disableActions}
-            activeRequest={activeRequest}
-            onTriggerConversion={() => triggerConversion()}
-            isPreviewVisible={isPreviewVisible}
-            onTogglePreview={() => setIsPreviewVisible(!isPreviewVisible)}
-            onSaveMarkdown={() => handleSaveMarkdown()}
-            editor={editor}
-            previewHtml={previewHtml}
-            logs={logs}
-          />
-        )}
-
-        {view === 'settings' && (
-          <SettingsView
-            systemInfo={systemInfo}
-            settings={settings}
-            theme={theme}
-            onThemeChange={setTheme}
-            onUpdateSettings={async (payload) => {
-              const updated = await window.pandocPro.updateSettings(payload)
-              setSettings(updated)
-              return updated
-            }}
-            onChooseDocsPath={async () => {
-              const updated = await window.pandocPro.chooseDocsPath()
-              if (updated) {
-                setSettings(updated)
-                fetchDocs()
-              }
-              return updated
-            }}
-            onChooseReferenceDoc={handleChooseReferenceDoc}
-            telemetry={telemetry}
-            onReloadLlmStatus={async () => {
-              const status = await window.pandocPro.getLlmStatus()
-              setFaqAiStatus(status)
-            }}
-          />
-        )}
-
-        {view === 'faq' && (
-          <FaqView
-            entries={filteredFaqEntries}
-            filter={faqFilter}
-            onFilterChange={(val) => setFaqFilter(sanitizeInput(val))}
-            selected={selectedFaq}
-            onSelect={(entry) => {
-              setSelectedFaq(entry)
-              setFaqAiResponse('')
-            }}
-            aiStatus={faqAiStatus}
-            onAskAi={handleFaqAi}
-            aiResponse={faqAiResponse}
-            aiLoading={faqAiLoading}
-            renderMarkdown={renderMarkdown}
-          />
-        )}
-      </main>
-      <Modal
-        isOpen={aiPrompt.isOpen}
-        onClose={() => setAiPrompt(prev => ({ ...prev, isOpen: false }))}
-        title='Ask AI'
-        footer={
-          <>
-            <button className='secondary' onClick={() => setAiPrompt(prev => ({ ...prev, isOpen: false }))}>Cancel</button>
-            <button className='primary' onClick={submitAiQuestion}>Ask Question</button>
-          </>
-        }
-      >
-        <div className='form-group'>
-          <label>Your Question</label>
-          <input
-            type='text'
-            className='form-input'
-            value={aiPrompt.followUp}
-            onChange={e => setAiPrompt(prev => ({ ...prev, followUp: e.target.value }))}
-            placeholder={aiPrompt.question}
-            autoFocus
-            onKeyDown={e => {
-              if (e.key === 'Enter') submitAiQuestion()
-            }}
-          />
-          <p className='help-text'>Ask a follow-up or clarification about this FAQ.</p>
-        </div>
-      </Modal>
-
-      {/* Global Drag Drop wrapper end */}
-      </div>
       </GlobalDragDrop>
     </ErrorBoundary>
   )

@@ -1,3 +1,6 @@
+/* Import premium animations */
+@import 'styles/premium-animations.css';
+
 /* Native Mac Polish */
 .titlebar-drag-region {
   -webkit-app-region: drag;
@@ -356,18 +359,18 @@
   animation-delay: 250ms;
 }
 
-/* Sidebar - Enhanced with glass morphism */
+/* Sidebar - Enhanced with premium glass morphism */
 .sidebar {
   width: var(--sidebar-width);
   background: var(--bg-glass);
-  backdrop-filter: var(--blur-xl);
-  -webkit-backdrop-filter: var(--blur-xl);
-  border-right: 1px solid var(--border-primary);
+  backdrop-filter: var(--premium-glass-blur);
+  -webkit-backdrop-filter: var(--premium-glass-blur);
+  border-right: 1px solid rgba(59, 130, 246, 0.2);
   display: flex;
   flex-direction: column;
   padding: var(--space-6);
-  transition: all var(--transition-slow);
-  box-shadow: var(--shadow-lg);
+  transition: all var(--premium-duration-slow) var(--premium-transition);
+  box-shadow: var(--premium-shadow-depth);
   position: relative;
   overflow: hidden;
 }
@@ -732,22 +735,22 @@
   margin-bottom: var(--space-8);
 }
 
-/* Enhanced Stat Card with glass morphism */
+/* Enhanced Stat Card with premium glass morphism */
 .stat-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.8) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.7) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: var(--radius-xl);
   padding: var(--space-6) var(--space-8);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  transition: all var(--transition-base) var(--ease-out);
+  transition: all var(--premium-duration-base) var(--premium-transition);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: var(--premium-glass-blur);
+  -webkit-backdrop-filter: var(--premium-glass-blur);
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -772,13 +775,13 @@
 }
 
 .stat-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-6px) scale(1.03);
+  border-color: rgba(59, 130, 246, 0.3);
   box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.15),
-    0 0 20px rgba(59, 130, 246, 0.1),
+    0 12px 24px rgba(0, 0, 0, 0.1),
+    0 0 20px rgba(59, 130, 246, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.8) 100%);
 }
 
 .stat-card>* {
@@ -1111,21 +1114,23 @@
       var(--bg-tertiary) 100%);
   background-size: 200% 100%;
   border-radius: var(--radius-lg);
-  animation: shimmer 1.5s infinite ease-in-out;
+  animation: shimmer 1.8s infinite ease-in-out;
   position: relative;
   overflow: hidden;
+  will-change: background-position;
 }
 
-/* Shimmer effect */
+/* Enhanced Shimmer effect */
 .skeleton-item::after {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.05) 50%,
+      rgba(59, 130, 246, 0.1) 50%,
       transparent 100%);
-  animation: shimmerSlide 1.5s infinite;
+  animation: shimmerSlide 1.8s infinite;
+  will-change: transform;
 }
 
 @keyframes shimmerSlide {
@@ -1370,7 +1375,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Enhanced Primary Action Button */
+/* Enhanced Primary Action Button with premium animations */
 .primary-action {
   background: linear-gradient(135deg, var(--color-primary-600), var(--color-accent-600));
   color: white;
@@ -1381,7 +1386,7 @@
   box-shadow:
     0 4px 14px rgba(59, 130, 246, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all var(--transition-fast) var(--ease-out);
+  transition: all var(--premium-duration-fast) var(--premium-transition);
   font-family: var(--font-sans);
   letter-spacing: var(--tracking-tight);
   font-size: var(--text-base);
@@ -1391,6 +1396,7 @@
   gap: var(--space-2);
   position: relative;
   overflow: hidden;
+  will-change: transform, box-shadow;
 }
 
 /* Shine effect on hover */
@@ -1405,7 +1411,7 @@
       transparent,
       rgba(255, 255, 255, 0.2),
       transparent);
-  transition: left 0.5s;
+  transition: left 0.6s var(--premium-transition);
 }
 
 .primary-action:hover::before {
@@ -1413,9 +1419,9 @@
 }
 
 .primary-action:hover:not(:disabled) {
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-4px) scale(1.03);
   box-shadow:
-    0 8px 24px rgba(59, 130, 246, 0.45),
+    0 10px 28px rgba(59, 130, 246, 0.45),
     0 0 40px rgba(59, 130, 246, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
@@ -1433,7 +1439,7 @@
   transform: none;
 }
 
-/* Secondary button styles */
+/* Secondary button styles with premium animations */
 button.secondary,
 .secondary {
   background: var(--bg-tertiary);
@@ -1442,19 +1448,24 @@ button.secondary,
   border-radius: var(--radius-lg);
   font-weight: var(--font-semibold);
   border: 1px solid var(--border-primary);
-  transition: all var(--transition-fast);
+  transition: all var(--premium-duration-fast) var(--premium-transition);
   font-size: var(--text-sm);
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  position: relative;
+  overflow: hidden;
+  will-change: transform, box-shadow;
 }
 
 button.secondary:hover:not(:disabled),
 .secondary:hover:not(:disabled) {
   background: var(--bg-secondary);
   border-color: var(--color-primary-500);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 4px 12px rgba(59, 130, 246, 0.15),
+    0 0 8px rgba(59, 130, 246, 0.1);
 }
 
 button.small,
@@ -1462,6 +1473,28 @@ button.small,
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-xs);
   border-radius: var(--radius-md);
+}
+
+/* Add ripple effect to secondary buttons */
+button.secondary::before,
+.secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent);
+  transition: left 0.4s var(--premium-transition);
+  pointer-events: none;
+}
+
+button.secondary:active::before,
+.secondary:active::before {
+  left: 100%;
 }
 
 /* Editor Section */

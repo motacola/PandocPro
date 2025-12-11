@@ -117,7 +117,6 @@ app.whenReady().then(registerAiEditHandlers)
 app.whenReady().then(registerSnapshotHandlers)
 app.whenReady().then(registerPersonaHandlers)
 app.whenReady().then(registerAiAnalysisHandlers)
-app.whenReady().then(registerAiAnalysisHandlers)
 
 app.on('window-all-closed', () => {
   win = null

@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import { detectProviders, selectBestProvider } from './ai-detector'
 import { readFile } from 'fs/promises'
 import path from 'node:path'
+import { execFile } from 'node:child_process'
 
 export interface DocumentAnalysis {
     filePath: string
@@ -74,7 +75,8 @@ export interface DocumentAnalysisResponse {
 async function analyzeDocumentContent(
     content: string,
     fileType: 'docx' | 'md' | 'pptx' | 'txt',
-    providerId: string
+    providerId: string,
+    analysisType: 'full' | 'quick' | 'structure-only' = 'full'
 ): Promise<DocumentAnalysis> {
     // In a real implementation, this would call the AI provider
     // For now, we'll create a mock analysis based on the content
@@ -128,17 +130,26 @@ async function analyzeDocumentContent(
     }
 
     // Mock readability scores (would be calculated by AI in real implementation)
-    const readability = {
-        fleschReadingEase: Math.min(100, Math.max(0, 65 + Math.random() * 20)),
-        fleschKincaidGrade: Math.min(20, Math.max(1, 10 + Math.random() * 4)),
-        gunningFogIndex: Math.min(20, Math.max(5, 12 + Math.random() * 3)),
-        colemanLiauIndex: Math.min(20, Math.max(1, 11 + Math.random() * 3)),
-        automatedReadabilityIndex: Math.min(20, Math.max(1, 10 + Math.random() * 4)),
-        overallScore: Math.min(100, Math.max(0, 70 + Math.random() * 15))
-    }
+    const readability = analysisType === 'structure-only'
+        ? {
+            fleschReadingEase: 0,
+            fleschKincaidGrade: 0,
+            gunningFogIndex: 0,
+            colemanLiauIndex: 0,
+            automatedReadabilityIndex: 0,
+            overallScore: 0
+        }
+        : {
+            fleschReadingEase: Math.min(100, Math.max(0, 65 + Math.random() * 20)),
+            fleschKincaidGrade: Math.min(20, Math.max(1, 10 + Math.random() * 4)),
+            gunningFogIndex: Math.min(20, Math.max(5, 12 + Math.random() * 3)),
+            colemanLiauIndex: Math.min(20, Math.max(1, 11 + Math.random() * 3)),
+            automatedReadabilityIndex: Math.min(20, Math.max(1, 10 + Math.random() * 4)),
+            overallScore: Math.min(100, Math.max(0, 70 + Math.random() * 15))
+        }
 
     // Mock recommendations
-    const recommendations: DocumentAnalysis['recommendations'] = [
+    let recommendations: DocumentAnalysis['recommendations'] = analysisType === 'structure-only' ? [] : [
         {
             type: 'structure',
             severity: 'medium',
@@ -152,6 +163,10 @@ async function analyzeDocumentContent(
             suggestion: 'Review complex sentences and consider breaking them into simpler structures'
         }
     ]
+
+    if (analysisType === 'quick' && recommendations.length > 1) {
+        recommendations = recommendations.slice(0, 1)
+    }
 
     // Add specific recommendations based on content length
     if (words.length > 2000) {
@@ -192,7 +207,8 @@ async function analyzeDocumentContent(
 async function callAIProviderForAnalysis(
     content: string,
     fileType: 'docx' | 'md' | 'pptx' | 'txt',
-    providerId: string
+    providerId: string,
+    analysisType: 'full' | 'quick' | 'structure-only'
 ): Promise<DocumentAnalysis> {
     // In a real implementation, this would call the actual AI provider
     // For this implementation, we'll use our mock analysis
@@ -200,11 +216,26 @@ async function callAIProviderForAnalysis(
 
     try {
         // Mock analysis - in real implementation this would call the AI API
-        return await analyzeDocumentContent(content, fileType, providerId)
+        return await analyzeDocumentContent(content, fileType, providerId, analysisType)
     } catch (error) {
         console.error(`❌ Error analyzing document with ${providerId}:`, error)
         throw new Error(`AI analysis failed: ${error instanceof Error ? error.message : String(error)}`)
     }
+}
+
+async function extractTextFromDocxOrPptx(filePath: string, fileType: 'docx' | 'pptx'): Promise<string> {
+    const pandocBin = process.env.PANDOC_PATH || 'pandoc'
+
+    return await new Promise((resolve, reject) => {
+        execFile(pandocBin, [filePath, '-t', 'plain'], (error, stdout, stderr) => {
+            if (error) {
+                const message = stderr?.toString().trim() || error.message
+                reject(new Error(`Failed to extract ${fileType.toUpperCase()} content via pandoc: ${message}`))
+                return
+            }
+            resolve(stdout.toString())
+        })
+    })
 }
 
 export async function analyzeDocumentStructure(
@@ -212,21 +243,9 @@ export async function analyzeDocumentStructure(
     options: { analysisType?: 'full' | 'quick' | 'structure-only' } = {}
 ): Promise<DocumentAnalysisResponse> {
     const startTime = Date.now()
+    const analysisType = options.analysisType ?? 'full'
 
     try {
-        // Read the file content
-        let content: string
-        try {
-            content = await readFile(filePath, 'utf-8')
-        } catch (readError) {
-            console.error('❌ Error reading file:', readError)
-            return {
-                success: false,
-                error: `Failed to read file: ${readError instanceof Error ? readError.message : String(readError)}`,
-                timestamp: new Date().toISOString()
-            }
-        }
-
         // Detect file type from extension
         const ext = path.extname(filePath).toLowerCase()
         let fileType: 'docx' | 'md' | 'pptx' | 'txt'
@@ -247,6 +266,23 @@ export async function analyzeDocumentStructure(
             }
         }
 
+        let content: string
+        try {
+            if (fileType === 'docx' || fileType === 'pptx') {
+                content = await extractTextFromDocxOrPptx(filePath, fileType)
+            } else {
+                // Read the file content for supported text formats
+                content = await readFile(filePath, 'utf-8')
+            }
+        } catch (readError) {
+            console.error('❌ Error reading file:', readError)
+            return {
+                success: false,
+                error: `Failed to read file: ${readError instanceof Error ? readError.message : String(readError)}. Install pandoc or convert the file to Markdown/TXT and try again.`,
+                timestamp: new Date().toISOString()
+            }
+        }
+
         // Detect available AI providers
         const providers = await detectProviders()
         const bestProvider = selectBestProvider(providers)
@@ -262,7 +298,7 @@ export async function analyzeDocumentStructure(
         console.log(`🔍 Starting document analysis with ${bestProvider.name}`)
 
         // Perform the analysis
-        const analysis = await callAIProviderForAnalysis(content, fileType, bestProvider.id)
+        const analysis = await callAIProviderForAnalysis(content, fileType, bestProvider.id, analysisType)
 
         // Update the file path in the analysis
         analysis.filePath = filePath

@@ -1,0 +1,495 @@
+/*
+ * PandocPro Premium Animations & Visual Enhancements
+ * High-end UI/UX polish for luxurious experience
+ */
+
+:root {
+    /* Premium animation variables */
+    --premium-transition: cubic-bezier(0.25, 0.8, 0.25, 1);
+    --premium-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --premium-duration-fast: 200ms;
+    --premium-duration-base: 300ms;
+    --premium-duration-slow: 400ms;
+
+    /* Premium color enhancements */
+    --premium-glow-primary: rgba(59, 130, 246, 0.2);
+    --premium-glow-accent: rgba(139, 92, 246, 0.2);
+    --premium-glass-blur: 16px;
+    --premium-shadow-depth: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/*
+ * ===== PREMIUM BUTTON ANIMATIONS =====
+ */
+
+/* Base premium button style */
+.button-premium {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--premium-duration-base) var(--premium-transition);
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Liquid shine effect */
+.button-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+    transition: left 0.6s var(--premium-transition);
+    pointer-events: none;
+}
+
+.button-premium:hover::before {
+    left: 100%;
+}
+
+/* 3D transform on hover */
+.button-premium:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--premium-shadow-depth);
+}
+
+/* Quick press effect */
+.button-premium:active {
+    transform: translateY(0) scale(0.98);
+    transition: transform 0.1s var(--premium-transition);
+}
+
+/* Primary button variant */
+.button-premium-primary {
+    background: linear-gradient(135deg,
+            var(--color-primary-600) 0%,
+            var(--color-accent-600) 100%);
+    color: white;
+}
+
+/* Secondary button variant */
+.button-premium-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
+}
+
+/*
+ * ===== LUXURY LOADING ANIMATIONS =====
+ */
+
+/* Gradient loading spinner */
+.loader-luxury {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(59, 130, 246, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--color-primary-500);
+    animation: spin 1s linear infinite;
+    position: relative;
+    will-change: transform;
+}
+
+.loader-luxury::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 4px solid rgba(139, 92, 246, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--color-accent-500);
+    animation: spin 1.2s linear infinite reverse;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Dot pulse loader */
+.loader-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-dots span {
+    width: 12px;
+    height: 12px;
+    background: var(--color-primary-500);
+    border-radius: 50%;
+    animation: dotPulse 1.2s ease-in-out infinite;
+    will-change: transform, opacity;
+}
+
+.loader-dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.loader-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loader-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: scale(1.5);
+        opacity: 1;
+    }
+}
+
+/*
+ * ===== MICRO-INTERACTION ENHANCEMENTS =====
+ */
+
+/* Ripple effect for clicks */
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s var(--premium-transition);
+}
+
+.ripple-effect::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+.ripple-effect:active::after {
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Subtle bounce effect */
+.micro-bounce {
+    transition: transform 0.2s var(--premium-spring);
+    will-change: transform;
+}
+
+.micro-bounce:active {
+    transform: scale(0.95);
+}
+
+/* Press down effect */
+.press-effect {
+    transition: transform 0.1s var(--premium-transition);
+}
+
+.press-effect:active {
+    transform: translateY(2px);
+}
+
+/*
+ * ===== ENHANCED GLASS MORPHISM =====
+ */
+
+/* Premium glass effect with color overlay */
+.glass-luxury {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(var(--premium-glass-blur));
+    -webkit-backdrop-filter: blur(var(--premium-glass-blur));
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s var(--premium-transition);
+    will-change: transform, box-shadow;
+}
+
+.glass-luxury::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.05) 0%,
+            rgba(139, 92, 246, 0.05) 100%);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.glass-luxury:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--premium-shadow-depth);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Glass card with hover glow */
+.glass-card-glow {
+    position: relative;
+    transition: all 0.3s var(--premium-transition);
+}
+
+.glass-card-glow::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg,
+            var(--color-primary-500),
+            var(--color-accent-500));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s var(--premium-transition);
+}
+
+.glass-card-glow:hover::after {
+    opacity: 0.1;
+}
+
+/*
+ * ===== NEUMORPHIC ELEMENTS =====
+ */
+
+.neumorphic {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow:
+        4px 4px 12px rgba(0, 0, 0, 0.08),
+        -4px -4px 12px rgba(255, 255, 255, 0.02);
+    transition: all 0.3s var(--premium-transition);
+    will-change: box-shadow, transform;
+}
+
+.neumorphic:active {
+    box-shadow:
+        2px 2px 8px rgba(0, 0, 0, 0.06),
+        -2px -2px 8px rgba(255, 255, 255, 0.01);
+    transform: translateY(1px);
+}
+
+.neumorphic-inset {
+    box-shadow:
+        inset 4px 4px 8px rgba(0, 0, 0, 0.05),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.02);
+}
+
+/*
+ * ===== PREMIUM TYPOGRAPHY =====
+ */
+
+/* Gradient text for headings */
+.heading-gradient {
+    background: linear-gradient(135deg,
+            var(--color-primary-400) 0%,
+            var(--color-accent-400) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* Subtle text glow */
+.text-glow {
+    text-shadow:
+        0 0 4px rgba(59, 130, 246, 0.1),
+        0 0 8px rgba(59, 130, 246, 0.05);
+    transition: text-shadow 0.3s var(--premium-transition);
+}
+
+.text-glow:hover {
+    text-shadow:
+        0 0 8px rgba(59, 130, 246, 0.15),
+        0 0 16px rgba(59, 130, 246, 0.1);
+}
+
+/* Premium font smoothing */
+.text-premium {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/*
+ * ===== ADVANCED TRANSITIONS =====
+ */
+
+/* Smooth view transitions */
+.view-transition-enter {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+    transition: all var(--premium-duration-base) var(--premium-transition);
+}
+
+.view-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+}
+
+/* Fade scale transition */
+.fade-scale-enter {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all var(--premium-duration-base) var(--premium-spring);
+}
+
+.fade-scale-enter-active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Slide up transition */
+.slide-up-enter {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all var(--premium-duration-base) var(--premium-transition);
+}
+
+.slide-up-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/*
+ * ===== DYNAMIC GRADIENTS =====
+ */
+
+.gradient-dynamic {
+    background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.1) 0%,
+            rgba(139, 92, 246, 0.1) 50%,
+            rgba(168, 85, 247, 0.1) 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+    will-change: background-position;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/*
+ * ===== FLOATING & DEPTH EFFECTS =====
+ */
+
+/* Gentle floating animation */
+.floating {
+    animation: float 6s ease-in-out infinite;
+    will-change: transform;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Layered shadows for depth */
+.shadow-luxury {
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 2px 4px -1px rgba(0, 0, 0, 0.03),
+        0 0 0 1px rgba(59, 130, 246, 0.05);
+    transition: box-shadow 0.3s var(--premium-transition);
+}
+
+.shadow-luxury:hover {
+    box-shadow:
+        0 8px 12px -2px rgba(0, 0, 0, 0.08),
+        0 4px 8px -2px rgba(0, 0, 0, 0.05),
+        0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+
+/*
+ * ===== MOTION PREFERENCE SUPPORT =====
+ */
+
+/* Reduced motion variants */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* Preserve essential transitions */
+    .button-premium,
+    .glass-luxury,
+    .neumorphic {
+        transition-duration: 0.1s !important;
+    }
+}
+
+/*
+ * ===== UTILITY CLASSES =====
+ */
+
+/* Transition utilities */
+.transition-premium {
+    transition: all var(--premium-duration-base) var(--premium-transition);
+}
+
+.transition-premium-fast {
+    transition: all var(--premium-duration-fast) var(--premium-transition);
+}
+
+.transition-premium-slow {
+    transition: all var(--premium-duration-slow) var(--premium-transition);
+}
+
+/* Transform utilities */
+.transform-gpu {
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Performance optimization */
+.performance-optimized {
+    will-change: transform, opacity, box-shadow;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}

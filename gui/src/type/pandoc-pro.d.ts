@@ -112,6 +112,78 @@ export interface DetectedProvider {
   model?: string
   requiresApiKey: boolean
   priority: number
+  fallbackPriority?: number
+  healthStatus?: 'healthy' | 'degraded' | 'unhealthy'
+  lastChecked?: Date
+  responseTime?: number
+}
+
+export interface DocumentAnalysis {
+  filePath: string
+  fileType: 'docx' | 'md' | 'pptx' | 'txt'
+  timestamp: string
+  structure: {
+    headings: Array<{
+      level: number
+      text: string
+      lineNumber: number
+      characterCount: number
+    }>
+    sections: Array<{
+      title: string
+      startLine: number
+      endLine: number
+      wordCount: number
+      paragraphCount: number
+    }>
+    tables: Array<{
+      description: string
+      rowCount: number
+      columnCount: number
+      location: string
+    }>
+    images: Array<{
+      description: string
+      location: string
+      size?: string
+    }>
+  }
+  readability: {
+    fleschReadingEase: number
+    fleschKincaidGrade: number
+    gunningFogIndex: number
+    colemanLiauIndex: number
+    automatedReadabilityIndex: number
+    overallScore: number
+  }
+  recommendations: Array<{
+    type: 'structure' | 'content' | 'readability' | 'formatting'
+    severity: 'low' | 'medium' | 'high'
+    description: string
+    suggestion: string
+    location?: string
+  }>
+  metadata: {
+    wordCount: number
+    characterCount: number
+    paragraphCount: number
+    sentenceCount: number
+    readingTimeMinutes: number
+    language?: string
+  }
+}
+
+export interface DocumentAnalysisRequest {
+  filePath: string
+  analysisType?: 'full' | 'quick' | 'structure-only'
+}
+
+export interface DocumentAnalysisResponse {
+  success: boolean
+  analysis?: DocumentAnalysis
+  error?: string
+  providerUsed?: string
+  timestamp: string
 }
 
 export interface TelemetryEntry {
@@ -175,6 +247,7 @@ declare global {
       createSnapshot(filePath: string): Promise<string | null>
       getPersonas(): Promise<Persona[]>
       savePersonas(personas: Persona[]): Promise<boolean>
+      analyzeDocument(payload: DocumentAnalysisRequest): Promise<DocumentAnalysisResponse>
     }
   }
 }

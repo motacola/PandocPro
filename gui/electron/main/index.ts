@@ -14,6 +14,7 @@ import { registerTelemetryHandlers } from './telemetry'
 import { registerAiEditHandlers } from './ai-edit'
 import { registerSnapshotHandlers } from './snapshot'
 import { registerPersonaHandlers } from './personas'
+import { registerAiAnalysisHandlers } from './ai-analysis'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -115,6 +116,8 @@ app.whenReady().then(registerTelemetryHandlers)
 app.whenReady().then(registerAiEditHandlers)
 app.whenReady().then(registerSnapshotHandlers)
 app.whenReady().then(registerPersonaHandlers)
+app.whenReady().then(registerAiAnalysisHandlers)
+app.whenReady().then(registerAiAnalysisHandlers)
 
 app.on('window-all-closed', () => {
   win = null

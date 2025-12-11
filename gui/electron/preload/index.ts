@@ -140,6 +140,9 @@ contextBridge.exposeInMainWorld('pandocPro', {
   },
   savePersonas(personas: any[]) {
     return ipcRenderer.invoke('personas:save', personas)
+  },
+  analyzeDocument(payload: { filePath: string; analysisType?: 'full' | 'quick' | 'structure-only' }) {
+    return ipcRenderer.invoke('ai:analyze-document', payload)
   }
 })
 

@@ -30,6 +30,7 @@ logs/
 backups/
 config/
 tmp/
+.mcp/state/
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md

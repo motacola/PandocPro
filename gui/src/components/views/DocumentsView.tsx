@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { RefreshCw, Search, FileText, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
 import { EmptyState as EmptyStateComponent } from '../ui'
@@ -21,8 +21,10 @@ interface DocumentsViewProps {
   onSelectDoc: (doc: DocsListEntry) => void
   docFilter: string
   onDocFilterChange: (value: string) => void
-  docSort: 'alpha' | 'recent'
-  onDocSortChange: (value: 'alpha' | 'recent') => void
+  docSort: 'alpha' | 'recent' | 'size' | 'status'
+  onDocSortChange: (value: 'alpha' | 'recent' | 'size' | 'status') => void
+  docStatusFilter: 'all' | 'synced' | 'unsynced' | 'large'
+  onDocStatusFilterChange: (value: 'all' | 'synced' | 'unsynced' | 'large') => void
   dropActive: boolean
   onDragOver: (e: React.DragEvent) => void
   onDragLeave: () => void
@@ -36,6 +38,8 @@ interface DocumentsViewProps {
   disableActions: boolean
   activeRequest: string | null
   onTriggerConversion: () => void
+  isEditorLoading: boolean
+  isSavingMarkdown: boolean
   isPreviewVisible: boolean
   onTogglePreview: () => void
   onSaveMarkdown: () => void
@@ -54,6 +58,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   onDocFilterChange,
   docSort,
   onDocSortChange,
+  docStatusFilter,
+  onDocStatusFilterChange,
   dropActive,
   onDragOver,
   onDragLeave,
@@ -67,6 +73,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   disableActions,
   activeRequest,
   onTriggerConversion,
+  isEditorLoading,
+  isSavingMarkdown,
   isPreviewVisible,
   onTogglePreview,
   onSaveMarkdown,
@@ -75,6 +83,15 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   logs,
 }) => {
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+  const summary = useMemo(() => {
+    const unsynced = docs.filter((doc) => !doc.mdExists || (doc.docxMtime ?? 0) > (doc.mdMtime ?? 0)).length
+    const large = docs.filter((doc) => (doc.docxSize ?? 0) >= LARGE_DOC_THRESHOLD).length
+    return {
+      total: docs.length,
+      unsynced,
+      large,
+    }
+  }, [docs, LARGE_DOC_THRESHOLD])
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault()
@@ -194,7 +211,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
               <select
                 className='doc-sort-select'
                 value={docSort}
-                onChange={(event) => onDocSortChange(event.target.value as 'alpha' | 'recent')}
+                onChange={(event) => onDocSortChange(event.target.value as 'alpha' | 'recent' | 'size' | 'status')}
               >
                 <option value='alpha'>A → Z</option>
                 <option value='recent'>Recent</option>
@@ -203,10 +220,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
               </select>
               <select
                 className='doc-filter-select'
-                onChange={(event) => {
-                  // Additional filter logic would go here
-                  console.log('Filter selected:', event.target.value)
-                }}
+                value={docStatusFilter}
+                onChange={(event) => onDocStatusFilterChange(event.target.value as 'all' | 'synced' | 'unsynced' | 'large')}
               >
                 <option value='all'>All Files</option>
                 <option value='synced'>Synced</option>
@@ -214,6 +229,23 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                 <option value='large'>Large Files</option>
               </select>
             </div>
+          </div>
+
+          <div className='doc-summary-row'>
+            <span className='doc-summary-pill'>Visible: {summary.total}</span>
+            <span className='doc-summary-pill warning'>Needs Sync: {summary.unsynced}</span>
+            <span className='doc-summary-pill'>Large: {summary.large}</span>
+            {(docFilter || docStatusFilter !== 'all') && (
+              <button
+                className='secondary small'
+                onClick={() => {
+                  onDocFilterChange('')
+                  onDocStatusFilterChange('all')
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
 
           <div
@@ -371,6 +403,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                 </div>
               )}
 
+              {isEditorLoading && (
+                <div className='status-banner'>
+                  <span className='spinner-sm'></span>
+                  <span>Loading markdown content...</span>
+                </div>
+              )}
+
               <div className='editor-section'>
                 <div className='editor-header'>
                   <div className='editor-title'>
@@ -385,7 +424,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                       {isPreviewVisible ? 'Hide Preview' : 'Show Preview'}
                     </button>
                     <button className='primary small' onClick={onSaveMarkdown}>
-                      Save Changes
+                      {isSavingMarkdown ? 'Saving…' : 'Save Changes'}
                     </button>
                   </div>
                 </div>

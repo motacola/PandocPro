@@ -49,7 +49,6 @@ export async function createSnapshot(filePath: string, options: { version?: stri
       await fs.promises.mkdir(targetDir, { recursive: true })
     }
 
-    const stat = await fs.promises.stat(filePath)
     const timestamp = Date.now()
     const ext = path.extname(filePath)
     const snapshotName = `${timestamp}${ext}` // e.g., 1700000000.md

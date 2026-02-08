@@ -1,5 +1,28 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
+interface WatchUpdatePayload {
+  docxPath: string
+  mdPath: string
+  running: boolean
+  lastSync: string | null
+  mode: 'paused' | 'running'
+  message?: string
+}
+
+interface SettingsUpdatePayload {
+  docsPath?: string
+  notificationsEnabled?: boolean
+  referenceDoc?: string
+  [key: string]: unknown
+}
+
+interface PersonaPayload {
+  id: string
+  name: string
+  instruction: string
+  icon?: string
+}
+
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
   on(...args: Parameters<typeof ipcRenderer.on>) {
@@ -79,9 +102,9 @@ contextBridge.exposeInMainWorld('pandocPro', {
   stopWatch() {
     return ipcRenderer.invoke('watch:stop')
   },
-  onWatchUpdate(listener: (data: any) => void) {
+  onWatchUpdate(listener: (data: WatchUpdatePayload) => void) {
     const channel = 'watch:update'
-    const handler = (_event: Electron.IpcRendererEvent, payload: any) => listener(payload)
+    const handler = (_event: Electron.IpcRendererEvent, payload: WatchUpdatePayload) => listener(payload)
     ipcRenderer.on(channel, handler)
     return () => ipcRenderer.off(channel, handler)
   },
@@ -100,7 +123,7 @@ contextBridge.exposeInMainWorld('pandocPro', {
   chooseReferenceDoc() {
     return ipcRenderer.invoke('settings:chooseReferenceDoc')
   },
-  updateSettings(payload: any) {
+  updateSettings(payload: SettingsUpdatePayload) {
     return ipcRenderer.invoke('settings:update', payload)
   },
   getFaq() {
@@ -138,7 +161,7 @@ contextBridge.exposeInMainWorld('pandocPro', {
   getPersonas() {
     return ipcRenderer.invoke('personas:list')
   },
-  savePersonas(personas: any[]) {
+  savePersonas(personas: PersonaPayload[]) {
     return ipcRenderer.invoke('personas:save', personas)
   },
   analyzeDocument(payload: { filePath: string; analysisType?: 'full' | 'quick' | 'structure-only' }) {

@@ -1,7 +1,3 @@
-import { BrowserWindow } from 'electron'
-
-
-
 export interface DetectedProvider {
   id: string
   name: string
@@ -155,6 +151,6 @@ export function getFallbackProvider(providers: DetectedProvider[], currentProvid
 }
 
 // Provider health monitoring
-export async function monitorProviderHealth(providers: DetectedProvider[]): Promise<DetectedProvider[]> {
+export async function monitorProviderHealth(_providers: DetectedProvider[]): Promise<DetectedProvider[]> {
   return await detectProviders() // Re-check all providers
 }

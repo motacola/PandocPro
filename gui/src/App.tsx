@@ -10,10 +10,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 import { OnboardingChecklist } from './components/OnboardingChecklist'
-import { OnboardingTour } from './components/OnboardingTour'
-import { Button, Badge, ToastContainer, EmptyState } from './components/ui'
-import { CollapsibleSection } from './components/ui/CollapsibleSection'
-import { EditorToolbar } from './components/EditorToolbar'
+import { Badge, ToastContainer } from './components/ui'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ErrorDialog } from './components/ErrorDialog'
 import { Modal } from './components/ui/Modal'
@@ -25,9 +22,11 @@ import { DocumentsView } from './components/views/DocumentsView'
 import { SettingsView } from './components/views/SettingsView'
 import { FaqView } from './components/views/FaqView'
 
-import type { DocsListEntry, HistoryEntry, WatchStatus, SettingsData, SystemInfo, TelemetryEntry, LogRun, LogEntry, ConversionPreset } from './type/pandoc-pro'
+import type { DocsListEntry, HistoryEntry, SettingsData, SystemInfo, TelemetryEntry, LogRun, LogEntry } from './type/pandoc-pro'
 
 type ConversionMode = 'to-md' | 'to-docx' | 'to-pptx' | 'auto'
+type DocumentSort = 'alpha' | 'recent' | 'size' | 'status'
+type DocumentStatusFilter = 'all' | 'synced' | 'unsynced' | 'large'
 
 interface Toast {
   id: string
@@ -41,8 +40,26 @@ interface FaqEntry {
   section: string
 }
 
+function parseFaqContent(content: string): FaqEntry[] {
+  const sections = content.split(/^## /gm).slice(1)
+  const entries: FaqEntry[] = []
+  for (const sectionBlock of sections) {
+    const [sectionTitle, ...rest] = sectionBlock.split('\n')
+    const sectionBody = rest.join('\n')
+    const questions = sectionBody.split(/\*\*Q: /g).slice(1)
+    for (const qBlock of questions) {
+      const [questionLine, ...answerLines] = qBlock.split('\n')
+      entries.push({
+        section: sectionTitle.trim(),
+        question: `**Q: ${questionLine.trim()}`,
+        answer: answerLines.join('\n').trim(),
+      })
+    }
+  }
+  return entries
+}
+
 // Validation helpers
-const SUPPORTED_FORMATS = new Set(['.docx', '.md', '.pdf', '.html', '.pptx', '.txt', '.odt'])
 const MAX_MARKDOWN_BYTES = 10 * 1024 * 1024 // 10MB limit
 
 function validateFilePath(filePath: string): { valid: boolean; error?: string } {
@@ -83,47 +100,6 @@ function formatSize(bytes?: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-const BUILT_IN_PRESETS: ConversionPreset[] = [
-  {
-    id: 'built-in-academic',
-    name: '📚 Academic Paper',
-    description: 'For research papers with citations and numbered sections',
-    mode: 'to-md',
-    options: {
-      includeMetadata: true,
-      textOnly: false,
-    },
-  },
-  {
-    id: 'built-in-business',
-    name: '💼 Business Report',
-    description: 'Professional formatting for business documents',
-    mode: 'to-docx',
-    options: {
-      includeMetadata: true,
-      textOnly: false,
-    },
-  },
-  {
-    id: 'built-in-blog',
-    name: '✍️ Blog Post',
-    description: 'Simple, web-friendly markdown',
-    mode: 'to-md',
-    options: {
-      includeMetadata: false,
-      textOnly: true,
-    },
-  },
-  {
-    id: 'built-in-auto',
-    name: '🎯 Auto-Detect',
-    description: 'Automatically determines best conversion direction',
-    mode: 'auto',
-    options: {},
-  },
-]
-
-import Skeleton from './components/ui/Skeleton'
 import ShortcutsModal from './components/ShortcutsModal'
 
 const LegacyFaqAnchor = () => <div className='faq-layout' style={{ display: 'none' }} aria-hidden />
@@ -133,7 +109,8 @@ function App() {
   const [docs, setDocs] = useState<DocsListEntry[]>([])
   const [selectedDoc, setSelectedDoc] = useState<DocsListEntry | null>(null)
   const [docFilter, setDocFilter] = useState<string>('')
-  const [docSort, setDocSort] = useState<'alpha' | 'recent'>('alpha')
+  const [docSort, setDocSort] = useState<DocumentSort>('alpha')
+  const [docStatusFilter, setDocStatusFilter] = useState<DocumentStatusFilter>('all')
   const [activeRequest, setActiveRequest] = useState<string | null>(null)
   const [logs, setLogs] = useState<LogRun[]>([])
   const [isLoadingDocs, setIsLoadingDocs] = useState<boolean>(true)
@@ -145,10 +122,7 @@ function App() {
   const [isPreviewVisible, setIsPreviewVisible] = useState<boolean>(true)
   const [isSavingMarkdown, setIsSavingMarkdown] = useState<boolean>(false)
   const [dirty, setDirty] = useState<boolean>(false)
-  const [liveMarkdown, setLiveMarkdown] = useState<string>('')
   const [previewHtml, setPreviewHtml] = useState<string>('')
-  const [watchStatus, setWatchStatus] = useState<WatchStatus | null>(null)
-  const [isStartingWatch, setIsStartingWatch] = useState<boolean>(false)
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [settings, setSettings] = useState<SettingsData | null>(null)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false)
@@ -177,8 +151,6 @@ function App() {
     actions?: Array<{ label: string; onClick: () => void; variant?: 'primary' | 'secondary'; external?: boolean }>
     severity?: 'error' | 'warning' | 'info'
   }>({ isOpen: false, title: '', problem: '', solution: '' })
-  const [presets, setPresets] = useState<ConversionPreset[]>(BUILT_IN_PRESETS)
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('built-in-auto')
 
   const [lastUsedModes, setLastUsedModes] = useState<Record<string, ConversionMode>>({})
   const [isZenMode, setIsZenMode] = useState<boolean>(false)
@@ -204,7 +176,6 @@ function App() {
       setDirty(true)
       const html = editor.getHTML()
       const markdown = turndown.turndown(html)
-      setLiveMarkdown(markdown)
       setPreviewHtml(renderMarkdown(markdown))
     },
   })
@@ -249,7 +220,7 @@ function App() {
               // Copy command to clipboard
               navigator.clipboard.writeText('brew install pandoc')
               addToast('info', 'Command copied! Paste it in Terminal')
-              setErrorDialog({ ...errorDialog, isOpen: false })
+              setErrorDialog((prev) => ({ ...prev, isOpen: false }))
             },
             variant: 'primary',
           },
@@ -277,7 +248,7 @@ function App() {
           {
             label: 'Choose Different Folder',
             onClick: async () => {
-              setErrorDialog({ ...errorDialog, isOpen: false })
+              setErrorDialog((prev) => ({ ...prev, isOpen: false }))
               await window.pandocPro.chooseDocsPath()
               // Docs will be refreshed on next nav or manual refresh
             },
@@ -296,18 +267,18 @@ function App() {
       solution: 'Try the operation again. If the problem persists, check the logs for more details.',
       severity: 'error',
     })
-  }, [addToast, errorDialog])
+  }, [addToast])
 
   // Cleanup toast timeouts on unmount
   useEffect(() => {
+    const timeouts = toastTimeouts.current
     return () => {
-      toastTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId))
-      toastTimeouts.current.clear()
+      timeouts.forEach((timeoutId) => clearTimeout(timeoutId))
+      timeouts.clear()
     }
   }, [])
 
   const normalizedDocsRoot = useMemo(() => settings?.docsPath?.replace(/\\/g, '/') ?? '', [settings])
-  const isLargeDoc = selectedDoc?.docxSize ? selectedDoc.docxSize > LARGE_DOC_THRESHOLD : false
 
   // Auto-detect conversion mode based on file timestamps
   const autoDetectMode = useCallback((doc: DocsListEntry): ConversionMode => {
@@ -369,14 +340,32 @@ function App() {
     if (filter) {
       list = list.filter((entry) => formatDocLabel(entry).toLowerCase().includes(filter))
     }
+    if (docStatusFilter === 'synced') {
+      list = list.filter((entry) => entry.mdExists && (entry.mdMtime ?? 0) >= (entry.docxMtime ?? 0))
+    } else if (docStatusFilter === 'unsynced') {
+      list = list.filter((entry) => !entry.mdExists || (entry.docxMtime ?? 0) > (entry.mdMtime ?? 0))
+    } else if (docStatusFilter === 'large') {
+      list = list.filter((entry) => (entry.docxSize ?? 0) >= LARGE_DOC_THRESHOLD)
+    }
     list.sort((a, b) => {
       if (docSort === 'recent') {
+        return (b.docxMtime ?? 0) - (a.docxMtime ?? 0)
+      }
+      if (docSort === 'size') {
+        return (b.docxSize ?? 0) - (a.docxSize ?? 0)
+      }
+      if (docSort === 'status') {
+        const aNeedsSync = !a.mdExists || (a.docxMtime ?? 0) > (a.mdMtime ?? 0)
+        const bNeedsSync = !b.mdExists || (b.docxMtime ?? 0) > (b.mdMtime ?? 0)
+        if (aNeedsSync !== bNeedsSync) {
+          return aNeedsSync ? -1 : 1
+        }
         return (b.docxMtime ?? 0) - (a.docxMtime ?? 0)
       }
       return formatDocLabel(a).localeCompare(formatDocLabel(b))
     })
     return list
-  }, [docs, docFilter, docSort, formatDocLabel])
+  }, [docs, docFilter, docSort, docStatusFilter, formatDocLabel, LARGE_DOC_THRESHOLD])
 
   useEffect(() => {
     if (filteredDocs.length === 0) {
@@ -529,7 +518,6 @@ function App() {
 
       await window.pandocPro.writeFile(selectedDoc.md, markdown)
       setDirty(false)
-      setLiveMarkdown(markdown)
       setPreviewHtml(renderMarkdown(markdown))
       addToast('success', 'Markdown saved.')
       if (modeAfterSave) {
@@ -565,7 +553,7 @@ function App() {
           reject(new Error('Conversion timed out'))
         }, 30000) // 30s timeout per doc
 
-        const cleanup = window.pandocPro.onExit(({ code, requestId: exitRequestId }) => {
+        const cleanup = window.pandocPro.onExit(({ code: _code, requestId: exitRequestId }) => {
           if (exitRequestId === requestId) {
             clearTimeout(timeoutId)
             cleanup()
@@ -666,7 +654,7 @@ function App() {
       addToast('error', 'Failed to update reference doc setting.')
       return null
     }
-  }, [addToast, errorDialog])
+  }, [addToast])
 
   useEffect(() => {
     fetchDocs()
@@ -688,9 +676,13 @@ function App() {
     })
     window.pandocPro.getTelemetry().then((stats) => setTelemetry(stats))
     window.pandocPro.getFaq().then((content) => {
-      const parsed = parseFaq(content)
-      setFaqEntries(parsed)
-      setSelectedFaq(parsed[0] ?? null)
+      try {
+        const parsed = parseFaqContent(content)
+        setFaqEntries(parsed)
+        setSelectedFaq(parsed[0] ?? null)
+      } catch {
+        addToast('error', 'Failed to load FAQ content')
+      }
     })
     window.pandocPro.getLlmStatus().then((status) => setFaqAiStatus(status))
 
@@ -717,24 +709,14 @@ function App() {
       window.pandocPro.onError(({ message, requestId }) => {
         setActiveRequest((prev) => (prev === requestId ? null : prev))
         appendLogEntry(requestId, { type: 'stderr', text: `Error: ${message}` })
-        addToast('error', message)
-      }),
-      window.pandocPro.onWatchUpdate((status) => {
-        setWatchStatus({
-          docxPath: status.docxPath,
-          mdPath: status.mdPath,
-          running: status.running,
-          lastSync: status.lastSync,
-          mode: status.mode,
-          message: status.message,
-        })
+        handleSmartError(message, 'run conversion')
       }),
     ]
 
     return () => {
       cleanups.forEach((cleanup) => cleanup())
     }
-  }, [appendLogEntry, addToast, fetchDocs, fetchHistory])
+  }, [appendLogEntry, addToast, fetchDocs, fetchHistory, handleSmartError])
 
   useEffect(() => {
     if (!selectedDoc || !editor) return
@@ -745,14 +727,12 @@ function App() {
         const normalized = markdown ?? ''
         const html = renderMarkdown(normalized)
         editor.commands.setContent(html, { emitUpdate: false })
-        setLiveMarkdown(normalized)
         setPreviewHtml(html)
         setDirty(false)
       })
       .catch(() => {
         const placeholder = '<p><em>No Markdown file yet. Click “Save Markdown” to create one.</em></p>'
         editor.commands.setContent(placeholder, { emitUpdate: false })
-        setLiveMarkdown('')
         setPreviewHtml(renderMarkdown(''))
         setDirty(false)
       })
@@ -831,21 +811,6 @@ function App() {
     localStorage.setItem('pandocpro-theme', theme)
   }, [theme])
 
-  const toggleWatch = async () => {
-    if (!selectedDoc) return
-    if (watchStatus?.running) {
-      await window.pandocPro.stopWatch()
-      setWatchStatus((prev) => (prev ? { ...prev, running: false, mode: 'paused' } : prev))
-      return
-    }
-    setIsStartingWatch(true)
-    try {
-      await window.pandocPro.startWatch({ docxPath: selectedDoc.docx, mdPath: selectedDoc.md })
-    } finally {
-      setIsStartingWatch(false)
-    }
-  }
-
   const disableActions = useMemo(() => !selectedDoc || !!activeRequest, [selectedDoc, activeRequest])
 
   const handleFaqAi = async () => {
@@ -878,31 +843,6 @@ function App() {
       setFaqAiResponse(err instanceof Error ? `Error: ${err.message}` : 'AI request failed.')
     } finally {
       setFaqAiLoading(false)
-    }
-  }
-
-  // Helper to parse FAQ content (simple regex-based parser for the demo)
-  function parseFaq(content: string): FaqEntry[] {
-    try {
-      const sections = content.split(/^## /gm).slice(1)
-      const entries: FaqEntry[] = []
-      for (const sectionBlock of sections) {
-        const [sectionTitle, ...rest] = sectionBlock.split('\n')
-        const sectionBody = rest.join('\n')
-        const questions = sectionBody.split(/\*\*Q: /g).slice(1)
-        for (const qBlock of questions) {
-          const [questionLine, ...answerLines] = qBlock.split('\n')
-          entries.push({
-            section: sectionTitle.trim(),
-            question: `**Q: ${questionLine.trim()}`,
-            answer: answerLines.join('\n').trim(),
-          })
-        }
-      }
-      return entries
-    } catch (err) {
-      addToast('error', 'Failed to load FAQ content')
-      return []
     }
   }
 
@@ -1090,6 +1030,8 @@ function App() {
                 onDocFilterChange={(val) => setDocFilter(sanitizeInput(val))}
                 docSort={docSort}
                 onDocSortChange={setDocSort}
+                docStatusFilter={docStatusFilter}
+                onDocStatusFilterChange={setDocStatusFilter}
                 dropActive={dropActive}
                 onDragOver={(e) => {
                   e.preventDefault()
@@ -1125,6 +1067,8 @@ function App() {
                 disableActions={disableActions}
                 activeRequest={activeRequest}
                 onTriggerConversion={() => triggerConversion()}
+                isEditorLoading={isEditorLoading}
+                isSavingMarkdown={isSavingMarkdown}
                 isPreviewVisible={isPreviewVisible}
                 onTogglePreview={() => setIsPreviewVisible(!isPreviewVisible)}
                 onSaveMarkdown={() => handleSaveMarkdown()}
@@ -1216,4 +1160,3 @@ function App() {
 }
 
 export default App
-

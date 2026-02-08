@@ -1,7 +1,6 @@
 import { ipcMain } from 'electron'
 import { spawn } from 'node:child_process'
 import path from 'node:path'
-import { readSettings } from './settings'
 
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
 const AI_EDIT_SCRIPT = path.join(PROJECT_ROOT, 'scripts', 'ai-edit.js')
@@ -15,7 +14,7 @@ interface AiEditPayload {
 
 export function registerAiEditHandlers() {
   ipcMain.handle('ai:edit-section', async (_event, payload: AiEditPayload) => {
-    const { filePath, instruction, section, model } = payload
+    const { filePath, instruction, section } = payload
 
     if (!filePath || !instruction) {
       throw new Error('Missing filePath or instruction')

@@ -9,11 +9,16 @@ import { telemetryRecord } from './telemetry'
 const require = createRequire(import.meta.url)
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
 const AI_TIMEOUT_MS = Number(process.env.AI_ANALYSIS_TIMEOUT_MS ?? '20000')
+const AI_PROVIDER_RETRY_ATTEMPTS = Number(process.env.AI_PROVIDER_RETRY_ATTEMPTS ?? '3')
+const AI_PROVIDER_RETRY_BACKOFF_MS = Number(process.env.AI_PROVIDER_RETRY_BACKOFF_MS ?? '350')
 const MAX_AI_CONTENT_CHARS = 12_000
 const LARGE_ANALYSIS_CONTENT_BYTES = 1_000_000
 
 type LlmConfig = {
     provider?: string
+    endpoint?: string
+    model?: string
+    apiKey?: string
 }
 
 type LlmHelper = {
@@ -33,6 +38,42 @@ type AnalysisPatch = {
     language?: string
 }
 
+type ProviderErrorCategory =
+    | 'timeout'
+    | 'network'
+    | 'http'
+    | 'parse'
+    | 'schema'
+    | 'config'
+    | 'unsupported'
+    | 'unknown'
+
+class ProviderAnalysisError extends Error {
+    category: ProviderErrorCategory
+    providerId: string
+    retryable: boolean
+    statusCode?: number
+
+    constructor(options: {
+        message: string
+        category: ProviderErrorCategory
+        providerId: string
+        retryable?: boolean
+        statusCode?: number
+        cause?: unknown
+    }) {
+        super(options.message)
+        this.name = 'ProviderAnalysisError'
+        this.category = options.category
+        this.providerId = options.providerId
+        this.retryable = options.retryable ?? false
+        this.statusCode = options.statusCode
+        if (options.cause) {
+            (this as { cause?: unknown }).cause = options.cause
+        }
+    }
+}
+
 let llmHelper: LlmHelper | null = null
 
 function ensureLlmHelper(): LlmHelper | null {
@@ -45,6 +86,226 @@ function ensureLlmHelper(): LlmHelper | null {
         llmHelper = null
     }
     return llmHelper
+}
+
+function isAbortError(error: unknown) {
+    return error instanceof Error && error.name === 'AbortError'
+}
+
+function normalizeEndpoint(endpoint?: string) {
+    if (!endpoint) {
+        return ''
+    }
+    return endpoint.replace(/\/$/, '')
+}
+
+function providerApiKey(providerId: string, config: LlmConfig) {
+    const normalizedProvider = normalizeProviderId(providerId)
+    if (config.apiKey) {
+        return config.apiKey
+    }
+    if (normalizedProvider === 'gemini') {
+        return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+    }
+    if (normalizedProvider === 'openai') {
+        return process.env.OPENAI_API_KEY
+    }
+    if (normalizedProvider === 'claude') {
+        return process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY
+    }
+    return process.env.LLM_API_KEY || process.env.FAQ_AI_KEY || process.env.OPENAI_API_KEY
+}
+
+async function callOllamaAdapter(config: LlmConfig, prompt: string) {
+    const base = normalizeEndpoint(config.endpoint || 'http://localhost:11434')
+    const apiRoot = base.includes('/api') ? base : `${base}/api`
+    const response = await fetch(`${apiRoot}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: config.model || 'llama3',
+            messages: [{ role: 'user', content: prompt }],
+            stream: false,
+        }),
+    })
+    if (!response.ok) {
+        throw new ProviderAnalysisError({
+            providerId: 'ollama',
+            category: 'http',
+            statusCode: response.status,
+            retryable: response.status >= 500,
+            message: `Ollama request failed (${response.status})`,
+        })
+    }
+    const data = await response.json()
+    const content = data?.message?.content || data?.response
+    if (!content) {
+        throw new ProviderAnalysisError({
+            providerId: 'ollama',
+            category: 'parse',
+            message: 'Ollama returned an empty response.',
+        })
+    }
+    return String(content).trim()
+}
+
+async function callGeminiAdapter(config: LlmConfig, prompt: string) {
+    const apiKey = providerApiKey('gemini', config)
+    if (!apiKey) {
+        throw new ProviderAnalysisError({
+            providerId: 'gemini',
+            category: 'config',
+            message: 'Gemini API key is missing.',
+        })
+    }
+    const model = config.model || 'gemini-1.5-flash'
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+        }),
+    })
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new ProviderAnalysisError({
+            providerId: 'gemini',
+            category: 'http',
+            statusCode: response.status,
+            retryable: response.status >= 500,
+            message: data?.error?.message || `Gemini request failed (${response.status})`,
+        })
+    }
+    const data = await response.json()
+    const content = data?.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!content) {
+        throw new ProviderAnalysisError({
+            providerId: 'gemini',
+            category: 'parse',
+            message: 'Gemini returned no content.',
+        })
+    }
+    return String(content).trim()
+}
+
+async function callOpenAIStyleAdapter(providerId: string, config: LlmConfig, prompt: string) {
+    const base = normalizeEndpoint(config.endpoint || 'https://api.openai.com/v1')
+    const endpoint = base.endsWith('/chat/completions') ? base : `${base}/chat/completions`
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    }
+    const apiKey = providerApiKey(providerId, config)
+    if (apiKey) {
+        headers.Authorization = `Bearer ${apiKey}`
+    }
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            model: config.model || 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: 'You are a strict JSON-only analysis engine.' },
+                { role: 'user', content: prompt },
+            ],
+            temperature: 0.2,
+            stream: false,
+        }),
+    })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+        throw new ProviderAnalysisError({
+            providerId,
+            category: 'http',
+            statusCode: response.status,
+            retryable: response.status >= 500,
+            message: data?.error?.message || `${providerId} request failed (${response.status})`,
+        })
+    }
+    const content = data?.choices?.[0]?.message?.content
+    if (!content) {
+        throw new ProviderAnalysisError({
+            providerId,
+            category: 'parse',
+            message: `${providerId} returned no content.`,
+        })
+    }
+    return String(content).trim()
+}
+
+async function callProviderAdapter(providerId: string, config: LlmConfig, prompt: string) {
+    const normalized = normalizeProviderId(providerId)
+    if (normalized === 'ollama') {
+        return await callOllamaAdapter(config, prompt)
+    }
+    if (normalized === 'gemini') {
+        return await callGeminiAdapter(config, prompt)
+    }
+    if (
+        normalized === 'openai'
+        || normalized === 'claude'
+        || normalized === 'deepseek'
+        || normalized === 'qwen'
+        || normalized === 'mistral'
+        || normalized === 'perplexity'
+        || normalized === 'grok'
+        || normalized === 'glm'
+        || normalized === 'cohere'
+        || normalized === 'together'
+        || normalized === 'replicate'
+        || normalized === 'lmstudio'
+    ) {
+        return await callOpenAIStyleAdapter(normalized, config, prompt)
+    }
+    throw new ProviderAnalysisError({
+        providerId,
+        category: 'unsupported',
+        message: `Unsupported provider adapter: ${providerId}`,
+    })
+}
+
+function categorizeProviderError(providerId: string, error: unknown): ProviderAnalysisError {
+    if (error instanceof ProviderAnalysisError) {
+        return error
+    }
+    if (isAbortError(error)) {
+        return new ProviderAnalysisError({
+            providerId,
+            category: 'timeout',
+            retryable: true,
+            message: 'Provider request timed out.',
+            cause: error,
+        })
+    }
+    if (error instanceof Error && /timeout/i.test(error.message)) {
+        return new ProviderAnalysisError({
+            providerId,
+            category: 'timeout',
+            retryable: true,
+            message: error.message,
+            cause: error,
+        })
+    }
+    if (error instanceof Error && /(fetch failed|network|ECONNREFUSED|ENOTFOUND|EAI_AGAIN)/i.test(error.message)) {
+        return new ProviderAnalysisError({
+            providerId,
+            category: 'network',
+            retryable: true,
+            message: error.message,
+            cause: error,
+        })
+    }
+    return new ProviderAnalysisError({
+        providerId,
+        category: 'unknown',
+        retryable: false,
+        message: error instanceof Error ? error.message : String(error),
+        cause: error,
+    })
+}
+
+function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export interface DocumentAnalysis {
@@ -432,6 +693,50 @@ function extractJsonPayload(raw: string): unknown {
     throw new Error('Provider did not return JSON payload.')
 }
 
+function validateProviderPayloadSchema(
+    payload: unknown,
+    analysisType: 'full' | 'quick' | 'structure-only',
+    providerId: string
+) {
+    if (!payload || typeof payload !== 'object') {
+        throw new ProviderAnalysisError({
+            providerId,
+            category: 'schema',
+            message: 'Provider payload is not an object.',
+        })
+    }
+
+    const record = payload as Record<string, unknown>
+
+    if (analysisType !== 'structure-only' && record.readability !== undefined) {
+        if (!record.readability || typeof record.readability !== 'object') {
+            throw new ProviderAnalysisError({
+                providerId,
+                category: 'schema',
+                message: 'readability must be an object.',
+            })
+        }
+    }
+
+    if (analysisType !== 'structure-only' && record.recommendations !== undefined) {
+        if (!Array.isArray(record.recommendations)) {
+            throw new ProviderAnalysisError({
+                providerId,
+                category: 'schema',
+                message: 'recommendations must be an array.',
+            })
+        }
+    }
+
+    if (record.language !== undefined && typeof record.language !== 'string') {
+        throw new ProviderAnalysisError({
+            providerId,
+            category: 'schema',
+            message: 'language must be a string.',
+        })
+    }
+}
+
 function normalizePatch(raw: unknown, analysisType: 'full' | 'quick' | 'structure-only'): AnalysisPatch {
     if (!raw || typeof raw !== 'object') {
         throw new Error('Invalid provider payload.')
@@ -507,6 +812,39 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
     })
 }
 
+async function callProviderWithRetry(
+    providerId: string,
+    config: LlmConfig,
+    prompt: string,
+    options: { maxAttempts?: number; initialBackoffMs?: number } = {}
+) {
+    const maxAttempts = options.maxAttempts ?? AI_PROVIDER_RETRY_ATTEMPTS
+    const initialBackoffMs = options.initialBackoffMs ?? AI_PROVIDER_RETRY_BACKOFF_MS
+    let lastError: ProviderAnalysisError | null = null
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+            const raw = await withTimeout(callProviderAdapter(providerId, config, prompt), AI_TIMEOUT_MS)
+            return raw
+        } catch (error) {
+            const categorized = categorizeProviderError(providerId, error)
+            lastError = categorized
+            const shouldRetry = categorized.retryable && attempt < maxAttempts
+            if (!shouldRetry) {
+                throw categorized
+            }
+            const backoffMs = initialBackoffMs * 2 ** (attempt - 1)
+            await sleep(backoffMs)
+        }
+    }
+
+    throw lastError ?? new ProviderAnalysisError({
+        providerId,
+        category: 'unknown',
+        message: 'Provider analysis failed after retries.',
+    })
+}
+
 function mergeAnalysisPatch(
     baseline: DocumentAnalysis,
     patch: AnalysisPatch,
@@ -540,13 +878,28 @@ async function callAIProviderForAnalysis(
     baseline: DocumentAnalysis
 ): Promise<DocumentAnalysis> {
     const helper = ensureLlmHelper()
-    if (!helper?.generateResponse) {
-        throw new Error('LLM helper is unavailable.')
+    if (!helper) {
+        throw new ProviderAnalysisError({
+            providerId,
+            category: 'config',
+            message: 'LLM helper is unavailable.',
+        })
     }
 
+    const config = helper.loadConfig?.(PROJECT_ROOT) ?? null
     const prompt = buildProviderPrompt(content, fileType, analysisType, baseline, providerId)
-    const raw = await withTimeout(helper.generateResponse(PROJECT_ROOT, prompt), AI_TIMEOUT_MS)
+    let raw: string
+    try {
+        raw = await callProviderWithRetry(providerId, config ?? {}, prompt)
+    } catch (adapterError) {
+        if (helper.generateResponse) {
+            raw = await withTimeout(helper.generateResponse(PROJECT_ROOT, prompt), AI_TIMEOUT_MS)
+        } else {
+            throw adapterError
+        }
+    }
     const payload = extractJsonPayload(raw)
+    validateProviderPayloadSchema(payload, analysisType, providerId)
     const patch = normalizePatch(payload, analysisType)
     return mergeAnalysisPatch(baseline, patch, analysisType)
 }
@@ -658,7 +1011,11 @@ export async function analyzeDocumentStructure(
                     analysis.filePath = filePath
                     providerUsed = candidateProviderId
                 } catch (providerError) {
-                    console.warn('⚠️ Provider analysis failed; using deterministic fallback.', providerError)
+                    const categorized = categorizeProviderError(candidateProviderId, providerError)
+                    console.warn(
+                        `⚠️ Provider analysis failed (${categorized.category}); using deterministic fallback.`,
+                        categorized.message
+                    )
                 }
             }
         }

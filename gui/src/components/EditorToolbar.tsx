@@ -39,21 +39,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onAiAction
     setShowAiMenu(false)
   }
 
-  const aiActions = [
-    { label: 'Fix Grammar & Spelling', instruction: 'Fix grammar and spelling errors. Maintain tone.' },
-    { label: 'Make Professional', instruction: 'Rewrite to be more professional, concise, and corporate.' },
-    { label: 'Simplify Language', instruction: 'Simplify the language for a general audience. Use Flesch-Kincaid Grade 8 level.' },
-    { label: 'Summarize (TL;DR)', instruction: 'Add a TL;DR summary at the top of the content.' },
-    { label: 'Format Clean Up', instruction: 'Ensure consistent markdown formatting, fixing any spacing or structural inconsistencies.' }
-  ]
-
-  const personaActions = personas.map(p => ({
-    label: `Rewrite as ${p.name}`,
-    instruction: `Rewrite the content in the persona of ${p.name}: ${p.instruction}`
-  }))
-
-  const allAiActions = [...aiActions, ...personaActions]
-
   return (
     <div className='editor-toolbar'>
       <button

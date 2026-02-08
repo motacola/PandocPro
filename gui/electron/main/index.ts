@@ -1,5 +1,4 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
-import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
@@ -16,7 +15,6 @@ import { registerSnapshotHandlers } from './snapshot'
 import { registerPersonaHandlers } from './personas'
 import { registerAiAnalysisHandlers } from './ai-analysis'
 
-const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // The built directory structure

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { CollapsibleSection } from './ui/CollapsibleSection'
 import type { DocsListEntry, SnapshotEntry } from '../type/pandoc-pro'
 import { History, RotateCcw } from 'lucide-react'
@@ -7,13 +7,21 @@ interface VersionsPanelProps {
   doc: DocsListEntry
 }
 
+interface DocumentVersionEntry {
+  filePath: string
+  version: string
+  timestamp: number
+  snapshotPath: string
+  notes?: string
+  tags?: string[]
+}
+
 export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [versions, setVersions] = useState<any[]>([])
-  const [isLoadingVersions, setIsLoadingVersions] = useState(false)
+  const [versions, setVersions] = useState<DocumentVersionEntry[]>([])
 
-  const fetchSnapshots = async () => {
+  const fetchSnapshots = useCallback(async () => {
     setIsLoading(true)
     try {
       // Check for snapshots of MD fil
@@ -31,7 +39,7 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [doc.md, doc.mdExists])
 
   const handleRestore = async (snap: SnapshotEntry) => {
     if (!confirm(`Are you sure you want to restore this version from ${new Date(snap.timestamp).toLocaleString()}? Current content will be backed up.`)) {
@@ -49,7 +57,7 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
     }
   }
 
-  const handleRestoreVersion = async (version: any) => {
+  const handleRestoreVersion = async (version: DocumentVersionEntry) => {
     if (!confirm(`Are you sure you want to restore version ${version.version} from ${new Date(version.timestamp).toLocaleString()}?`)) {
       return
     }
@@ -65,27 +73,24 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
     }
   }
 
-  const fetchVersions = async () => {
-    setIsLoadingVersions(true)
+  const fetchVersions = useCallback(async () => {
     try {
       // Try to get document versions if available
       // For now, we'll simulate this since the backend doesn't have versionList yet
-      const mdVersions = doc.mdExists ? [] : []
+      const mdVersions: DocumentVersionEntry[] = doc.mdExists ? [] : []
       setVersions(mdVersions || [])
     } catch (err) {
       console.error('Failed to load versions', err)
       setVersions([])
-    } finally {
-      setIsLoadingVersions(false)
     }
-  }
+  }, [doc.mdExists])
 
   // Fetch when doc changes or panel opens?
   // We'll fetch on mount if doc changes.
   useEffect(() => {
     fetchSnapshots()
     fetchVersions()
-  }, [doc.md]) // Refetch if MD path changes
+  }, [doc.md, fetchSnapshots, fetchVersions]) // Refetch if MD path changes
 
   return (
     <CollapsibleSection title="Version History (Time Machine)" defaultOpen={false}>
@@ -145,7 +150,7 @@ export const VersionsPanel: React.FC<VersionsPanelProps> = ({ doc }) => {
                       {version.notes && <div className="version-notes">Notes: {version.notes}</div>}
                       {version.tags && version.tags.length > 0 && (
                         <div className="version-tags">
-                          {version.tags.map((tag: string, i: number) => (
+                          {version.tags.map((tag, i) => (
                             <span key={i} className="tag-badge">{tag}</span>
                           ))}
                         </div>

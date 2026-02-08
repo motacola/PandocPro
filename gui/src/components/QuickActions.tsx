@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Zap, RefreshCw, Clock } from 'lucide-react'
+import { Zap, Clock } from 'lucide-react'
 import { Button } from './ui'
 
 interface QuickActionsProps {

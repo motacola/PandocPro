@@ -62,7 +62,7 @@ const Update = () => {
     setProgressInfo(arg1)
   }, [])
 
-  const onUpdateDownloaded = useCallback((_event: Electron.IpcRendererEvent, ...args: unknown[]) => {
+  const onUpdateDownloaded = useCallback((_event: Electron.IpcRendererEvent) => {
     setProgressInfo({ percent: 100 })
     setModalBtn(state => ({
       ...state,
@@ -85,7 +85,7 @@ const Update = () => {
       window.ipcRenderer.off('download-progress', onDownloadProgress)
       window.ipcRenderer.off('update-downloaded', onUpdateDownloaded)
     }
-  }, [])
+  }, [onDownloadProgress, onUpdateCanAvailable, onUpdateDownloaded, onUpdateError])
 
   return (
     <>

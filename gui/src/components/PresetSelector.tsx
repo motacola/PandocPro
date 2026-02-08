@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Plus, Edit2, Trash2 } from 'lucide-react'
-import type { ConversionPreset, ConversionMode } from '../type/pandoc-pro'
+import type { ConversionPreset } from '../type/pandoc-pro'
 import './PresetSelector.css'
 
 interface PresetSelectorProps {

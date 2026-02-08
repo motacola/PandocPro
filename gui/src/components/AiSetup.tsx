@@ -32,7 +32,7 @@ export const AiSetup: React.FC<AiSetupProps> = ({ onConfigured }) => {
   const handleConfigure = async (provider: DetectedProvider) => {
     setConfiguringId(provider.id)
     try {
-      const config: any = {
+      const config: { provider: string; endpoint?: string; model?: string } = {
         provider: provider.id,
       }
 
@@ -49,8 +49,9 @@ export const AiSetup: React.FC<AiSetupProps> = ({ onConfigured }) => {
 
       await window.pandocPro.configureLlm(config)
       onConfigured()
-    } catch (error: any) {
-      alert(`Failed to configure ${provider.name}: ${error.message}`)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      alert(`Failed to configure ${provider.name}: ${message}`)
     } finally {
       setConfiguringId(null)
     }

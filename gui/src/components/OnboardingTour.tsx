@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, Check, Rocket } from 'lucide-react'
-import { Modal } from './ui/Modal'
+import { ChevronRight, Check } from 'lucide-react'
 
 interface OnboardingTourProps {
   onComplete: () => void

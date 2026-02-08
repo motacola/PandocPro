@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { DocumentAnalysis, DocumentAnalysisResponse } from '../type/pandoc-pro.d'
 
 // Import path module for filename extraction
@@ -20,7 +20,7 @@ export const AIDocumentAnalysis: React.FC<AIDocumentAnalysisProps> = ({
     const [error, setError] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState<'structure' | 'readability' | 'recommendations'>('structure')
 
-    const performAnalysis = async () => {
+    const performAnalysis = useCallback(async () => {
         if (!filePath) {
             setError('No file path provided')
             return
@@ -53,12 +53,12 @@ export const AIDocumentAnalysis: React.FC<AIDocumentAnalysisProps> = ({
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [filePath, onAnalysisComplete])
 
     useEffect(() => {
         // Auto-start analysis when component mounts
         performAnalysis()
-    }, [filePath])
+    }, [performAnalysis])
 
     const getReadabilityRating = (score: number): string => {
         if (score >= 80) return 'Very Easy'

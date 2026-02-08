@@ -65,11 +65,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   }
 
   const stats = useMemo(() => {
+    const DAY_MS = 24 * 60 * 60 * 1000
+    const now = Date.now()
+    const recentLargeDocCutoff = now - (7 * DAY_MS)
+    const previousLargeDocCutoff = now - (14 * DAY_MS)
     let success = 0
     let error = 0
     let largeDocs = 0
+    let largeDocsRecent = 0
+    let largeDocsPrevious = 0
     const conversionDurations: number[] = []
     const analysisDurations: number[] = []
+
+    const calculateP95 = (values: number[]) => {
+      if (values.length === 0) {
+        return 0
+      }
+      const sorted = [...values].sort((a, b) => a - b)
+      const index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1)
+      return Math.round(sorted[index])
+    }
 
     const getDuration = (entry: TelemetryEntry) => {
       if (!entry.metadata || typeof entry.metadata !== 'object') {
@@ -82,7 +97,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     telemetry.forEach((t) => {
       if (t.event === 'conversion_success') success++
       if (t.event === 'conversion_error') error++
-      if (t.event === 'large_document_processed') largeDocs++
+      if (t.event === 'large_document_processed') {
+        largeDocs++
+        const timestampMs = Date.parse(t.timestamp)
+        if (Number.isFinite(timestampMs)) {
+          if (timestampMs >= recentLargeDocCutoff) {
+            largeDocsRecent++
+          } else if (timestampMs >= previousLargeDocCutoff) {
+            largeDocsPrevious++
+          }
+        }
+      }
       if (t.event === 'conversion_duration_ms') {
         const duration = getDuration(t)
         if (duration !== null) conversionDurations.push(duration)
@@ -99,14 +124,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     const avgAnalysisMs = analysisDurations.length > 0
       ? Math.round(analysisDurations.reduce((sum, duration) => sum + duration, 0) / analysisDurations.length)
       : 0
+    const p95ConversionMs = calculateP95(conversionDurations)
+    const p95AnalysisMs = calculateP95(analysisDurations)
+
+    let largeDocTrend = 'No change'
+    let largeDocTrendDirection: 'up' | 'down' | 'flat' = 'flat'
+    if (largeDocsPrevious === 0 && largeDocsRecent > 0) {
+      largeDocTrend = `+${largeDocsRecent} (new this week)`
+      largeDocTrendDirection = 'up'
+    } else if (largeDocsPrevious > 0) {
+      const deltaPercent = Math.round(((largeDocsRecent - largeDocsPrevious) / largeDocsPrevious) * 100)
+      if (deltaPercent > 0) {
+        largeDocTrendDirection = 'up'
+      } else if (deltaPercent < 0) {
+        largeDocTrendDirection = 'down'
+      }
+      const sign = deltaPercent > 0 ? '+' : ''
+      largeDocTrend = `${sign}${deltaPercent}% (${largeDocsRecent} vs ${largeDocsPrevious})`
+    }
 
     return {
       success,
       error,
       total: success + error,
       largeDocs,
+      largeDocsRecent,
+      largeDocsPrevious,
+      largeDocTrend,
+      largeDocTrendDirection,
       avgConversionMs,
       avgAnalysisMs,
+      p95ConversionMs,
+      p95AnalysisMs,
     }
   }, [telemetry])
 
@@ -300,12 +349,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                    <span>{stats.avgConversionMs} ms</span>
                  </div>
                  <div className='stat-row'>
+                   <span>P95 Conversion Time</span>
+                   <span>{stats.p95ConversionMs} ms</span>
+                 </div>
+                 <div className='stat-row'>
                    <span>Avg Analysis Time</span>
                    <span>{stats.avgAnalysisMs} ms</span>
                  </div>
                  <div className='stat-row'>
+                   <span>P95 Analysis Time</span>
+                   <span>{stats.p95AnalysisMs} ms</span>
+                 </div>
+                 <div className='stat-row'>
                    <span>Large Documents Processed</span>
                    <strong>{stats.largeDocs}</strong>
+                 </div>
+                 <div className='stat-row'>
+                   <span>Large Docs (Last 7 Days)</span>
+                   <strong>{stats.largeDocsRecent}</strong>
+                 </div>
+                 <div className='stat-row'>
+                   <span>Large-Doc Trend (vs prior 7d)</span>
+                   <span
+                     className={
+                       stats.largeDocTrendDirection === 'up'
+                         ? 'text-warning'
+                         : stats.largeDocTrendDirection === 'down'
+                           ? 'text-success'
+                           : ''
+                     }
+                   >
+                     {stats.largeDocTrend}
+                   </span>
                  </div>
                </div>
              </div>

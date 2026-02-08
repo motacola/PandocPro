@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import { RefreshCw, Settings as SettingsIcon } from 'lucide-react'
 import { Button, EmptyState as EmptyStateComponent } from '../ui'
-import { QuickActions } from '../QuickActions'
+
 import type { HistoryEntry } from '../../type/pandoc-pro'
 
 interface DashboardViewProps {
@@ -33,9 +33,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSettings,
   formatSize,
   onQuickConvertAll,
-  onSyncRecent,
-  recentFilesCount,
-  isProcessing,
+  // onSyncRecent,
+  // recentFilesCount,
+  // isProcessing,
   conversionProgress,
   bulkConversionActive,
 }) => {
@@ -69,10 +69,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             { label: 'Synced', value: stats.synced, color: 'text-success' },
             { label: 'Pending', value: stats.pending, color: 'text-warning' },
             { label: 'Total Size', value: formatSize(stats.totalSize), color: 'text-info' },
-            { label: 'Performance', value: 'Optimized', color: 'text-success' },
-          ].map((stat, i) => (
+          ].map((stat) => (
             <motion.div
-              key={i}
+              key={stat.label}
               className='stat-card glass-card-hover'
               variants={{
                 hidden: { opacity: 0, y: 20 },
@@ -98,10 +97,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className='drop-text-secondary'>
             or click here to run <strong>Quick Convert All</strong> ({stats.pending} pending)
-          </div>
-          <div className='performance-indicator'>
-            <span className='performance-label'>Performance Mode:</span>
-            <span className='performance-value'>Optimized</span>
           </div>
 
           {/* Progress Indicator */}
@@ -136,8 +131,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 description='Your conversion history will appear here'
               />
             ) : (
-              history.map((entry, i) => (
-                <div key={i} className='activity-item'>
+              history.map((entry) => (
+                <div key={entry.timestamp} className='activity-item'>
                   <div className={`activity-status ${entry.status === 'success' ? 'success' : 'error'}`}>
                     {entry.status === 'success' ? '✓' : '✕'}
                   </div>

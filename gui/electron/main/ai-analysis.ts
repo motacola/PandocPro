@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { detectProviders, selectBestProvider } from './ai-detector'
-import { readFile } from 'fs/promises'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
 
@@ -72,6 +72,7 @@ export interface DocumentAnalysisResponse {
     timestamp: string
 }
 
+// TODO: This is a mock implementation. Replace with a real implementation that calls an AI provider.
 async function analyzeDocumentContent(
     content: string,
     fileType: 'docx' | 'md' | 'pptx' | 'txt',
@@ -164,10 +165,6 @@ async function analyzeDocumentContent(
         }
     ]
 
-    if (analysisType === 'quick' && recommendations.length > 1) {
-        recommendations = recommendations.slice(0, 1)
-    }
-
     // Add specific recommendations based on content length
     if (words.length > 2000) {
         recommendations.push({
@@ -176,6 +173,10 @@ async function analyzeDocumentContent(
             description: 'Document is quite long',
             suggestion: 'Consider breaking this into multiple documents or adding a table of contents'
         })
+    }
+
+    if (analysisType === 'quick' && recommendations.length > 1) {
+        recommendations = recommendations.slice(0, 1)
     }
 
     // Mock metadata
@@ -204,6 +205,7 @@ async function analyzeDocumentContent(
     }
 }
 
+// TODO: This is a mock implementation. Replace with a real implementation that calls an AI provider.
 async function callAIProviderForAnalysis(
     content: string,
     fileType: 'docx' | 'md' | 'pptx' | 'txt',
@@ -276,9 +278,14 @@ export async function analyzeDocumentStructure(
             }
         } catch (readError) {
             console.error('❌ Error reading file:', readError)
+            const message = readError instanceof Error ? readError.message : String(readError)
+            let errorMessage = `Failed to read file: ${message}.`
+            if (fileType === 'docx' || fileType === 'pptx') {
+                errorMessage += ' Please ensure pandoc is installed and the file is accessible.'
+            }
             return {
                 success: false,
-                error: `Failed to read file: ${readError instanceof Error ? readError.message : String(readError)}. Install pandoc or convert the file to Markdown/TXT and try again.`,
+                error: errorMessage,
                 timestamp: new Date().toISOString()
             }
         }

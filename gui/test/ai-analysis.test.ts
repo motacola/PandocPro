@@ -3,14 +3,14 @@ import { mkdtempSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 
-vi.mock('./ai-detector', () => ({
+vi.mock('../electron/main/ai-detector', () => ({
   detectProviders: async () => [
     { id: 'mock', name: 'MockProvider', available: true, requiresApiKey: false, priority: 1 },
   ],
   selectBestProvider: () => ({ id: 'mock', name: 'MockProvider', available: true, requiresApiKey: false, priority: 1 }),
 }))
 
-import { analyzeDocumentStructure } from './ai-analysis'
+import { analyzeDocumentStructure } from '../electron/main/ai-analysis'
 
 function createTempFile(filename: string, contents: string) {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'ai-analysis-'))

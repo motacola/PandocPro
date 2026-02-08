@@ -9,14 +9,20 @@ const require = createRequire(import.meta.url)
 const PROJECT_ROOT = path.resolve(process.env.APP_ROOT ?? '.', '..')
 const FAQ_PATH = path.join(PROJECT_ROOT, 'FAQ.md')
 
-let helper: { askFaqAi?: Function; getLlmStatus?: Function } | null = null
+type FaqPayload = { question: string; answer: string; followUp: string }
+
+type FaqHelper = {
+  askFaqAi?: (projectRoot: string, payload: FaqPayload) => Promise<unknown> | unknown
+  getLlmStatus?: (projectRoot: string) => unknown
+}
+
+let helper: FaqHelper | null = null
 
 function ensureHelper() {
   if (helper) {
     return helper
   }
   try {
-    // eslint-disable-next-line import/no-dynamic-require, global-require
     helper = require(path.join(PROJECT_ROOT, 'scripts', 'lib', 'llm-helper.js'))
   } catch (error) {
     helper = null
@@ -42,7 +48,7 @@ export function registerFaqHandlers() {
     }
   })
 
-  ipcMain.handle('faq:askAi', async (_event, payload: { question: string; answer: string; followUp: string }) => {
+  ipcMain.handle('faq:askAi', async (_event, payload: FaqPayload) => {
     const loaded = ensureHelper()
     if (!loaded?.askFaqAi) {
       throw new Error('LLM helper not available. Configure an AI provider first.')
@@ -60,7 +66,13 @@ export function registerFaqHandlers() {
     
     await fs.mkdir(CONFIG_DIR, { recursive: true })
     
-    const fullConfig: any = {
+    const fullConfig: {
+      provider: string
+      displayName: string
+      model?: string
+      endpoint?: string
+      apiKey?: string
+    } = {
       provider: config.provider,
       displayName: config.provider.charAt(0).toUpperCase() + config.provider.slice(1),
     }

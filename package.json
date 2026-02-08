@@ -4,7 +4,7 @@
   "description": "User-friendly Word ↔ Markdown sync tool",
   "private": true,
   "scripts": {
-    "lint": "bash scripts/lint.sh",
+    "lint": "bash scripts/lint.sh && npm run lint --prefix gui",
     "test": "npm run test:ui && bash scripts/smoke.sh",
     "test:ui": "node --test ui-server/server.test.js",
     "ci": "npm run lint && npm test",

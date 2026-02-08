@@ -10,7 +10,7 @@ export interface ConversionPreset {
   options?: {
     textOnly?: boolean
     includeMetadata?: boolean
-    [key: string]: any
+    [key: string]: unknown
   }
 }
 
@@ -236,7 +236,7 @@ declare global {
       getLlmStatus(): Promise<LlmStatus>
       askFaqAi(payload: { question: string; answer: string; followUp: string }): Promise<string>
       detectLlmProviders(): Promise<DetectedProvider[]>
-      configureLlm(config: { provider: string; model?: string; endpoint?: string }): Promise<any>
+      configureLlm(config: { provider: string; model?: string; endpoint?: string }): Promise<unknown>
       openInFolder(filePath: string): Promise<boolean>
       openFile(filePath: string): Promise<boolean>
       getTelemetry(): Promise<TelemetryEntry[]>

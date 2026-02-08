@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -11,7 +11,7 @@ import {
 import './App.css'
 import { OnboardingChecklist } from './components/OnboardingChecklist'
 import { OnboardingTour } from './components/OnboardingTour'
-import { Button, Badge, ToastContainer, EmptyState as EmptyStateComponent } from './components/ui'
+import { Button, Badge, ToastContainer, EmptyState } from './components/ui'
 import { CollapsibleSection } from './components/ui/CollapsibleSection'
 import { EditorToolbar } from './components/EditorToolbar'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -123,60 +123,8 @@ const BUILT_IN_PRESETS: ConversionPreset[] = [
   },
 ]
 
-const Skeleton = ({ count = 1, height = '1em' }) => {
-  return (
-    <div className='skeleton-container'>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className='skeleton-item' style={{ height }} />
-      ))}
-    </div>
-  )
-}
-
-const ShortcutsModal = ({ onClose }: { onClose: () => void }) => {
-  return (
-    <div className='modal-backdrop' onClick={onClose}>
-      <div className='modal-card' onClick={(e) => e.stopPropagation()}>
-        <h3>Keyboard Shortcuts</h3>
-        <div className='shortcuts-grid'>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Save Markdown</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>S</kbd></span>
-          </div>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Save & Convert to Word</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></span>
-          </div>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Run Conversion</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>E</kbd></span>
-          </div>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Toggle Preview</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>P</kbd></span>
-          </div>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Focus Search</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>F</kbd></span>
-          </div>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Switch Mode</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>1-4</kbd></span>
-          </div>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Show Shortcuts</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>/</kbd></span>
-          </div>
-          <div className='shortcut-row'>
-            <span className='shortcut-desc'>Toggle Sidebar</span>
-            <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>B</kbd></span>
-          </div>
-        </div>
-        <button className='primary full-width' onClick={onClose}>Close</button>
-      </div>
-    </div>
-  )
-}
+import Skeleton from './components/ui/Skeleton'
+import ShortcutsModal from './components/ShortcutsModal'
 
 const LegacyFaqAnchor = () => <div className='faq-layout' style={{ display: 'none' }} aria-hidden />
 
@@ -458,7 +406,7 @@ function App() {
     })
   }, [])
 
-  const fetchDocs = () => {
+  const fetchDocs = useCallback(() => {
     setIsLoadingDocs(true)
     window.pandocPro
       .listDocuments()
@@ -472,7 +420,7 @@ function App() {
         appendLogEntry('system', { type: 'stderr', text: `Failed to list documents: ${err.message ?? String(err)}` })
       })
       .finally(() => setIsLoadingDocs(false))
-  }
+  }, [appendLogEntry])
 
   const handleFileDrop = async (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault()
@@ -510,7 +458,7 @@ function App() {
     }
   }
 
-  const fetchHistory = () => {
+  const fetchHistory = useCallback(() => {
     setIsLoadingHistory(true)
     window.pandocPro
       .listHistory(6)
@@ -519,7 +467,7 @@ function App() {
         appendLogEntry('system', { type: 'stderr', text: `Failed to load history: ${err.message ?? String(err)}` }),
       )
       .finally(() => setIsLoadingHistory(false))
-  }
+  }, [appendLogEntry])
 
   const triggerConversion = useCallback((modeOverride?: ConversionMode, forceTextOnly?: boolean) => {
     if (!selectedDoc) return
@@ -656,7 +604,7 @@ function App() {
 
     fetchDocs()
     fetchHistory()
-  }, [docs, addToast, LARGE_DOC_THRESHOLD, fetchDocs, fetchHistory])
+  }, [docs, addToast, LARGE_DOC_THRESHOLD, fetchDocs, fetchHistory, formatDocLabel])
 
   const handleSyncRecent = useCallback(async () => {
     const today = new Date()
@@ -718,7 +666,7 @@ function App() {
       addToast('error', 'Failed to update reference doc setting.')
       return null
     }
-  }, [addToast])
+  }, [addToast, errorDialog])
 
   useEffect(() => {
     fetchDocs()
@@ -786,7 +734,7 @@ function App() {
     return () => {
       cleanups.forEach((cleanup) => cleanup())
     }
-  }, [appendLogEntry, addToast])
+  }, [appendLogEntry, addToast, fetchDocs, fetchHistory])
 
   useEffect(() => {
     if (!selectedDoc || !editor) return
@@ -876,7 +824,7 @@ function App() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [handleSaveMarkdown, triggerConversion, addToast])
+  }, [handleSaveMarkdown, triggerConversion, addToast, sidebarCollapsed])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)

@@ -66,6 +66,9 @@ export default defineConfig(({ command }) => {
                 output: {
                   format: 'cjs',
                   entryFileNames: 'index.cjs',
+                  exports: 'auto',
+                  esModule: false,
+                  inlineDynamicImports: true,
                 },
               },
             },

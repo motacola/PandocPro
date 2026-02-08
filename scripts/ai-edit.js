@@ -96,8 +96,8 @@ async function main() {
   }
 
   const scopeMsg = section ? `section "${section}"` : "entire file";
-  console.log(`📖 Reading ${scopeMsg} from ${file}...`);
-  
+  try { console.log(`📖 Reading ${scopeMsg} from ${file}...`); } catch (e) { /* Ignore EPIPE */ }
+   
   let originalContent;
   try {
     originalContent = readSection(absoluteFile, section || '');
@@ -110,8 +110,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`🤖 Asking AI to: "${instruction}"...`);
-  
+  try { console.log(`🤖 Asking AI to: "${instruction}"...`); } catch (e) { /* Ignore EPIPE */ }
+   
   const prompt = `
 You are an expert editor. You are editing a section of a Markdown document.
 Context:
@@ -134,18 +134,18 @@ Updated Content:
     
     // Clean up markdown fences if the LLM ignored instructions
     updatedContent = updatedContent.replace(/^```markdown\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-
+ 
     if (!updatedContent) {
       throw new Error('AI returned empty content');
     }
-
-    console.log(`✍️  Updated content received (${updatedContent.length} chars). Updating file...`);
+ 
+    try { console.log(`✍️  Updated content received (${updatedContent.length} chars). Updating file...`); } catch (e) { /* Ignore EPIPE */ }
     updateSection(absoluteFile, section || '', updatedContent);
     
-    console.log('✅ Surgical edit complete.');
+    try { console.log('✅ Surgical edit complete.'); } catch (e) { /* Ignore EPIPE */ }
     
   } catch (err) {
-    console.error(`❌ AI Error: ${err.message}`);
+    try { console.error(`❌ AI Error: ${err.message}`); } catch (e) { /* Ignore EPIPE */ }
     process.exit(1);
   }
 }

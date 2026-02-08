@@ -1,14 +1,13 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { RefreshCw, Search, FileText, FileCode, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
-import { Button, EmptyState as EmptyStateComponent } from '../ui'
+import { RefreshCw, Search, FileText, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { EmptyState as EmptyStateComponent } from '../ui'
 import { SegmentedControl } from '../ui/SegmentedControl'
-import type { DocsListEntry, ConversionMode } from '../../type/pandoc-pro'
+import type { DocsListEntry, ConversionMode, LogRun, LogEntry } from '../../type/pandoc-pro'
 import type { Editor } from '@tiptap/react'
 import './DocumentsView.css'
 import DOMPurify from 'dompurify'
 import { EditorContent } from '@tiptap/react'
-import type { LogRun, LogEntry } from '../../type/pandoc-pro'
 import { CollapsibleSection } from '../ui/CollapsibleSection'
 import { EditorToolbar } from '../EditorToolbar'
 import { VersionsPanel } from '../VersionsPanel'
@@ -222,7 +221,15 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
+
             onClick={onPickDocument}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onPickDocument()
+              }
+            }}
           >
             <span className='icon'>📂</span>
             <span>Drop or Click to Open</span>
@@ -251,6 +258,14 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                   onClick={() => onSelectDoc(doc)}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      onSelectDoc(doc)
+                    }
+                  }}
                 >
                   <div className='doc-item-icon'>
                     {getDocIcon(doc)}
@@ -398,7 +413,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
                           // No, use a local loading state.
 
                           // We need to trigger the edit.
-                          const toast = (msg: string) => console.debug(msg) // Placeholder if we can't toast
+                          // const toast = (msg: string) => console.debug(msg) // Placeholder if we can't toast
 
                           await window.pandocPro.aiEdit({
                             filePath: selectedDoc.md,

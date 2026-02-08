@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { SegmentedControl } from '../ui/SegmentedControl'
+
+
 import type { SystemInfo, SettingsData, TelemetryEntry, Persona } from '../../type/pandoc-pro'
-import { CollapsibleSection } from '../ui/CollapsibleSection'
-import { Plus, X, Save, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react'
-import { Button } from '../ui'
+import { Plus, X, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react'
 import { AiSetup } from '../AiSetup'
+
+import { ToggleButton } from '../ui/ToggleButton'
 
 interface SettingsViewProps {
   systemInfo: SystemInfo | null
@@ -85,14 +85,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             
             <div className='settings-section-card'>
               <h3>Appearance</h3>
-              <label className='toggle-row' style={{marginTop: '1rem'}}>
-                <span>Dark Mode</span>
-                <input
-                  type='checkbox'
-                  checked={theme === 'dark'}
-                  onChange={(e) => onThemeChange(e.target.checked ? 'dark' : 'light')}
-                />
-              </label>
+              <ToggleButton
+                label="Dark Mode"
+                checked={theme === 'dark'}
+                onChange={(checked) => onThemeChange(checked ? 'dark' : 'light')}
+              />
             </div>
 
             <div className='settings-section-card'>
@@ -232,24 +229,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
              
              <div className='settings-section-card'>
                <h3>Notifications</h3>
-               <label className='toggle-row' style={{marginTop: '1rem'}}>
-                 <span>Desktop Notifications</span>
-                 <input
-                   type='checkbox'
-                   checked={settings.notificationsEnabled}
-                   onChange={async (event) => {
-                     try {
-                       await onUpdateSettings({
-                         notificationsEnabled: event.target.checked,
-                       })
-                     } catch (err) {
-                       console.error('Failed to update settings:', err)
-                       // Ideally we would show a toast here, but we don't have addToast prop in this component yet.
-                       // For now, console error is better than crash.
-                     }
-                   }}
-                 />
-               </label>
+               <ToggleButton
+                 label="Desktop Notifications"
+                 checked={settings.notificationsEnabled}
+                 onChange={async (checked) => {
+                   try {
+                     await onUpdateSettings({
+                       notificationsEnabled: checked,
+                     })
+                   } catch (err) {
+                     console.error('Failed to update settings:', err)
+                     // Ideally we would show a toast here, but we don't have addToast prop in this component yet.
+                     // For now, console error is better than crash.
+                   }
+                 }}
+               />
              </div>
 
              <div className='settings-section-card'>
@@ -280,24 +274,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div 
               className={`settings-nav-item ${activeTab === 'general' ? 'active' : ''}`}
               onClick={() => setActiveTab('general')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('general') }}
             >
               General
             </div>
             <div 
               className={`settings-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
               onClick={() => setActiveTab('ai')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('ai') }}
             >
               AI Models
             </div>
             <div 
               className={`settings-nav-item ${activeTab === 'personas' ? 'active' : ''}`}
               onClick={() => setActiveTab('personas')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('personas') }}
             >
               Editorial Board
             </div>
              <div 
               className={`settings-nav-item ${activeTab === 'advanced' ? 'active' : ''}`}
               onClick={() => setActiveTab('advanced')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('advanced') }}
             >
               Advanced
             </div>

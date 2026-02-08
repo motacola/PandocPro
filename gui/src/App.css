@@ -2632,11 +2632,82 @@ button.small {
   }
 }
 
+
+
 .no-data-chart {
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
   height: 100%;
+
   color: var(--text-secondary);
+
   font-style: italic;
+
+}
+
+
+
+/* Toggle Button styles */
+
+.toggle-switch {
+
+  position: relative;
+
+  display: inline-block;
+
+  width: 44px;
+
+  height: 24px;
+
+  background-color: var(--bg-tertiary);
+
+  border-radius: 99px;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s;
+
+}
+
+
+
+.toggle-switch.checked {
+
+  background-color: var(--accent-primary);
+
+}
+
+
+
+.toggle-handle {
+
+  position: absolute;
+
+  top: 2px;
+
+  left: 2px;
+
+  width: 20px;
+
+  height: 20px;
+
+  background-color: white;
+
+  border-radius: 50%;
+
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+}
+
+
+
+.toggle-switch.checked .toggle-handle {
+
+  transform: translateX(20px);
+
 }

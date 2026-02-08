@@ -31,11 +31,23 @@ export function registerAiEditHandlers() {
       // but for now script uses config/llm-selection.json
       
       console.log('🤖 Spawning AI Edit:', AI_EDIT_SCRIPT, args.join(' '))
-
+ 
       const child = spawn('node', [AI_EDIT_SCRIPT, ...args], {
         cwd: PROJECT_ROOT,
         env: { ...process.env }
       })
+      
+      // Cleanup handler to prevent EPIPE errors
+      const cleanup = () => {
+        if (!child.killed) {
+          child.kill()
+        }
+      }
+      
+      // Handle parent process termination
+      process.on('exit', cleanup)
+      process.on('SIGINT', cleanup)
+      process.on('SIGTERM', cleanup)
 
       let stdout = ''
       let stderr = ''
@@ -49,16 +61,27 @@ export function registerAiEditHandlers() {
       })
 
       child.on('close', (code) => {
+        // Remove cleanup handlers
+        process.off('exit', cleanup)
+        process.off('SIGINT', cleanup)
+        process.off('SIGTERM', cleanup)
+        
         if (code === 0) {
           resolve({ success: true, message: stdout })
         } else {
-          console.error('AI Edit Failed:', stderr)
+          try { console.error('AI Edit Failed:', stderr) } catch (e) { /* Ignore EPIPE */ }
           reject(new Error(`AI Edit process failed (code ${code}): ${stderr}`))
         }
       })
-      
+       
       child.on('error', (err) => {
-         reject(err)
+        // Remove cleanup handlers
+        process.off('exit', cleanup)
+        process.off('SIGINT', cleanup)
+        process.off('SIGTERM', cleanup)
+        
+        try { console.error('AI Edit process error:', err) } catch (e) { /* Ignore EPIPE */ }
+        reject(err)
       })
     })
   })

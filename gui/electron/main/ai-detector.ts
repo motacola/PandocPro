@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 
-const GEMINI_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtZWhtZnV4enFlamZtYnltdXljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA5ODc0NDUsImV4cCI6MjA2NjU2MzQ0NX0.6-Jxa15Du7RImhgbzn2P11oFc7wtttPjO2kobfg265c'
+
 
 export interface DetectedProvider {
   id: string
@@ -67,11 +67,6 @@ function checkApiKey(providerId: string): boolean {
 
   const keys = keyMap[providerId] || []
 
-  // Special case: Gemini has hardcoded Supabase key
-  if (providerId === 'gemini') {
-    return true // We have the Supabase key
-  }
-
   return keys.some(key => !!process.env[key])
 }
 
@@ -120,8 +115,8 @@ export async function detectProviders(): Promise<DetectedProvider[]> {
   return results.sort((a, b) => a.priority - b.priority)
 }
 
-export function getGeminiApiKey(): string {
-  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || GEMINI_API_KEY
+export function getGeminiApiKey(): string | undefined {
+  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
 }
 
 // Enhanced provider selection with fallback logic

@@ -67,11 +67,47 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const stats = useMemo(() => {
     let success = 0
     let error = 0
+    let largeDocs = 0
+    const conversionDurations: number[] = []
+    const analysisDurations: number[] = []
+
+    const getDuration = (entry: TelemetryEntry) => {
+      if (!entry.metadata || typeof entry.metadata !== 'object') {
+        return null
+      }
+      const value = (entry.metadata as Record<string, unknown>).durationMs
+      return typeof value === 'number' ? value : null
+    }
+
     telemetry.forEach((t) => {
       if (t.event === 'conversion_success') success++
       if (t.event === 'conversion_error') error++
+      if (t.event === 'large_document_processed') largeDocs++
+      if (t.event === 'conversion_duration_ms') {
+        const duration = getDuration(t)
+        if (duration !== null) conversionDurations.push(duration)
+      }
+      if (t.event === 'analysis_duration_ms') {
+        const duration = getDuration(t)
+        if (duration !== null) analysisDurations.push(duration)
+      }
     })
-    return { success, error, total: success + error }
+
+    const avgConversionMs = conversionDurations.length > 0
+      ? Math.round(conversionDurations.reduce((sum, duration) => sum + duration, 0) / conversionDurations.length)
+      : 0
+    const avgAnalysisMs = analysisDurations.length > 0
+      ? Math.round(analysisDurations.reduce((sum, duration) => sum + duration, 0) / analysisDurations.length)
+      : 0
+
+    return {
+      success,
+      error,
+      total: success + error,
+      largeDocs,
+      avgConversionMs,
+      avgAnalysisMs,
+    }
   }, [telemetry])
 
   const renderContent = () => {
@@ -258,6 +294,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                    <span className={stats.total > 0 && stats.error === 0 ? 'text-success' : ''}>
                      {stats.total > 0 ? Math.round((stats.success / stats.total) * 100) : 0}%
                    </span>
+                 </div>
+                 <div className='stat-row'>
+                   <span>Avg Conversion Time</span>
+                   <span>{stats.avgConversionMs} ms</span>
+                 </div>
+                 <div className='stat-row'>
+                   <span>Avg Analysis Time</span>
+                   <span>{stats.avgAnalysisMs} ms</span>
+                 </div>
+                 <div className='stat-row'>
+                   <span>Large Documents Processed</span>
+                   <strong>{stats.largeDocs}</strong>
                  </div>
                </div>
              </div>

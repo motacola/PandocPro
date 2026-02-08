@@ -1,8 +1,21 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 
 const ShortcutsModal = ({ onClose }: { onClose: () => void }) => {
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    dialogRef.current?.focus()
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [onClose])
+
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
       onClose()
     }
   }
@@ -10,13 +23,17 @@ const ShortcutsModal = ({ onClose }: { onClose: () => void }) => {
   return (
     <div
       className='modal-backdrop'
-      onClick={onClose}
-      role='button'
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
+      onClick={handleBackdropClick}
     >
-      <div className='modal-card' onClick={(e) => e.stopPropagation()}>
-        <h3>Keyboard Shortcuts</h3>
+      <div
+        className='modal-card'
+        role='dialog'
+        aria-modal='true'
+        aria-labelledby='shortcuts-modal-title'
+        tabIndex={-1}
+        ref={dialogRef}
+      >
+        <h3 id='shortcuts-modal-title'>Keyboard Shortcuts</h3>
         <div className='shortcuts-grid'>
           <div className='shortcut-row'>
             <span className='shortcut-desc'>Save Markdown</span>
@@ -51,7 +68,7 @@ const ShortcutsModal = ({ onClose }: { onClose: () => void }) => {
             <span className='shortcut-keys'><kbd>Cmd</kbd> + <kbd>B</kbd></span>
           </div>
         </div>
-        <button className='primary full-width' onClick={onClose}>Close</button>
+        <button className='primary full-width' onClick={onClose} type='button'>Close</button>
       </div>
     </div>
   )

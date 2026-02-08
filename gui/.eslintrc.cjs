@@ -15,9 +15,9 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   ignorePatterns: ['dist', 'dist-electron', 'node_modules', 'release', 'build'],
   rules: {
-    '@typescript-eslint/no-unused-vars': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/ban-types': 'warn',
   },
   env: {
     browser: true,
@@ -38,7 +38,7 @@ module.exports = {
         'react/react-in-jsx-scope': 'off',
         'react/prop-types': 'off',
         'react/no-unescaped-entities': 'off',
-        'react-hooks/exhaustive-deps': 'off',
+        'react-hooks/exhaustive-deps': 'warn',
       },
     },
   ],

@@ -23,26 +23,61 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null)
 
-  // Close on Escape
+  // Close on Escape and keep keyboard focus in the dialog while open.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (!isOpen) return
+
+      if (e.key === 'Escape') {
         onClose()
+        return
+      }
+
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusableElements.length === 0) {
+          e.preventDefault()
+          return
+        }
+        const first = focusableElements[0]
+        const last = focusableElements[focusableElements.length - 1]
+        const active = document.activeElement
+
+        if (e.shiftKey && active === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault()
+          first.focus()
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  // Focus trap could go here, but kept simple for now
+  useEffect(() => {
+    if (!isOpen) return
+    modalRef.current?.focus()
+  }, [isOpen])
+
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose()
+    }
+  }
 
   if (!isOpen) return null
 
   return ReactDOM.createPortal(
-    <div className='modal-backdrop' onClick={onClose} role='dialog' aria-modal='true'>
+    <div className='modal-backdrop' onClick={handleBackdropClick}>
       <div 
         className={`modal-card modal-${size} ${className}`} 
-        onClick={(e) => e.stopPropagation()}
+        role='dialog'
+        aria-modal='true'
+        tabIndex={-1}
         ref={modalRef}
       >
         <div className='modal-header'>

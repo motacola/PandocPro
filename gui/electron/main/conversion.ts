@@ -2,8 +2,8 @@ import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process'
 import path from 'node:path'
 import { BrowserWindow, ipcMain } from 'electron'
 import fs from 'node:fs'
-import { notifySuccess, notifyError, notifyInfo } from './notifications'
-import { telemetryIncrement } from './telemetry'
+import { notifySuccess, notifyError } from './notifications'
+import { telemetryIncrement, telemetryRecord } from './telemetry'
 import { readSettings } from './settings'
 import { createSnapshot } from './snapshot'
 
@@ -47,11 +47,60 @@ function getDocsDir() {
   return DEFAULT_DOCS_DIR
 }
 const DOCX_SCRIPT = path.join(PROJECT_ROOT, 'scripts', 'docx-sync.sh')
+const LARGE_DOCUMENT_THRESHOLD_BYTES = 50 * 1024 * 1024
 
 const processes = new Map<string, ChildProcessWithoutNullStreams>()
+const conversionStartTimes = new Map<string, { startedAt: number; mode: ConvertMode; sourcePath: string; sourceSize: number }>()
 
 function scriptExists() {
   return fs.existsSync(DOCX_SCRIPT)
+}
+
+function getFileSizeSafe(filePath: string) {
+  try {
+    return fs.statSync(filePath).size
+  } catch {
+    return 0
+  }
+}
+
+function recordConversionMetrics(
+  requestId: string,
+  status: 'success' | 'error' | 'cancelled',
+  code: number | null = null
+) {
+  const started = conversionStartTimes.get(requestId)
+  if (!started) {
+    return
+  }
+  conversionStartTimes.delete(requestId)
+
+  const durationMs = Date.now() - started.startedAt
+  const isLargeDocument = started.sourceSize >= LARGE_DOCUMENT_THRESHOLD_BYTES
+
+  telemetryRecord('conversion_duration_ms', {
+    requestId,
+    mode: started.mode,
+    sourcePath: started.sourcePath,
+    sourceSize: started.sourceSize,
+    durationMs,
+    status,
+    code,
+    isLargeDocument,
+  })
+
+  if (isLargeDocument) {
+    telemetryRecord('large_document_processed', {
+      requestId,
+      context: 'conversion',
+      mode: started.mode,
+      sourcePath: started.sourcePath,
+      sourceSize: started.sourceSize,
+      durationMs,
+      status,
+      code,
+    })
+  }
 }
 
 function validateRequest(payload: ConversionRequest) {
@@ -164,6 +213,13 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
       createSnapshot(sourceFile).catch(err => console.error('Auto-snapshot failed', err))
     }
 
+    conversionStartTimes.set(payload.requestId, {
+      startedAt: Date.now(),
+      mode: payload.mode,
+      sourcePath: sourceFile,
+      sourceSize: getFileSizeSafe(sourceFile),
+    })
+
     const args = [payload.docxPath, payload.mdPath, payload.mode]
 
     // Check for reference doc setting
@@ -210,10 +266,12 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
         const filename = path.basename(payload.docxPath)
         notifySuccess('Conversion Complete', `${filename} processed successfully`, win ?? undefined)
         telemetryIncrement('conversion_success')
+        recordConversionMetrics(payload.requestId, 'success', code)
       } else {
         const filename = path.basename(payload.docxPath)
         notifyError('Conversion Failed', `${filename} failed with exit code ${code}`, win ?? undefined)
         telemetryIncrement('conversion_error')
+        recordConversionMetrics(payload.requestId, 'error', code)
       }
 
       win?.webContents.send('conversion:exit', {
@@ -227,6 +285,7 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
       const win = getWindow()
       notifyError('Conversion Error', error.message, win ?? undefined)
       telemetryIncrement('conversion_error')
+      recordConversionMetrics(payload.requestId, 'error')
 
       win?.webContents.send('conversion:error', {
         requestId: payload.requestId,
@@ -240,6 +299,7 @@ export function registerConversionHandlers(getWindow: () => BrowserWindow | null
     if (child) {
       child.kill('SIGTERM')
       processes.delete(requestId)
+      recordConversionMetrics(requestId, 'cancelled')
     }
   })
 }

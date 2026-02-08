@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import './modal.css'
 
@@ -22,17 +22,48 @@ const ModalTemplate: React.FC<React.PropsWithChildren<{
     width = 530,
   } = props
 
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onCancel?.()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    dialogRef.current?.focus()
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onCancel])
+
+  const handleBackdropClick = () => {
+    onCancel?.()
+  }
+
   return (
     <div className='update-modal'>
-      <div className='update-modal__mask' />
-      <div className='update-modal__warp'>
-        <div className='update-modal__content' style={{ width }}>
+      <button
+        type='button'
+        className='update-modal__mask'
+        onClick={handleBackdropClick}
+        aria-label='Close update dialog'
+      />
+      <div className='update-modal__warp' role='presentation'>
+        <div
+          className='update-modal__content'
+          style={{ width }}
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='update-modal-title'
+          tabIndex={-1}
+          ref={dialogRef}
+        >
           <div className='content__header'>
-            <div className='content__header-text'>{title}</div>
+            <div className='content__header-text' id='update-modal-title'>{title}</div>
             <button
               type='button'
               className='update-modal--close'
               onClick={onCancel}
+              aria-label='Close update dialog'
             >
               <svg
                 viewBox="0 0 1024 1024"
@@ -46,8 +77,8 @@ const ModalTemplate: React.FC<React.PropsWithChildren<{
           <div className='content__body'>{children}</div>
           {typeof footer !== 'undefined' ? (
             <div className='content__footer'>
-              <button onClick={onCancel}>{cancelText}</button>
-              <button onClick={onOk}>{okText}</button>
+              <button type='button' onClick={onCancel}>{cancelText}</button>
+              <button type='button' onClick={onOk}>{okText}</button>
             </div>
           ) : footer}
         </div>

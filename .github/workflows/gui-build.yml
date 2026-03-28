@@ -35,16 +35,19 @@ jobs:
         run: npm ci
         working-directory: gui
 
-      - name: Build GUI
+      - name: Build GUI (unsigned)
         run: npm run gui:build
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_IDENTITY_AUTO_DISCOVERY }}
-          CSC_NAME: ${{ secrets.CSC_NAME }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_NAME: ''
+          APPLE_ID: ''
+          APPLE_ID_PASSWORD: ''
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: pandocpro-gui-${{ github.sha }}
           path: gui/release/**
+
+      - name: Run GUI tests
+        run: npm run test --prefix gui

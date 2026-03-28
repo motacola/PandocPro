@@ -31,7 +31,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
         className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
         disabled={disabled || isLoading}
-        {...props}
+        {...(props as any)}
       >
         {/* Shine effect on hover */}
         {variant === 'primary' && !disabled && !isLoading && (

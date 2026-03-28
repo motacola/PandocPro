@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Christopher Belgrave – Full Career History CV</title>
+  <meta name="description" content="Full career history CV of Christopher Belgrave – Agile Product/Project Manager with 19+ years experience." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #0d1b2a;
+      --ink:       #1a2535;
+      --slate:     #2e3d52;
+      --accent:    #2563eb;
+      --accent-lt: #3b82f6;
+      --teal:      #0ea5e9;
+      --gold:      #f59e0b;
+      --text:      #1e293b;
+      --muted:     #64748b;
+      --border:    #e2e8f0;
+      --surface:   #f8fafc;
+      --white:     #ffffff;
+      --radius:    6px;
+      --sidebar-w: 250px;
+    }
+
+    html { font-size: 13px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: #dde3ec;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+
+    @media print {
+      html { font-size: 11.5px; }
+      body { background: white; padding: 0; }
+      .cv-wrapper { box-shadow: none; border-radius: 0; max-width: 100%; }
+      .page-break { page-break-before: always; }
+      .job { page-break-inside: avoid; }
+    }
+
+    /* ===== WRAPPER ===== */
+    .cv-wrapper {
+      width: 100%;
+      max-width: 980px;
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+
+    /* ===== HEADER ===== */
+    .cv-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--slate) 100%);
+      padding: 40px 44px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cv-header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 240px; height: 240px;
+      border-radius: 50%;
+      background: rgba(37,99,235,.15);
+      pointer-events: none;
+    }
+    .cv-header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 180px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(14,165,233,.10);
+      pointer-events: none;
+    }
+    .header-inner { position: relative; z-index: 1; }
+
+    .header-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+    .header-title {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.72);
+      margin-top: 8px;
+      letter-spacing: 0.15px;
+    }
+    .header-contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 20px;
+      margin-top: 18px;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.85);
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+    .contact-item svg { opacity: 0.7; flex-shrink: 0; }
+    .contact-item a { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.4); }
+
+    .accent-bar { display: flex; gap: 6px; margin-top: 20px; flex-wrap: wrap; }
+    .accent-bar span {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    .tag-blue  { background: rgba(37,99,235,.35); color: #93c5fd; }
+    .tag-teal  { background: rgba(14,165,233,.30); color: #7dd3fc; }
+    .tag-gold  { background: rgba(245,158,11,.25); color: #fcd34d; }
+    .tag-green { background: rgba(34,197,94,.25);  color: #86efac; }
+
+    /* ===== BODY LAYOUT ===== */
+    .cv-body {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .cv-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .sidebar-section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ===== ABOUT ME ===== */
+    .about-text {
+      font-size: 0.77rem;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ===== SKILL GROUPS ===== */
+    .skill-group { margin-bottom: 12px; }
+    .skill-group-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 5px;
+    }
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .skill-tag {
+      font-size: 0.67rem;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .skill-tag.primary {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .skill-tag.gold {
+      background: #fffbeb;
+      border-color: #fde68a;
+      color: #92400e;
+    }
+
+    /* ===== CERT ITEMS ===== */
+    .cert-item {
+      display: flex;
+      gap: 9px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cert-item:last-child { border-bottom: none; }
+    .cert-icon {
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #eff6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .cert-name { font-size: 0.74rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+    .cert-body { font-size: 0.67rem; color: var(--muted); margin-top: 1px; }
+
+    /* ===== ACTIVITIES ===== */
+    .activity-text {
+      font-size: 0.75rem;
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .activity-highlight {
+      display: inline-block;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    /* ===== MAIN ===== */
+    .cv-main {
+      padding: 28px 34px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    /* ===== SECTION HEADING ===== */
+    .section-heading {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ===== JOB ===== */
+    .job {
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .job:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .job-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .job-company {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .company-favicon {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .company-favicon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+      background: #fff;
+    }
+    .company-favicon.has-image img { display: block; }
+    .company-favicon.has-image .company-favicon-fallback { display: none; }
+    .company-favicon-fallback {
+      font-size: 0.42rem;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0.15px;
+      text-transform: uppercase;
+      color: #1d4ed8;
+    }
+    .job-role {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+    .job-type {
+      font-size: 0.67rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 1px;
+    }
+    .job-meta { text-align: right; flex-shrink: 0; }
+    .job-date {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .job-bullets {
+      list-style: none;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .job-bullets li {
+      font-size: 0.78rem;
+      color: var(--text);
+      padding-left: 13px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .job-bullets li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--accent-lt);
+      font-size: 0.62rem;
+      top: 3px;
+    }
+    .job-note {
+      font-size: 0.76rem;
+      color: var(--text);
+      margin-top: 7px;
+      line-height: 1.6;
+    }
+
+    .client-tag {
+      display: inline-block;
+      font-size: 0.67rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 6px;
+      color: var(--muted);
+      margin: 2px 2px 0 0;
+    }
+
+    .era-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-bottom: 14px;
+      display: inline-block;
+    }
+
+    .url-link {
+      font-size: 0.72rem;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--accent);
+    }
+
+    /* ===== SUB-CLIENT ===== */
+    .sub-client {
+      margin-top: 10px;
+      padding: 9px 11px;
+      background: #f0f7ff;
+      border-left: 3px solid var(--accent-lt);
+      border-radius: 0 4px 4px 0;
+    }
+    .sub-client-name {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 5px;
+    }
+
+    /* ===== IMPACT BOX ===== */
+    .impact-box {
+      margin-top: 10px;
+      padding: 9px 11px;
+      background: #f0fdf4;
+      border-left: 3px solid #22c55e;
+      border-radius: 0 4px 4px 0;
+    }
+    .impact-label {
+      font-size: 0.67rem;
+      font-weight: 700;
+      color: #16a34a;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .impact-box ul { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+    .impact-box li {
+      font-size: 0.75rem;
+      color: #166534;
+      padding-left: 12px;
+      position: relative;
+    }
+    .impact-box li::before { content: '✓'; position: absolute; left: 0; font-size: 0.68rem; }
+  </style>
+</head>
+<body>
+<div class="cv-wrapper">
+
+  <!-- ══ HEADER ══ -->
+  <header class="cv-header">
+    <div class="header-inner">
+      <div class="header-name">Christopher Belgrave</div>
+      <div class="header-title">Agile Product / Project Manager &nbsp;·&nbsp; CSPO &nbsp;·&nbsp; Digital Native &nbsp;·&nbsp; AI & Transformation Leader</div>
+      <div class="header-contact">
+        <div class="contact-item">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          London, UK
+        </div>
+        <div class="contact-item">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6.29 6.29l.79-.79a2 2 0 0 1 2.11-.45c.906.338 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
+          +44 79 123 600 75
+        </div>
+        <div class="contact-item">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="mailto:chrisbelgrave@gmail.com">chrisbelgrave@gmail.com</a>
+        </div>
+        <div class="contact-item">
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          <a href="https://linkedin.com/in/chrisbelgrave">linkedin.com/in/chrisbelgrave</a>
+        </div>
+      </div>
+      <div class="accent-bar">
+        <span class="tag-blue">19+ Years Experience</span>
+        <span class="tag-teal">AI &amp; Digital Transformation</span>
+        <span class="tag-gold">CSPO Certified</span>
+        <span class="tag-green">Budgets up to $3.4M</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ BODY ══ -->
+  <div class="cv-body">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="cv-sidebar">
+
+      <!-- About Me -->
+      <div>
+        <div class="sidebar-section-title">About Me</div>
+        <p class="about-text">
+          With over 19 years of experience as a producer, digital project manager, and Product Manager, I have developed an extensive skillset managing digital advertising and transformation teams.
+        </p>
+        <p class="about-text" style="margin-top:8px;">
+          I excel in managing complex production flows across global, offshore and cross-functional teams using both waterfall and agile methodologies. I've worked with CEOs and executives across the UK, Europe and USA implementing AI, CMS/DAM and large-platform transformations.
+        </p>
+        <p class="about-text" style="margin-top:8px;">
+          I have managed budgets of up to <strong>$3.4 million</strong> and bring a detail-oriented approach to requirements definition, backlog refinement, and stakeholder alignment.
+        </p>
+      </div>
+
+      <!-- Core Technical Skills -->
+      <div>
+        <div class="sidebar-section-title">Platform &amp; Technical Skills</div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Project &amp; Collaboration</div>
+          <div class="skill-tags">
+            <span class="skill-tag primary">Jira</span>
+            <span class="skill-tag primary">Confluence</span>
+            <span class="skill-tag">Monday.com</span>
+            <span class="skill-tag">Basecamp</span>
+            <span class="skill-tag">Smartsheet</span>
+            <span class="skill-tag">ClickUp</span>
+            <span class="skill-tag">Miro</span>
+            <span class="skill-tag">Notion</span>
+            <span class="skill-tag">Airtable</span>
+            <span class="skill-tag">Trello</span>
+            <span class="skill-tag">Google Workspace</span>
+            <span class="skill-tag">MS 365</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">AI &amp; Emerging Tech</div>
+          <div class="skill-tags">
+            <span class="skill-tag gold">Claude (Anthropic)</span>
+            <span class="skill-tag gold">ChatGPT / Codex</span>
+            <span class="skill-tag gold">Cursor</span>
+            <span class="skill-tag gold">Adobe Firefly</span>
+            <span class="skill-tag">Runway</span>
+            <span class="skill-tag">AR/VR</span>
+            <span class="skill-tag">Web3</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Design &amp; Prototyping</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Figma</span>
+            <span class="skill-tag">Adobe XD</span>
+            <span class="skill-tag">Sketch</span>
+            <span class="skill-tag">Photoshop</span>
+            <span class="skill-tag">Illustrator</span>
+            <span class="skill-tag">After Effects</span>
+            <span class="skill-tag">Premiere Pro</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">CMS &amp; CRM</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Sitecore</span>
+            <span class="skill-tag">WordPress</span>
+            <span class="skill-tag">Drupal</span>
+            <span class="skill-tag">HubSpot</span>
+            <span class="skill-tag">Salesforce</span>
+            <span class="skill-tag">GoHighLevel</span>
+            <span class="skill-tag">Zoho</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Data &amp; Analytics</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Google Analytics</span>
+            <span class="skill-tag">Adobe Analytics</span>
+            <span class="skill-tag">Looker Studio</span>
+            <span class="skill-tag">Tableau</span>
+            <span class="skill-tag">Power BI</span>
+            <span class="skill-tag">DOMO</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Advertising Platforms</div>
+          <div class="skill-tags">
+            <span class="skill-tag">Google Ads</span>
+            <span class="skill-tag">Meta Ads</span>
+            <span class="skill-tag">Google Ad Manager</span>
+            <span class="skill-tag">Sizmek</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Development</div>
+          <div class="skill-tags">
+            <span class="skill-tag">HTML5</span>
+            <span class="skill-tag">CSS3</span>
+            <span class="skill-tag">JavaScript</span>
+            <span class="skill-tag">React Native</span>
+            <span class="skill-tag">MySQL</span>
+            <span class="skill-tag">Git</span>
+            <span class="skill-tag">AWS</span>
+            <span class="skill-tag">Azure</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Qualifications -->
+      <div>
+        <div class="sidebar-section-title">Qualifications</div>
+        <div class="cert-item">
+          <div class="cert-icon">
+            <svg width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+          </div>
+          <div>
+            <div class="cert-name">Certified Scrum Product Owner (CSPO)</div>
+            <div class="cert-body">Professional Scrum · Scrum.org</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">
+            <svg width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <div class="cert-name">Augmented Reality Course</div>
+            <div class="cert-body">Google · Coursera</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">
+            <svg width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+          </div>
+          <div>
+            <div class="cert-name">Agile Project &amp; Product Management</div>
+            <div class="cert-body">Udemy for Business (multiple courses)</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">
+            <svg width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+          </div>
+          <div>
+            <div class="cert-name">Skills Bootcamp – 3D Design &amp; Visualisation (Blender)</div>
+            <div class="cert-body">UK Government Funded · 2024</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">
+            <svg width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div>
+            <div class="cert-name">PADI Advanced Open Water Diver</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">
+            <svg width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          </div>
+          <div>
+            <div class="cert-name">BTEC National Diploma – Media Technology</div>
+            <div class="cert-body">Leeds City College</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activities -->
+      <div>
+        <div class="sidebar-section-title">Activities &amp; Interests</div>
+        <div class="activity-highlight">🎤 MC / Performer</div>
+        <p class="activity-text">Performed alongside Courtney Pine, Roni Size, The Beastie Boys, and at events including The Leeds Jazz Festival.</p>
+        <p class="activity-text" style="margin-top:8px;">Passionate about music, film, art, travel, cycling, motorbiking, snorkelling, scuba diving, and gaming.</p>
+      </div>
+
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <main class="cv-main">
+
+      <!-- ── CURRENT ERA ── -->
+      <section>
+        <div class="section-heading">AI &amp; Commercial Transformation (2023 – Present)</div>
+
+        <!-- Chromaverse -->
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Chromaverse Ltd</div>
+              <div class="job-role">Freelance Programme / Project Director – AI &amp; Digital Transformation</div>
+            </div>
+            <div class="job-meta">
+              <div class="job-date">Dec 2023 – Present</div>
+              <div class="job-location" style="font-size:0.67rem;color:var(--muted);margin-top:2px;">London / Barbados (Remote)</div>
+            </div>
+          </div>
+          <p class="job-note">Programme-level leadership delivering digital platform and marketing transformation initiatives using AI-enabled workflows, CRM integrations, and scalable web platforms.</p>
+
+          <div class="sub-client">
+            <div class="sub-client-name">Inter-American Development Bank (IDB)</div>
+            <ul class="job-bullets">
+              <li>Designed and delivered a GDPR-compliant, AI-driven regional engagement programme targeting 10,000+ businesses across the Caribbean.</li>
+              <li>Built AI-assisted survey funnels and incentive mechanisms to improve structured data capture and response rates.</li>
+              <li>Established data governance frameworks ensuring compliance, transparency, and audit readiness.</li>
+            </ul>
+          </div>
+
+          <div class="sub-client" style="margin-top:7px;">
+            <div class="sub-client-name">Skyviews – AI Platform &amp; Architecture Modernisation</div>
+            <ul class="job-bullets">
+              <li>Led AI and PostgreSQL integration strategy across web and application environments.</li>
+              <li>Produced future-state scalability roadmap incorporating microservices architecture, GraphQL, CI/CD pipelines, and 2FA security.</li>
+              <li>Defined API governance standards and documentation frameworks.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Service Scalers -->
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Service Scalers</div>
+              <div class="job-role">AI-Enabled Digital Operations &amp; Workflow Lead</div>
+            </div>
+            <div class="job-meta"><div class="job-date">2025 – 2026</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Led redesign of digital acquisition and operational delivery systems across multiple B2B &amp; B2C service brands.</li>
+            <li>Re-engineered website build and migration pipelines into structured digital operating systems.</li>
+            <li>Integrated GoHighLevel CRM with structured website lead capture and tracking infrastructure.</li>
+            <li>Implemented automation between BugHerd, Notion, Slack, and Google Sheets to reduce manual coordination overhead — sites built in Webflow and WordPress.</li>
+          </ul>
+          <div class="impact-box">
+            <div class="impact-label">Impact</div>
+            <ul>
+              <li>Reduced operational friction and improved visibility across cross-functional teams.</li>
+              <li>Strengthened CRM alignment and sales attribution visibility.</li>
+              <li>Increased efficiency and predictability across digital launch cycles.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Craft Worldwide -->
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Craft Worldwide</div>
+              <div class="job-role">Senior Project Manager EMEA</div>
+              <div class="job-type">FTC</div>
+            </div>
+            <div class="job-meta"><div class="job-date">May – Nov 2023</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Spearheaded high-impact initiatives across the global network to drive innovation, optimise operations, reduce costs, and boost efficiencies.</li>
+            <li>Oversaw diverse projects spanning AR, video production, AI automation, and generative AI/3D/VFX workflows.</li>
+            <li>Pioneered integration of cutting-edge technologies including generative AI, AR, 3D, VFX, and Adobe workflows.</li>
+            <li>Led offshore team setup and AI workflow automation for operational efficiency.</li>
+            <li>Onboarded newly partnered agency Threedium for AR projects with L'Oréal/Maybelline.</li>
+            <li>Headed business transformation activities including virtual studio setup, prompt training, and workflow automation.</li>
+            <li>Managed client relationships and partnerships with leading global brands; fostered collaboration across the IPG global network.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── ENTERPRISE 2021–2023 ── -->
+      <section>
+        <div class="section-heading">Enterprise &amp; Global Programme Delivery (2018 – 2023)</div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">WPP / OpenX</div>
+              <div class="job-role">Senior Project Manager – Marketing &amp; Growth</div>
+              <div class="job-type">Contract</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Dec 2021 – Oct 2022</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Project managed end-to-end global charters (integrated &amp; digital) for The Coca-Cola Company across Sprite, Fanta, Jack &amp; Coke, Lemon Dou, and Topo Chico.</li>
+            <li>Coordinated integrated creative delivery across WPP-owned agencies: Ogilvy, AKQA, David, Grey, Wunderman Thomson, VML Y&R, Havas, Mediacom and others.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Trailer Farm</div>
+              <div class="job-role">Project Manager</div>
+              <div class="job-type">Contract</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Oct 2021 – Jan 2022</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Led project delivery for AAA game studios using Unreal, Unity, Maya and gaming engines.</li>
+            <li>Key deliveries: <em>'A Quiet Place'</em> video game trailer; Marvelous Games <em>Rune Factory 5</em>.</li>
+            <li>Managed creatives, developers, video editors and 3D artists; produced voiceovers with VO artists.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">R/GA</div>
+              <div class="job-role">Senior Project Manager</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Jun – Oct 2021</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Allianz programme management: RACI, timing plans, UX/UI design, Confluence setup, Figma, Miro, daily stand-ups, budgets and SOWs.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Sullivan and Stanley</div>
+              <div class="job-role">Business Analyst / Product Owner</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Dec 2020 – Feb 2021</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Gathered technical and business requirements from partners to build an Omnichannel tech stack including CDP, CRM, and CM platforms for a confidential enterprise client (NDA).</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Critical Mass</div>
+              <div class="job-role">Business Analyst / Product Owner</div>
+              <div class="job-type">Contract</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Mar – Jun 2020</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Implemented cookie management for GDPR compliance across Mitsubishi EU websites.</li>
+            <li>Wrote user stories for a custom Google Tag Manager; collaborated with third-party solutions.</li>
+            <li>Delivered two-week sprints in an agile environment alongside dev and PM teams.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Sennep</div>
+              <div class="job-role">Product Manager</div>
+              <div class="job-type">Contract</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Jul – Nov 2019</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Developed Lumi — a cross-platform mobile app for Roli's LED electronic keyboard.</li>
+            <li>Full-stack delivery using Agile Scrum: JS React Native, Unity, C++; two-week sprint cadence.</li>
+            <li>Collaborated with API platform, QA, and UI/UX design teams. <a class="url-link" href="https://playlumi.com">playlumi.com</a></li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Gildan (Barbados)</div>
+              <div class="job-role">Project Manager</div>
+              <div class="job-type">Contract</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Jun – Sept 2018</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Managed multiple website designs across American Apparel and Gildan clothing brands.</li>
+            <li>Scoped, budgeted, and integrated Oracle JD Edwards on eCommerce platforms and Smarter Commerce CMS.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── BELGRAVE DIGITAL ── -->
+      <section>
+        <div class="section-heading">Independent Practice (2014 – 2021)</div>
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Belgrave Digital</div>
+              <div class="job-role">Independent Producer / Project Manager</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Oct 2014 – 2021</div></div>
+          </div>
+          <p class="job-note">Integrated producing and project management for dynamic HTML5 rich media banners, eCRM email campaigns, and web builds. Clients included agencies and brands such as:</p>
+          <div style="margin-top:6px;">
+            <span class="client-tag">Apple</span><span class="client-tag">Oracle</span><span class="client-tag">checkout.com</span><span class="client-tag">Sainsbury's</span><span class="client-tag">Emirates</span><span class="client-tag">British Airways</span><span class="client-tag">BT</span><span class="client-tag">L'Oréal</span><span class="client-tag">H&M</span><span class="client-tag">Fitbit</span><span class="client-tag">iRobot</span><span class="client-tag">Lloyds Banking Group</span><span class="client-tag">Vauxhall</span><span class="client-tag">Autotrader</span><span class="client-tag">Flybe</span><span class="client-tag">Standard Life</span>
+          </div>
+          <ul class="job-bullets" style="margin-top:8px;">
+            <li>Agency partners: Bossa NYC, AMV BBDO, Hogarth WW, BBH, Digitas LBi, WilliamsLeaTAG, Freedman International, MRM, Wunderman.</li>
+            <li>Website redesign and build for gacaribbean.com; Sitecore build uk.mixa.com for L'Oréal.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── EARLIER CAREER ── -->
+      <section>
+        <div class="section-heading">Earlier Career History (2007 – 2015)</div>
+        <div class="era-label">Creative, Advertising &amp; Digital Production</div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Meri Media</div><div class="job-role">Senior Project Manager</div></div>
+            <div class="job-meta"><div class="job-date">Nov – Jan 2015</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Launched D:CODE clothing line from Diesel; CRM, brand identity and guidelines.</li>
+            <li>Dunhill luxury men's banner campaign; managed creative team of art directors, designers, developers and video editors.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Red Bee Media</div><div class="job-role">Digital Producer</div></div>
+            <div class="job-meta"><div class="job-date">Feb – Oct 2014</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Responsive footer and banner creative for BBC and UKTV properties (Doctor Who playable leaderboard banner game).</li>
+            <li>Pitch delivery, creative concepting, and day-to-day project management.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Leagas Delaney</div><div class="job-role">Digital Projects Director</div></div>
+            <div class="job-meta"><div class="job-date">Nov – Dec 2013</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Managed global campaigns: Patek Philippe, rich media banners, iAd iOS mobile creative, email marketing.</li>
+            <li>Clients: Feel Unique, Pictet, MSC Cruises. Managed ad platform uploads (MediaMind) and outsourcing.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Skype / Microsoft Advertising</div><div class="job-role">Advertising Product Manager</div></div>
+            <div class="job-meta"><div class="job-date">Apr – Oct 2013</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Global digital solutions provider; technical and creative support for web/mobile platforms across time zones.</li>
+            <li>Collaborated on ideation, ad proposals, user flows, and project delivery for clients and sales teams.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">IPC Media – Time Inc</div><div class="job-role">Digital Product Marketing Manager – trustedreviews.com</div></div>
+            <div class="job-meta"><div class="job-date">Nov 2012 – Mar 2013</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Led digital marketing campaigns and strategy across digital, mobile, and social platforms.</li>
+            <li>Set KPIs/metrics, drove process improvements, worked with developers in Agile/Scrum.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Spring Creative</div><div class="job-role">Technical Project Manager</div></div>
+            <div class="job-meta"><div class="job-date">Jun – Sept 2012</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Luxury fashion eCommerce build using Magento, ERP, JavaScript and HTML5/CSS with four in-house developers.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">adam&amp;eveDDB London</div><div class="job-role">Digital Producer</div></div>
+            <div class="job-meta"><div class="job-date">Feb – Mar 2012</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Produced green screen video shoot for Halifax Bank rich media banner page takeovers.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Hearst Magazines Digital Media</div><div class="job-role">Project Manager</div></div>
+            <div class="job-meta"><div class="job-date">Jan – Feb 2012</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Cross-branded advertorials, interactive videos and photo shoots for Cosmopolitan and Dorothy Perkins.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Jimmy Choo</div><div class="job-role">Digital Project Manager</div></div>
+            <div class="job-meta"><div class="job-date">Nov 2011</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Build and design of Jimmy Choo US website and eCommerce content management.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Burberry</div><div class="job-role">Digital Project Manager</div></div>
+            <div class="job-meta"><div class="job-date">Jun – Jul 2011</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Implemented redesign of the world site, Worldstore (responsive UI), mobile site and iPhone Facebook app.</li>
+            <li>Coordinated UX, design and build schedules with Capgemini and creative agencies in agile/waterfall process.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Ogilvy One</div><div class="job-role">Digital Project Manager</div></div>
+            <div class="job-meta"><div class="job-date">Apr – May 2011</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Unilever products: Comfort Facebook game and Global intranet for Unilever employees.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">DDB London</div><div class="job-role">Digital Producer</div></div>
+            <div class="job-meta"><div class="job-date">Jun 2010 – Mar 2011</div></div>
+          </div>
+          <p class="job-note">Clients: Virgin Media, Tropicana, Financial Times B2B, Johnson &amp; Johnson, Star Alliance.</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Hi-ReS!</div><div class="job-role">Digital Producer</div></div>
+            <div class="job-meta"><div class="job-date">Sept 2009 – Apr 2010</div></div>
+          </div>
+          <p class="job-note">Clients: Dolce &amp; Gabbana, Jägermeister, Anna Molinari; Webby Award winner — The Economist "Thinking Spaces" (AMV BBDO); Starbucks (BBDO NY).</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Rehab Studio</div><div class="job-role">Digital Producer</div></div>
+            <div class="job-meta"><div class="job-date">Jul – Sept 2009</div></div>
+          </div>
+          <p class="job-note">Clients: Toilet Duck (DraftFCB), Fabergé, Toyota.</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Workclub</div><div class="job-role">Senior Producer</div><div class="job-type">Contract</div></div>
+            <div class="job-meta"><div class="job-date">2009 – 2010</div></div>
+          </div>
+          <p class="job-note">Clients: Nokia, Nokia Greenroom mobile/web build.</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">KBS Albion London</div><div class="job-role">Digital Producer</div></div>
+            <div class="job-meta"><div class="job-date">Apr – Sept 2008</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Built a Facebook app for BT that recruited 70,000 users for the world's biggest online Mexican wave.</li>
+            <li>Created a speaking clock art installation for Accurist.</li>
+            <li>Clients: Blackberry, eBay, Skype, Remington, Air New Zealand, BSkyB, Capital One, Absolute Radio.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Tangozebra / DoubleClick / Google</div><div class="job-role">Digital Producer</div></div>
+            <div class="job-meta"><div class="job-date">Nov 2007 – Jan 2008</div></div>
+          </div>
+          <p class="job-note">Clients: Channel 4, Selftrade, Financial Times, Seiko, Microsoft.</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Saint RKCR/Y&amp;R</div><div class="job-role">Senior Producer</div></div>
+            <div class="job-meta"><div class="job-date">Jun – Aug 2007</div></div>
+          </div>
+          <p class="job-note">Clients: Visit London, Bacardi, UK Home Office.</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">DNA / Avenue A | Razorfish</div><div class="job-role">Producer</div></div>
+            <div class="job-meta"><div class="job-date">Mar – May 2007</div></div>
+          </div>
+          <p class="job-note">Clients: NSPCC, Oxfam, Standard Life Bank, Yorkshire Building Society, Weight Watchers.</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">Rapp</div><div class="job-role">Senior Producer</div><div class="job-type">Contract</div></div>
+          </div>
+          <p class="job-note">Clients: Legal and General, Garnier, Crisis, Pfizer.</p>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div><div class="job-company">MRM Worldwide</div><div class="job-role">Project Manager</div><div class="job-type">Contract</div></div>
+          </div>
+          <p class="job-note">Clients: BSkyB.</p>
+        </div>
+      </section>
+
+      <!-- ── USA ── -->
+      <section>
+        <div class="section-heading">International Experience – USA (2005 – 2007)</div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Uniworld Group, New York City, NY</div>
+              <div class="job-role">Interactive Creative Producer</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Oct 2005 – Jan 2007</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Filmed and created interactive online video content for websites and banners targeting the urban market.</li>
+            <li>Clients: Lincoln, Ford, Burger King; fundraising and viral events for US President Barack Obama's campaign.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <div>
+              <div class="job-company">Culture Lab, Dallas, Texas</div>
+              <div class="job-role">Creative / Producer</div>
+            </div>
+            <div class="job-meta"><div class="job-date">Jan – Mar 2007</div></div>
+          </div>
+          <ul class="job-bullets">
+            <li>Creative team concepting, strategy, overseeing production and project management.</li>
+            <li>Clients: Nokia, Scion.</li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+<script>
+  (function () {
+    var companyDomains = {
+      "chromaverse ltd": "chromaverse.ai",
+      "service scalers": "servicescalers.com",
+      "craft worldwide": "craftww.com",
+      "wpp / openx": "wpp.com",
+      "trailer farm": "trailerfarm.com",
+      "r/ga": "rga.com",
+      "sullivan and stanley": "sullivanstanley.com",
+      "critical mass": "criticalmass.com",
+      "sennep": "sennep.com",
+      "gildan (barbados)": "gildan.com",
+      "belgrave digital": "belgravedigital.co.uk",
+      "meri media": "merimedia.com",
+      "red bee media": "redbeemedia.com",
+      "leagas delaney": "leagasdelaney.com",
+      "skype / microsoft advertising": "microsoft.com",
+      "ipc media – time inc": "time.com",
+      "ipc media - time inc": "time.com",
+      "spring creative": "spring-creative.com",
+      "adam&eveddb london": "adamandeveddb.com",
+      "adam&amp;eveddb london": "adamandeveddb.com",
+      "hearst magazines digital media": "hearst.com",
+      "jimmy choo": "jimmychoo.com",
+      "burberry": "burberry.com",
+      "ogilvy one": "ogilvy.com",
+      "ddb london": "ddb.com",
+      "hi-res!": "hi-res.net",
+      "rehab studio": "rehabstudio.com",
+      "workclub": "work-club.com",
+      "kbs albion london": "kbs.com",
+      "tangozebra / doubleclick / google": "google.com",
+      "saint rkcr/y&r": "vmlyr.com",
+      "dna / avenue a | razorfish": "razorfish.com",
+      "rapp": "rapp.com",
+      "mrm worldwide": "mrm.com",
+      "uniworld group, new york city, ny": "uniworldgroup.com",
+      "culture lab, dallas, texas": "culturelabx.com"
+    };
+
+    function normalizeName(name) {
+      return (name || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    function initialsFor(name) {
+      var cleaned = (name || "")
+        .replace(/\(.*?\)/g, " ")
+        .replace(/[^a-zA-Z0-9]+/g, " ")
+        .trim();
+      if (!cleaned) return "CV";
+      var stopWords = {
+        and: true,
+        the: true,
+        ltd: true,
+        inc: true,
+        group: true,
+        worldwide: true,
+        london: true,
+        city: true,
+        ny: true
+      };
+      var words = cleaned.split(/\s+/);
+      var picked = [];
+      for (var i = 0; i < words.length; i += 1) {
+        var w = words[i];
+        if (!w) continue;
+        if (picked.length === 0 || !stopWords[w.toLowerCase()]) {
+          picked.push(w.charAt(0));
+        }
+        if (picked.length >= 2) break;
+      }
+      if (picked.length === 1 && words.length > 1) {
+        picked.push(words[words.length - 1].charAt(0));
+      }
+      return picked.join("").slice(0, 2).toUpperCase();
+    }
+
+    function logoCandidates(domain) {
+      return [
+        "https://logo.clearbit.com/" + encodeURIComponent(domain) + "?size=64",
+        "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(domain) + "&sz=64"
+      ];
+    }
+
+    function tryImageSources(img, urls, onSuccess, onComplete) {
+      var i = 0;
+      function next() {
+        if (i >= urls.length) {
+          onComplete();
+          return;
+        }
+        img.onload = function () {
+          if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+            onSuccess();
+            onComplete();
+          } else {
+            i += 1;
+            next();
+          }
+        };
+        img.onerror = function () {
+          i += 1;
+          next();
+        };
+        img.src = urls[i];
+      }
+      next();
+    }
+
+    function addCompanyBadges() {
+      var companyNodes = document.querySelectorAll(".job-company");
+      var pending = [];
+
+      companyNodes.forEach(function (node) {
+        if (node.dataset.logoEnhanced === "true") return;
+        node.dataset.logoEnhanced = "true";
+
+        var companyName = node.textContent.trim();
+        var badge = document.createElement("span");
+        badge.className = "company-favicon";
+        badge.setAttribute("aria-hidden", "true");
+
+        var img = document.createElement("img");
+        var fallback = document.createElement("span");
+        fallback.className = "company-favicon-fallback";
+        fallback.textContent = initialsFor(companyName);
+
+        badge.appendChild(img);
+        badge.appendChild(fallback);
+        node.prepend(badge);
+
+        var domain = companyDomains[normalizeName(companyName)];
+        if (!domain) return;
+
+        img.referrerPolicy = "no-referrer";
+        img.decoding = "async";
+        img.loading = "eager";
+
+        pending.push(
+          new Promise(function (resolve) {
+            tryImageSources(
+              img,
+              logoCandidates(domain),
+              function () {
+                badge.classList.add("has-image");
+              },
+              resolve
+            );
+          })
+        );
+      });
+
+      return Promise.all(pending);
+    }
+
+    if (document.readyState === "loading") {
+      window.__cvCompanyBadgesReady = new Promise(function (resolve) {
+        document.addEventListener("DOMContentLoaded", function () {
+          addCompanyBadges().then(resolve);
+        });
+      });
+    } else {
+      window.__cvCompanyBadgesReady = addCompanyBadges();
+    }
+  })();
+</script>
+</body>
+</html>

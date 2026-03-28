@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '20'
           cache: npm
           cache-dependency-path: gui/package-lock.json
 
@@ -38,3 +38,7 @@ jobs:
         with:
           name: ${{ matrix.os }}-artifacts
           path: gui/release/**
+
+      - name: Run GUI tests
+        working-directory: gui
+        run: npm run test

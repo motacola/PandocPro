@@ -1,0 +1,28 @@
+name: Test Scripts
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  test-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run smoke tests
+        run: bash scripts/smoke.sh
+
+      - name: Run shell syntax checks
+        run: bash scripts/lint.sh

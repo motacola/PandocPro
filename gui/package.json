@@ -71,13 +71,51 @@
   "build": {
     "appId": "com.motacola.pandocpro",
     "productName": "PandocPro",
+    "copyright": "Copyright © 2025 Christopher Belgrave",
+    "directories": {
+      "output": "release"
+    },
     "mac": {
       "category": "public.app-category.productivity",
       "identity": null,
-      "signIgnore": ".*"
+      "signIgnore": ".*",
+      "target": ["dmg", "zip"]
     },
     "dmg": {
-      "sign": false
+      "sign": false,
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 50, "y": 220 }
+      ]
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "public/favicon.ico",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PandocPro"
+    },
+    "linux": {
+      "target": ["AppImage", "deb", "rpm"],
+      "category": "Utility",
+      "maintainer": "Christopher Belgrave <christopher.belgrave@gmail.com>",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "dist/**/*",
+      "public/**/*",
+      "templates/**/*",
+      "*.json",
+      "*.cjs"
+    ],
+    "extraMetadata": {
+      "main": "dist-electron/main/index.cjs"
     }
   }
 }

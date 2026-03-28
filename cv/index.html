@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Christopher Belgrave – Senior Project/Product Manager</title>
+    <meta
+      name="description"
+      content="CV of Christopher Belgrave – AI & Digital Transformation leader with 19+ years' experience redesigning commercial and operational workflows."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ===== CSS RESET & BASE ===== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --navy: #0d1b2a;
+        --ink: #1a2535;
+        --slate: #2e3d52;
+        --accent: #2563eb;
+        --accent-lt: #3b82f6;
+        --teal: #0ea5e9;
+        --gold: #f59e0b;
+        --text: #1e293b;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --surface: #f8fafc;
+        --white: #ffffff;
+        --radius: 6px;
+        --sidebar-w: 260px;
+      }
+
+      html {
+        font-size: 13.5px;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        color: var(--text);
+        background: #dde3ec;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 32px 16px;
+        line-height: 1.6;
+      }
+
+      /* ===== PRINT ===== */
+      @media print {
+        body {
+          background: white;
+          padding: 0;
+        }
+        .cv-wrapper {
+          box-shadow: none;
+          border-radius: 0;
+          max-width: 100%;
+        }
+        .no-print {
+          display: none;
+        }
+      }
+
+      /* ===== WRAPPER ===== */
+      .cv-wrapper {
+        width: 100%;
+        max-width: 960px;
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: var(--sidebar-w) 1fr;
+        grid-template-rows: auto 1fr;
+      }
+
+      /* ===== HEADER (full width) ===== */
+      .cv-header {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, var(--navy) 0%, var(--slate) 100%);
+        padding: 40px 44px 36px;
+        position: relative;
+        overflow: hidden;
+      }
+      .cv-header::before {
+        content: "";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.15);
+        pointer-events: none;
+      }
+      .cv-header::after {
+        content: "";
+        position: absolute;
+        bottom: -40px;
+        left: 180px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: rgba(14, 165, 233, 0.1);
+        pointer-events: none;
+      }
+
+      .header-inner {
+        position: relative;
+        z-index: 1;
+      }
+
+      .header-name {
+        font-family: "Outfit", sans-serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: var(--white);
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+      }
+
+      .header-title {
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.72);
+        margin-top: 8px;
+        letter-spacing: 0.15px;
+        max-width: 580px;
+      }
+
+      .header-contact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 20px;
+        margin-top: 20px;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.78rem;
+        font-weight: 500;
+      }
+
+      .contact-item svg {
+        opacity: 0.7;
+        flex-shrink: 0;
+      }
+
+      .contact-item a {
+        color: inherit;
+        text-decoration: none;
+        border-bottom: 1px dotted rgba(255, 255, 255, 0.4);
+      }
+
+      .accent-bar {
+        display: flex;
+        gap: 6px;
+        margin-top: 22px;
+      }
+      .accent-bar span {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+      }
+      .tag-blue {
+        background: rgba(37, 99, 235, 0.35);
+        color: #93c5fd;
+      }
+      .tag-teal {
+        background: rgba(14, 165, 233, 0.3);
+        color: #7dd3fc;
+      }
+      .tag-gold {
+        background: rgba(245, 158, 11, 0.25);
+        color: #fcd34d;
+      }
+
+      /* ===== SIDEBAR ===== */
+      .cv-sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        padding: 32px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+
+      /* ===== MAIN CONTENT ===== */
+      .cv-main {
+        padding: 32px 36px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+      }
+
+      /* ===== SECTION HEADING ===== */
+      .section-heading {
+        font-family: "Outfit", sans-serif;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section-heading::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* ===== PROFILE ===== */
+      .profile-text {
+        font-size: 0.82rem;
+        color: var(--text);
+        line-height: 1.75;
+      }
+      .profile-list {
+        list-style: none;
+        margin: 10px 0;
+      }
+      .profile-list li {
+        font-size: 0.82rem;
+        color: var(--text);
+        padding: 3px 0 3px 16px;
+        position: relative;
+      }
+      .profile-list li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent-lt);
+        font-size: 0.7rem;
+      }
+
+      .cert-badge {
+        margin-top: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 4px;
+        padding: 5px 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      /* ===== JOB ENTRY ===== */
+      .job {
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--border);
+      }
+      .job:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .job-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .job-company {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: "Outfit", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .company-favicon {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 16px;
+        border-radius: 4px;
+        border: 1px solid #cbd5e1;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      }
+      .company-favicon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: none;
+        background: #fff;
+      }
+      .company-favicon.has-image img {
+        display: block;
+      }
+      .company-favicon.has-image .company-favicon-fallback {
+        display: none;
+      }
+      .company-favicon-fallback {
+        font-size: 0.42rem;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: 0.15px;
+        text-transform: uppercase;
+        color: #1d4ed8;
+      }
+
+      .job-role {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--accent);
+        margin-top: 2px;
+      }
+
+      .job-meta {
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .job-date {
+        font-size: 0.73rem;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .job-location {
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .job-desc {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 8px 0 6px;
+        font-style: italic;
+      }
+
+      .job-bullets {
+        list-style: none;
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .job-bullets li {
+        font-size: 0.8rem;
+        color: var(--text);
+        padding-left: 14px;
+        position: relative;
+        line-height: 1.55;
+      }
+      .job-bullets li::before {
+        content: "▸";
+        position: absolute;
+        left: 0;
+        color: var(--accent-lt);
+        font-size: 0.65rem;
+        top: 3px;
+      }
+
+      .sub-client {
+        margin-top: 12px;
+        padding: 10px 12px;
+        background: #f0f7ff;
+        border-left: 3px solid var(--accent-lt);
+        border-radius: 0 4px 4px 0;
+      }
+
+      .sub-client-name {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+
+      .impact-box {
+        margin-top: 12px;
+        padding: 10px 12px;
+        background: #f0fdf4;
+        border-left: 3px solid #22c55e;
+        border-radius: 0 4px 4px 0;
+      }
+
+      .impact-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #16a34a;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .impact-box ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .impact-box li {
+        font-size: 0.78rem;
+        color: #166534;
+        padding-left: 12px;
+        position: relative;
+      }
+      .impact-box li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        font-size: 0.7rem;
+      }
+
+      /* ===== SIDEBAR SKILLS ===== */
+      .skill-group {
+        margin-bottom: 4px;
+      }
+      .skill-group-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--ink);
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        margin-bottom: 6px;
+      }
+      .skill-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .skill-tag {
+        font-size: 0.7rem;
+        padding: 3px 9px;
+        border-radius: 4px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-weight: 500;
+      }
+      .skill-tag.primary {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* ===== SIDEBAR SECTION ===== */
+      .sidebar-section {
+      }
+      .sidebar-section-title {
+        font-family: "Outfit", sans-serif;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* ===== CORE CAPABILITIES TABLE ===== */
+      .caps-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .cap-row {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px 14px;
+      }
+      .cap-category {
+        font-size: 0.73rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 4px;
+      }
+      .cap-skills {
+        font-size: 0.77rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* ===== TECH TOOLKIT ===== */
+      .toolkit-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .toolkit-row {
+      }
+      .toolkit-label {
+        font-size: 0.73rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 5px;
+      }
+      .toolkit-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .toolkit-tag {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      .toolkit-tag.highlight {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #92400e;
+      }
+
+      /* ===== EDUCATION / CERTS ===== */
+      .cert-item {
+        display: flex;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .cert-item:last-child {
+        border-bottom: none;
+      }
+      .cert-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .cert-icon svg {
+        color: var(--accent);
+      }
+      .cert-info {
+      }
+      .cert-name {
+        font-size: 0.77rem;
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1.3;
+      }
+      .cert-body {
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 1px;
+      }
+
+
+    </style>
+  </head>
+  <body>
+
+
+    <div class="cv-wrapper">
+      <!-- ═══════════════ HEADER ═══════════════ -->
+      <header class="cv-header">
+        <div class="header-inner">
+          <div class="header-name">Christopher Belgrave</div>
+          <div class="header-title">
+            Senior Project / Product Manager &nbsp;·&nbsp; AI-Enabled Commercial
+            Transformation &nbsp;·&nbsp; Digital Operating Model Design
+          </div>
+          <div class="header-contact">
+            <div class="contact-item">
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              London, UK
+            </div>
+            <div class="contact-item">
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6.29 6.29l.79-.79a2 2 0 0 1 2.11-.45c.906.338 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"
+                />
+              </svg>
+              +44 79 123 600 75
+            </div>
+            <div class="contact-item">
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              <a href="mailto:chrisbelgrave@gmail.com"
+                >chrisbelgrave@gmail.com</a
+              >
+            </div>
+            <div class="contact-item">
+              <svg
+                width="13"
+                height="13"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                />
+                <rect x="2" y="9" width="4" height="12" />
+                <circle cx="4" cy="4" r="2" />
+              </svg>
+              <a href="#">LinkedIn Profile</a>
+            </div>
+          </div>
+          <div class="accent-bar">
+            <span class="tag-blue">AI Transformation</span>
+            <span class="tag-teal">Digital Operating Models</span>
+            <span class="tag-gold">CSPO Certified</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ═══════════════ SIDEBAR ═══════════════ -->
+      <aside class="cv-sidebar">
+        <!-- Core Capabilities -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Core Capabilities</div>
+          <div class="caps-grid">
+            <div class="cap-row">
+              <div class="cap-category">🤖 AI & Automation</div>
+              <div class="cap-skills">
+                Generative AI workflow integration · Prompt engineering · RAG
+                concepts · Operational automation design
+              </div>
+            </div>
+            <div class="cap-row">
+              <div class="cap-category">⚙️ Commercial Transformation</div>
+              <div class="cap-skills">
+                Quote-to-delivery workflow redesign · CRM integration & adoption
+                · Digital operating model design · KPI-led oversight
+              </div>
+            </div>
+            <div class="cap-row">
+              <div class="cap-category">🧩 Product & Platform</div>
+              <div class="cap-skills">
+                API-led architecture · CMS ecosystems · Microservices
+                roadmapping · UX governance
+              </div>
+            </div>
+            <div class="cap-row">
+              <div class="cap-category">🤝 Stakeholder Leadership</div>
+              <div class="cap-skills">
+                Executive alignment · Cross-functional facilitation · Partner
+                accountability · Risk & scope governance
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Technical Toolkit -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Technical Toolkit</div>
+          <div class="toolkit-grid">
+            <div class="toolkit-row">
+              <div class="toolkit-label">AI & Engineering</div>
+              <div class="toolkit-tags">
+                <span class="toolkit-tag highlight">Claude (Anthropic)</span>
+                <span class="toolkit-tag highlight">ChatGPT / Codex</span>
+                <span class="toolkit-tag highlight">Cursor</span>
+                <span class="toolkit-tag highlight">Ollama</span>
+                <span class="toolkit-tag">Prompt Engineering</span>
+              </div>
+            </div>
+            <div class="toolkit-row">
+              <div class="toolkit-label">Product & Collaboration</div>
+              <div class="toolkit-tags">
+                <span class="toolkit-tag">Notion</span>
+                <span class="toolkit-tag">Jira</span>
+                <span class="toolkit-tag">Confluence</span>
+                <span class="toolkit-tag">ClickUp</span>
+                <span class="toolkit-tag">Figma</span>
+                <span class="toolkit-tag">Miro</span>
+                <span class="toolkit-tag">BugHerd</span>
+              </div>
+            </div>
+            <div class="toolkit-row">
+              <div class="toolkit-label">CRM & Commercial</div>
+              <div class="toolkit-tags">
+                <span class="toolkit-tag">Salesforce</span>
+                <span class="toolkit-tag">HubSpot</span>
+                <span class="toolkit-tag">GoHighLevel</span>
+                <span class="toolkit-tag">UTM Tracking</span>
+              </div>
+            </div>
+            <div class="toolkit-row">
+              <div class="toolkit-label">Platforms & Dev</div>
+              <div class="toolkit-tags">
+                <span class="toolkit-tag">Webflow</span>
+                <span class="toolkit-tag">WordPress</span>
+                <span class="toolkit-tag">Sitecore</span>
+                <span class="toolkit-tag">React Native</span>
+                <span class="toolkit-tag">PostgreSQL</span>
+                <span class="toolkit-tag">AWS</span>
+                <span class="toolkit-tag">Azure</span>
+                <span class="toolkit-tag">CI/CD</span>
+              </div>
+            </div>
+            <div class="toolkit-row">
+              <div class="toolkit-label">Data & Analytics</div>
+              <div class="toolkit-tags">
+                <span class="toolkit-tag">Google Analytics</span>
+                <span class="toolkit-tag">Adobe Analytics</span>
+                <span class="toolkit-tag">Looker Studio</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Certifications & Education -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Certifications</div>
+          <div>
+            <div class="cert-item">
+              <div class="cert-icon">
+                <svg
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="#2563eb"
+                  stroke-width="2.2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="8" r="6" />
+                  <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+                </svg>
+              </div>
+              <div class="cert-info">
+                <div class="cert-name">
+                  Certified Scrum Product Owner (CSPO)
+                </div>
+                <div class="cert-body">Scrum.org</div>
+              </div>
+            </div>
+            <div class="cert-item">
+              <div class="cert-icon">
+                <svg
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="#2563eb"
+                  stroke-width="2.2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div class="cert-info">
+                <div class="cert-name">Introduction to Augmented Reality</div>
+                <div class="cert-body">Google · Coursera</div>
+              </div>
+            </div>
+            <div class="cert-item">
+              <div class="cert-icon">
+                <svg
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="#2563eb"
+                  stroke-width="2.2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <path d="M8 21h8m-4-4v4" />
+                </svg>
+              </div>
+              <div class="cert-info">
+                <div class="cert-name">
+                  Skills Bootcamp – 3D Design & Visualisation (Blender)
+                </div>
+                <div class="cert-body">UK Government Funded · 2024</div>
+              </div>
+            </div>
+            <div class="cert-item">
+              <div class="cert-icon">
+                <svg
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="#2563eb"
+                  stroke-width="2.2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path
+                    d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                  />
+                </svg>
+              </div>
+              <div class="cert-info">
+                <div class="cert-name">PADI Advanced Open Water Diver</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Education -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Education</div>
+          <div class="cert-item" style="border-bottom: none; padding-bottom: 0">
+            <div class="cert-icon">
+              <svg
+                width="14"
+                height="14"
+                fill="none"
+                stroke="#2563eb"
+                stroke-width="2.2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                <path d="M6 12v5c3 3 9 3 12 0v-5" />
+              </svg>
+            </div>
+            <div class="cert-info">
+              <div class="cert-name">
+                BTEC National Diploma in Media Technology
+              </div>
+              <div class="cert-body">Leeds City College</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ═══════════════ MAIN ═══════════════ -->
+      <main class="cv-main">
+        <!-- ── PROFILE ── -->
+        <section>
+          <div class="section-heading">Profile</div>
+          <p class="profile-text">
+            AI and Digital Transformation leader with
+            <strong>19+ years' experience</strong> redesigning commercial and
+            operational workflows across B2B organisations. I specialise in
+            replacing fragmented, manual legacy processes with AI-enabled,
+            digitally-native operating models that:
+          </p>
+          <ul class="profile-list">
+            <li>
+              Improve turnaround times across commercial and delivery cycles.
+            </li>
+            <li>
+              Increase team productivity through structured automation and
+              tooling.
+            </li>
+            <li>
+              Deliver measurable commercial impact tied to business outcomes.
+            </li>
+          </ul>
+          <p class="profile-text" style="margin-top: 10px">
+            My experience spans AI workflow integration, CRM adoption
+            programmes, portal modernisation, scalable platform architecture,
+            and cross-functional transformation across international markets. I
+            am equally comfortable
+            <strong>defining future-state operating models</strong> with senior
+            stakeholders as I am working alongside UX and engineering teams to
+            deliver them.
+          </p>
+          <div class="cert-badge">
+            <svg
+              width="12"
+              height="12"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="8" r="6" />
+              <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+            </svg>
+            CSPO · Proven track record of holding teams and partners accountable
+            for outcomes — not just delivery.
+          </div>
+        </section>
+
+        <!-- ── AI & COMMERCIAL TRANSFORMATION ── -->
+        <section>
+          <div class="section-heading">
+            AI &amp; Commercial Transformation Experience
+          </div>
+
+          <!-- Chromaverse -->
+          <div class="job">
+            <div class="job-header">
+              <div>
+                <div class="job-company">Chromaverse Ltd</div>
+                <div class="job-role">
+                  Freelance Programme / Project Director – AI &amp; Digital
+                  Transformation
+                </div>
+              </div>
+              <div class="job-meta">
+                <div class="job-date">Dec 2023 – Present</div>
+                <div class="job-location">London / Barbados (Remote)</div>
+              </div>
+            </div>
+            <p class="job-desc">
+              Programme-level leadership delivering digital platform and marketing transformation initiatives using AI-enabled workflows, CRM integrations, and scalable web platforms.
+            </p>
+
+            <div class="sub-client">
+              <div class="sub-client-name">
+                Inter-American Development Bank (IDB)
+              </div>
+              <ul class="job-bullets">
+                <li>
+                  Designed and delivered a GDPR-compliant, AI-driven regional
+                  engagement programme targeting 10,000+ businesses across the
+                  Caribbean.
+                </li>
+                <li>
+                  Built AI-assisted survey funnels and incentive mechanisms to
+                  improve structured data capture and response rates.
+                </li>
+                <li>
+                  Established data governance frameworks ensuring compliance,
+                  transparency, and audit readiness.
+                </li>
+              </ul>
+            </div>
+
+            <div class="sub-client" style="margin-top: 8px">
+              <div class="sub-client-name">
+                Skyviews – AI Platform &amp; Architecture Modernisation
+              </div>
+              <ul class="job-bullets">
+                <li>
+                  Led AI and PostgreSQL integration strategy across web and
+                  application environments.
+                </li>
+                <li>
+                  Produced future-state scalability roadmap incorporating
+                  microservices, GraphQL, CI/CD pipelines, and 2FA security.
+                </li>
+                <li>
+                  Defined API governance standards and documentation frameworks.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Service Scalers -->
+          <div class="job">
+            <div class="job-header">
+              <div>
+                <div class="job-company">Service Scalers</div>
+                <div class="job-role">
+                  AI-Enabled Digital Operations &amp; Workflow Lead
+                </div>
+              </div>
+              <div class="job-meta">
+                <div class="job-date">2025 – 2026</div>
+              </div>
+            </div>
+            <ul class="job-bullets">
+              <li>
+                Led redesign of digital acquisition and operational delivery
+                systems across multiple B2B &amp; B2C service brands.
+              </li>
+              <li>
+                Re-engineered website build and migration pipelines into
+                structured digital operating systems.
+              </li>
+              <li>
+                Integrated GoHighLevel CRM with structured website lead capture
+                and tracking infrastructure.
+              </li>
+              <li>
+                Implemented automation between BugHerd, Notion, Slack, and
+                Google Sheets to reduce manual coordination overhead — sites
+                built in Webflow and WordPress.
+              </li>
+            </ul>
+            <div class="impact-box">
+              <div class="impact-label">Impact</div>
+              <ul>
+                <li>
+                  Reduced operational friction and improved cross-functional
+                  visibility.
+                </li>
+                <li>
+                  Strengthened CRM alignment and sales attribution visibility.
+                </li>
+                <li>
+                  Increased efficiency and predictability across digital launch
+                  cycles.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── ENTERPRISE TRANSFORMATION ── -->
+        <section>
+          <div class="section-heading">
+            Enterprise Transformation Leadership
+          </div>
+
+          <div class="job">
+            <div class="job-header">
+              <div>
+                <div class="job-company">Craft Worldwide</div>
+                <div class="job-role">
+                  Senior Project Manager EMEA – AI &amp; Digital Transformation
+                </div>
+              </div>
+              <div class="job-meta">
+                <div class="job-date">May – Nov 2023</div>
+              </div>
+            </div>
+            <ul class="job-bullets">
+              <li>
+                Led AI-enabled workflow transformation across EMEA production
+                teams, introducing generative AI into creative and operational
+                pipelines.
+              </li>
+              <li>
+                Sponsored prompt engineering workshops to drive behavioural
+                adoption across teams.
+              </li>
+            </ul>
+          </div>
+
+          <div class="job">
+            <div class="job-header">
+              <div>
+                <div class="job-company">WPP / OpenX</div>
+                <div class="job-role">
+                  Senior Project Manager – Global Commercial Delivery
+                </div>
+              </div>
+              <div class="job-meta">
+                <div class="job-date">Dec 2021 – Oct 2022</div>
+              </div>
+            </div>
+            <ul class="job-bullets">
+              <li>
+                Led end-to-end global programme delivery across The Coca-Cola
+                Company portfolio.
+              </li>
+              <li>
+                Coordinated cross-agency commercial workflows and managed
+                governance, risk, and delivery accountability across
+                international stakeholders.
+              </li>
+            </ul>
+          </div>
+
+          <div class="job">
+            <div class="job-header">
+              <div>
+                <div class="job-company">Sennep</div>
+                <div class="job-role">
+                  Product Manager – Cross-Platform Application Delivery
+                </div>
+              </div>
+              <div class="job-meta">
+                <div class="job-date">2019 – 2020</div>
+              </div>
+            </div>
+            <ul class="job-bullets">
+              <li>
+                Led development of the Lumi mobile application (iOS &amp;
+                Android), managing React Native and Unity agile delivery cycles.
+              </li>
+            </ul>
+          </div>
+
+          <div class="job">
+            <div class="job-header">
+              <div>
+                <div class="job-company">Critical Mass</div>
+                <div class="job-role">Business Analyst / Product Owner</div>
+              </div>
+              <div class="job-meta">
+                <div class="job-date">2020</div>
+              </div>
+            </div>
+            <ul class="job-bullets">
+              <li>
+                Led GDPR compliance transformation across the Mitsubishi EU
+                digital estate, implementing structured tagging and cookie
+                governance.
+              </li>
+            </ul>
+          </div>
+
+          <div class="job">
+            <div class="job-header">
+              <div>
+                <div class="job-company">Gildan (Barbados)</div>
+                <div class="job-role">
+                  Project Manager – eCommerce &amp; ERP Integration
+                </div>
+              </div>
+              <div class="job-meta">
+                <div class="job-date">2018</div>
+                <div class="job-location">Barbados</div>
+              </div>
+            </div>
+            <ul class="job-bullets">
+              <li>
+                Led Oracle JD Edwards integration with Smarter Commerce CMS,
+                modernising eCommerce workflows and order management pipelines.
+              </li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      (function () {
+        var companyDomains = {
+          "chromaverse ltd": "chromaverse.ai",
+          "service scalers": "servicescalers.com",
+          "craft worldwide": "craftww.com",
+          "wpp / openx": "wpp.com",
+          "sennep": "sennep.com",
+          "critical mass": "criticalmass.com",
+          "gildan (barbados)": "gildan.com",
+          "belgrave digital": "belgravedigital.co.uk"
+        };
+
+        function normalizeName(name) {
+          return (name || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLowerCase();
+        }
+
+        function initialsFor(name) {
+          var cleaned = (name || "")
+            .replace(/\(.*?\)/g, " ")
+            .replace(/[^a-zA-Z0-9]+/g, " ")
+            .trim();
+          if (!cleaned) return "CV";
+          var stopWords = { and: true, the: true, ltd: true, inc: true, group: true };
+          var words = cleaned.split(/\s+/);
+          var picked = [];
+          for (var i = 0; i < words.length; i += 1) {
+            var w = words[i];
+            if (!w) continue;
+            if (picked.length === 0 || !stopWords[w.toLowerCase()]) {
+              picked.push(w.charAt(0));
+            }
+            if (picked.length >= 2) break;
+          }
+          if (picked.length === 1 && words.length > 1) {
+            picked.push(words[words.length - 1].charAt(0));
+          }
+          return picked.join("").slice(0, 2).toUpperCase();
+        }
+
+        function logoCandidates(domain) {
+          return [
+            "https://logo.clearbit.com/" + encodeURIComponent(domain) + "?size=64",
+            "https://www.google.com/s2/favicons?domain=" +
+              encodeURIComponent(domain) +
+              "&sz=64"
+          ];
+        }
+
+        function tryImageSources(img, urls, onSuccess, onComplete) {
+          var i = 0;
+          function next() {
+            if (i >= urls.length) {
+              onComplete();
+              return;
+            }
+            img.onload = function () {
+              if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                onSuccess();
+                onComplete();
+              } else {
+                i += 1;
+                next();
+              }
+            };
+            img.onerror = function () {
+              i += 1;
+              next();
+            };
+            img.src = urls[i];
+          }
+          next();
+        }
+
+        function addCompanyBadges() {
+          var companyNodes = document.querySelectorAll(".job-company");
+          var pending = [];
+          companyNodes.forEach(function (node) {
+            if (node.dataset.logoEnhanced === "true") return;
+            node.dataset.logoEnhanced = "true";
+
+            var companyName = node.textContent.trim();
+            var badge = document.createElement("span");
+            badge.className = "company-favicon";
+            badge.setAttribute("aria-hidden", "true");
+
+            var img = document.createElement("img");
+            var fallback = document.createElement("span");
+            fallback.className = "company-favicon-fallback";
+            fallback.textContent = initialsFor(companyName);
+
+            badge.appendChild(img);
+            badge.appendChild(fallback);
+            node.prepend(badge);
+
+            var domain = companyDomains[normalizeName(companyName)];
+            if (!domain) return;
+
+            img.referrerPolicy = "no-referrer";
+            img.decoding = "async";
+            img.loading = "eager";
+
+            pending.push(
+              new Promise(function (resolve) {
+                tryImageSources(
+                  img,
+                  logoCandidates(domain),
+                  function () {
+                    badge.classList.add("has-image");
+                  },
+                  resolve
+                );
+              })
+            );
+          });
+
+          return Promise.all(pending);
+        }
+
+        if (document.readyState === "loading") {
+          window.__cvCompanyBadgesReady = new Promise(function (resolve) {
+            document.addEventListener("DOMContentLoaded", function () {
+              addCompanyBadges().then(resolve);
+            });
+          });
+        } else {
+          window.__cvCompanyBadgesReady = addCompanyBadges();
+        }
+      })();
+    </script>
+  </body>
+</html>

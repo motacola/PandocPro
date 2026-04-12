@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'fs'
 import path from 'path'
 
@@ -99,14 +99,15 @@ describe('Conversion Edge Cases', () => {
       try {
         await mockAsyncOperation(500)
         expect(true).toBe(false) // Should timeout
-      } catch (error) {
-        expect(error.message).toContain('timed out')
+      } catch (error: unknown) {
+        expect(error).toBeInstanceOf(Error)
+        expect((error as Error).message).toContain('timed out')
       }
     })
 
     it('should handle null inputs gracefully', () => {
       expect(() => {
-        processContent(null as any)
+        processContent(null)
       }).not.toThrow()
     })
   })

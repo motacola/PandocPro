@@ -1,7 +1,12 @@
 import { motion, HTMLMotionProps } from 'framer-motion'
-import { forwardRef } from 'react'
+import { forwardRef, ReactNode } from 'react'
 
-interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'> {
+interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref' | 'children'> {
+   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+   size?: 'sm' | 'md' | 'lg'
+   isLoading?: boolean
++  children?: ReactNode
+ }
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean

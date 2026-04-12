@@ -157,7 +157,7 @@ function isEmptyContent(content: string): boolean {
 }
 
 function isBinaryContent(content: string): boolean {
-  return /[^\x20-\x7E\x0A\x0D\x09]/.test(content)
+  return /[^ -~\n\r\t]/.test(content)
 }
 
 function containsUnicode(text: string): boolean {
